@@ -6,7 +6,7 @@
 <title>RDG Jeans</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{--bg:#111;--bg2:#1a1a1a;--bg3:#222;--border:#2e2e2e;--gold:#c9a84c;--gold2:#e8c97a;--white:#f0ede8;--muted:#888;}
+:root{--bg:#111;--bg2:#1a1a1a;--bg3:#222;--border:#2e2e2e;--gold:#c9a84c;--gold2:#e8c97a;--white:#f0ede8;--muted:#888;--green:#3ecf72;--yellow:#e8c97a;--red:#e05c5c;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--white);font-size:16px;}
 .hdr{background:linear-gradient(135deg,#141414,#1e1c18);border-bottom:1px solid #c9a84c33;padding:16px 26px;display:flex;align-items:center;justify-content:space-between;}
@@ -30,21 +30,22 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--white);f
 .p-right{text-align:right;min-width:120px;}
 .p-right strong{font-size:1.15rem;color:var(--gold);font-weight:700;display:block;}
 .p-right small{font-size:.72rem;color:var(--muted);}
-.mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
 .mc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
 .mc .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.mc .val{font-size:1.45rem;font-weight:700;}
+.mc .val{font-size:1.4rem;font-weight:700;}
 .mc .sub{font-size:.7rem;color:var(--muted);margin-top:3px;}
 .mc.gold{border-color:#c9a84c44;}
 .mc.green{border-color:#3ecf7244;}
-.ftrs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.ftrs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.ftrs-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:4px;}
 .fb{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;}
 .fb.active{background:#c9a84c18;border-color:var(--gold);color:var(--gold);}
 .fb:hover{color:var(--white);}
 .tw{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
-table{width:100%;border-collapse:collapse;font-size:.88rem;}
-thead th{background:var(--bg3);color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:1px;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
-tbody td{padding:11px 14px;border-bottom:1px solid #1a1a1a;vertical-align:middle;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+thead th{background:var(--bg3);color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody td{padding:10px 14px;border-bottom:1px solid #1a1a1a;vertical-align:middle;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:#1a1a1a88;}
 tbody tr.ns{opacity:.35;}
@@ -55,12 +56,32 @@ tbody tr.ns{opacity:.35;}
 .pos.nn{background:var(--border);color:var(--muted);}
 .pw{background:var(--border);border-radius:20px;height:6px;min-width:70px;overflow:hidden;}
 .pb{height:6px;border-radius:20px;}
-.tag{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:8px;}
+.tag{font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:8px;}
 .tag.ta{background:#3ecf7218;color:#3ecf72;border:1px solid #3ecf7233;}
 .tag.tw2{background:#c9a84c18;color:var(--gold);border:1px solid #c9a84c33;}
+.semaforo{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:8px;}
+.semaforo.verde{background:#3ecf7218;color:#3ecf72;border:1px solid #3ecf7233;}
+.semaforo.amarelo{background:#e8c97a18;color:#e8c97a;border:1px solid #e8c97a33;}
+.semaforo.vermelho{background:#e05c5c18;color:#e05c5c;border:1px solid #e05c5c33;}
+.delta{font-size:.75rem;font-weight:700;}
+.delta.pos{color:#3ecf72;}
+.delta.neg{color:#e05c5c;}
+.delta.neu{color:var(--muted);}
+.sec{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin:22px 0 12px;}
 .cg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+.cg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:18px;}
 .cc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
-.cc h3{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.cc h3{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.cc.full{grid-column:1/-1;}
+.region-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:4px;}
+.region-card{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:12px 14px;}
+.region-card .rn{font-size:.75rem;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.region-card .rv{font-size:1.1rem;font-weight:700;}
+.region-card .rs{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.top-card{background:linear-gradient(135deg,#c9a84c0a,#c9a84c18);border:1px solid #c9a84c44;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.top-card .ti{font-size:1.8rem;}
+.top-card .tn{font-size:1rem;font-weight:700;color:var(--gold);}
+.top-card .ts{font-size:.72rem;color:var(--muted);margin-top:3px;}
 .is{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;}
 .is h3{font-size:.78rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
 .ig{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:10px;}
@@ -77,6 +98,9 @@ tbody tr.ns{opacity:.35;}
 .al.ai{background:#c9a84c10;border:1px solid #c9a84c33;color:var(--gold);}
 .al.aok{background:#3ecf7210;border:1px solid #3ecf7233;color:#3ecf72;}
 .al.aer{background:#e05c5c10;border:1px solid #e05c5c33;color:#e05c5c;}
+#loading-bar{display:none;background:#c9a84c10;border:1px solid #c9a84c33;border-radius:7px;padding:10px 14px;font-size:.78rem;color:var(--gold);margin-bottom:10px;}
+
+/* GRUPO */
 #view-grupo{padding:16px 20px;}
 .g-wrap{background:var(--bg2);border:1px solid #c9a84c33;border-radius:14px;overflow:hidden;max-width:960px;margin:0 auto;}
 .g-hdr{background:linear-gradient(135deg,#141414,#1e1c18);border-bottom:1px solid #c9a84c33;padding:20px 26px;display:flex;align-items:center;justify-content:space-between;position:relative;}
@@ -120,8 +144,7 @@ tbody tr.ns{opacity:.35;}
 .g-msg p{font-size:1rem;color:var(--white);line-height:1.6;font-style:italic;}
 .g-msg small{font-size:.78rem;color:var(--gold);display:block;margin-top:5px;letter-spacing:1px;}
 .g-leg{font-size:.78rem;color:var(--muted);text-align:right;line-height:1.8;white-space:nowrap;}
-#loading-bar{display:none;background:#c9a84c10;border:1px solid #c9a84c33;border-radius:7px;padding:10px 14px;font-size:.78rem;color:var(--gold);margin-bottom:10px;}
-@media(max-width:700px){.cg{grid-template-columns:1fr;}.dest-grid{grid-template-columns:1fr;}.g-footer{grid-template-columns:1fr;}}
+@media(max-width:700px){.cg,.cg3{grid-template-columns:1fr;}.dest-grid{grid-template-columns:1fr;}.g-footer{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -145,6 +168,8 @@ tbody tr.ns{opacity:.35;}
     </div>
     <div class="p-right"><strong id="psem">--</strong><small id="ppct">de 24 semanas</small></div>
   </div>
+
+  <!-- MÉTRICAS -->
   <div class="mets">
     <div class="mc gold"><div class="lbl">Vlr L&iacute;quido</div><div class="val" id="m-vlr">--</div><div class="sub" id="m-vlrsub">--</div></div>
     <div class="mc"><div class="lbl">Qtde Pe&ccedil;as</div><div class="val" id="m-qtde">--</div><div class="sub" id="m-qtdesub">--</div></div>
@@ -153,25 +178,47 @@ tbody tr.ns{opacity:.35;}
     <div class="mc"><div class="lbl">Ticket M&eacute;dio</div><div class="val" id="m-tk">--</div><div class="sub" id="m-tksub">--</div></div>
     <div class="mc"><div class="lbl">Cli. Novos</div><div class="val" id="m-cn">--</div><div class="sub" id="m-cnsub">--</div></div>
   </div>
+
+  <!-- TOP PERFORMER -->
+  <div class="top-card" id="top-card" style="margin-bottom:18px;display:none;">
+    <div class="ti">&#127942;</div>
+    <div><div class="tn" id="top-nome">--</div><div class="ts" id="top-sub">--</div></div>
+  </div>
+
+  <!-- FILTROS -->
   <div class="ftrs">
+    <span class="ftrs-label">Per&iacute;odo:</span>
     <button class="fb active" id="f-acumulado" onclick="mudarFiltro('acumulado')">Cole&ccedil;&atilde;o</button>
     <button class="fb" id="f-mes" onclick="mudarFiltro('mes')">M&ecirc;s</button>
     <button class="fb" id="f-semana" onclick="mudarFiltro('semana')">Semana</button>
     <button class="fb" id="f-dia" onclick="mudarFiltro('dia')">Dia</button>
   </div>
+
+  <!-- TABELA PRINCIPAL -->
   <div class="tw">
     <table>
       <thead><tr>
-        <th>#</th><th>Representante</th><th>UF</th><th>% Cota</th>
+        <th>#</th><th>Representante</th><th>Regi&atilde;o</th><th>% Cota</th>
         <th style="min-width:80px">Progresso</th><th>Qtde</th>
-        <th>Vlr L&iacute;quido</th><th>Ticket M&eacute;dio</th><th>Cli. Novos</th><th>Status</th>
+        <th>Vlr L&iacute;quido</th><th>Ticket M&eacute;dio</th><th>Cli. Novos</th>
+        <th>Proje&ccedil;&atilde;o Final</th><th>Ritmo</th><th>Status</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
-  <div class="cg">
+
+  <!-- RESUMO POR REGIÃO -->
+  <div class="sec">Resumo por Regi&atilde;o</div>
+  <div class="region-grid" id="region-grid"></div>
+
+  <!-- CHARTS -->
+  <div class="cg" style="margin-top:20px;">
     <div class="cc"><h3>% Cota Atingida</h3><canvas id="c-cota" height="230"></canvas></div>
+    <div class="cc"><h3>Evolu&ccedil;&atilde;o Semanal &mdash; % Cota Acumulada</h3><canvas id="c-evolucao" height="230"></canvas></div>
+  </div>
+  <div class="cg" style="margin-top:14px;">
     <div class="cc"><h3>Representatividade Qtde &mdash; Cole&ccedil;&atilde;o</h3><canvas id="c-pizza" height="230"></canvas></div>
+    <div class="cc"><h3>Comparativo Cole&ccedil;&otilde;es Anteriores (Qtde Pe&ccedil;as)</h3><canvas id="c-comp" height="230"></canvas></div>
   </div>
 </div>
 
@@ -203,7 +250,10 @@ tbody tr.ns{opacity:.35;}
       </div>
       <div class="g-footer">
         <div class="g-msg"><p id="g-msgt">--</p><small>RDG JEANS &bull; VER&Atilde;O 2027</small></div>
-        <div class="g-leg">&#129001; Ativo &nbsp;|&nbsp; &#11036; Aguardando in&iacute;cio<br><span style="color:var(--gold);font-size:.65rem">&#9733; Destaque da semana</span></div>
+        <div class="g-leg">&#129001; Ativo &nbsp;|&nbsp; &#11036; Aguardando<br><span style="color:var(--gold);font-size:.65rem">&#9733; Destaque da semana</span></div>
+      </div>
+      <div style="text-align:center;margin-top:16px;">
+        <button class="btn" onclick="exportarImagem()" style="padding:12px 32px;font-size:.88rem;">&#128247; Salvar como Imagem</button>
       </div>
     </div>
   </div>
@@ -211,50 +261,67 @@ tbody tr.ns{opacity:.35;}
 
 <!-- DADOS -->
 <div class="view" id="view-dados">
-  <div class="al ai">Os dados s&atilde;o carregados automaticamente da planilha Google Sheets. Clique em Atualizar para recarregar.</div>
+  <div class="al ai">Os dados s&atilde;o carregados automaticamente da planilha Google Sheets.</div>
   <div class="is">
     <h3>Configura&ccedil;&otilde;es</h3>
     <div class="ig">
       <div class="ir"><label>Per&iacute;odo semana</label><input type="text" id="i-sp" placeholder="ex: 27/04 a 03/05"></div>
       <div class="ir"><label>Per&iacute;odo m&ecirc;s</label><input type="text" id="i-mp" placeholder="ex: 01/04 a 30/04"></div>
-      <div class="ir"><label>Data do dia</label><input type="text" id="i-dp" placeholder="ex: 29/04"></div>
+      <div class="ir"><label>Data do dia</label><input type="text" id="i-dp" placeholder="ex: 30/04"></div>
     </div>
-    <div class="ir"><label>Mensagem motivacional</label><textarea id="i-msg" placeholder="Carregando da planilha..."></textarea></div>
+    <div class="ir"><label>Mensagem motivacional</label><textarea id="i-msg" placeholder="Carregando..."></textarea></div>
   </div>
   <div id="loading-bar">Carregando dados da planilha...</div>
   <div class="br2">
-    <button class="btn" onclick="carregarDoSheets()">Atualizar Planilha</button>
+    <button class="btn" onclick="carregarDoSheets()">&#8635; Atualizar Planilha</button>
   </div>
   <div id="status" style="margin-top:10px;"></div>
 </div>
 
 <script>
-var REPS = {
-  '07889':{n:'JUSCELINO',         uf:'BA', r:'Bahia',             c:4000 },
-  '07890':{n:'MADSON E JAU',      uf:'BA', r:'Bahia',             c:4000 },
-  '00035':{n:'GEOVANE',           uf:'CE', r:'Cear\u00e1',        c:5000 },
-  '07606':{n:'WELLS',             uf:'ES', r:'Esp\u00edrito Santo',c:6000 },
-  '07892':{n:'BRUNO FERNANDES',   uf:'GO', r:'Goi\u00e1s/DF/TO',  c:3000 },
-  '06008':{n:'GILIARDE',          uf:'MA', r:'Maranh\u00e3o/Piau\u00ed',c:9000},
-  '07607':{n:'LEANDRO',           uf:'MT', r:'Mato Grosso',       c:8500 },
-  '07608':{n:'ROMILDO',           uf:'MG', r:'Minas Gerais',      c:5000 },
-  '06672':{n:'DANILO',            uf:'MG', r:'Minas Gerais',      c:9500 },
-  '00020':{n:'LAURO',             uf:'PA', r:'Par\u00e1',         c:9000 },
-  '07891':{n:'ALLAN',             uf:'PA', r:'Par\u00e1 e Amap\u00e1',c:4500},
-  '07320':{n:'MARCOS CANDIDO',    uf:'PB', r:'Para\u00edba/RN',   c:3000 },
-  '00018':{n:'RAFAEL',            uf:'PR', r:'Paran\u00e1',       c:13500},
-  '07520':{n:'LUCIANO',           uf:'PR', r:'Paran\u00e1',       c:3500 },
-  '07332':{n:'ISAIAS E GIZELE',   uf:'PE', r:'Pernambuco',        c:3500 },
-  '00032':{n:'EMANUEL E CONRADO', uf:'RS', r:'Rio Grande do Sul', c:18000},
-  '00037':{n:'MARCIO',            uf:'RS', r:'Rio Grande do Sul', c:12500},
-  '00052':{n:'MANO',              uf:'RO', r:'Rond\u00f4nia/Acre',c:7000 },
-  '00045':{n:'SILVIO E VANESSA',  uf:'SC', r:'Santa Catarina',    c:13500},
-  '06693':{n:'JOS\u00c9 PEDRO',   uf:'SC', r:'Santa Catarina',    c:6500 },
-  '00040':{n:'LUIZ',              uf:'SC', r:'Santa Catarina',    c:4000 },
-  '07894':{n:'BRUNO VINICIUS',    uf:'SP', r:'S\u00e3o Paulo',    c:3000 },
-  '07741':{n:'WEMERSON',          uf:'SE', r:'Sergipe/Alagoas',   c:3000 },
+var REPS={
+  '07889':{n:'JUSCELINO',         uf:'BA',r:'Bahia',             c:4000, reg:'Nordeste'},
+  '07890':{n:'MADSON E JAU',      uf:'BA',r:'Bahia',             c:4000, reg:'Nordeste'},
+  '00035':{n:'GEOVANE',           uf:'CE',r:'Cear\u00e1',        c:5000, reg:'Nordeste'},
+  '07606':{n:'WELLS',             uf:'ES',r:'Esp\u00edrito Santo',c:6000, reg:'Sudeste'},
+  '07892':{n:'BRUNO FERNANDES',   uf:'GO',r:'Goi\u00e1s/DF/TO',  c:3000, reg:'Centro-Oeste'},
+  '06008':{n:'GILIARDE',          uf:'MA',r:'Maranh\u00e3o/Piau\u00ed',c:9000,reg:'Nordeste'},
+  '07607':{n:'LEANDRO',           uf:'MT',r:'Mato Grosso',       c:8500, reg:'Centro-Oeste'},
+  '07608':{n:'ROMILDO',           uf:'MG',r:'Minas Gerais',      c:5000, reg:'Sudeste'},
+  '06672':{n:'DANILO',            uf:'MG',r:'Minas Gerais',      c:9500, reg:'Sudeste'},
+  '00020':{n:'LAURO',             uf:'PA',r:'Par\u00e1',         c:9000, reg:'Norte'},
+  '07891':{n:'ALLAN',             uf:'PA',r:'Par\u00e1/Amap\u00e1',c:4500,reg:'Norte'},
+  '07320':{n:'MARCOS CANDIDO',    uf:'PB',r:'Para\u00edba/RN',   c:3000, reg:'Nordeste'},
+  '00018':{n:'RAFAEL',            uf:'PR',r:'Paran\u00e1',       c:13500,reg:'Sul'},
+  '07520':{n:'LUCIANO',           uf:'PR',r:'Paran\u00e1',       c:3500, reg:'Sul'},
+  '07332':{n:'ISAIAS E GIZELE',   uf:'PE',r:'Pernambuco',        c:3500, reg:'Nordeste'},
+  '00032':{n:'EMANUEL E CONRADO', uf:'RS',r:'Rio Grande do Sul', c:18000,reg:'Sul'},
+  '00037':{n:'MARCIO',            uf:'RS',r:'Rio Grande do Sul', c:12500,reg:'Sul'},
+  '00052':{n:'MANO',              uf:'RO',r:'Rond\u00f4nia/Acre',c:7000, reg:'Norte'},
+  '00045':{n:'SILVIO E VANESSA',  uf:'SC',r:'Santa Catarina',    c:13500,reg:'Sul'},
+  '06693':{n:'JOS\u00c9 PEDRO',   uf:'SC',r:'Santa Catarina',    c:6500, reg:'Sul'},
+  '00040':{n:'LUIZ',              uf:'SC',r:'Santa Catarina',    c:4000, reg:'Sul'},
+  '07894':{n:'BRUNO VINICIUS',    uf:'SP',r:'S\u00e3o Paulo',    c:3000, reg:'Sudeste'},
+  '07741':{n:'WEMERSON',          uf:'SE',r:'Sergipe/Alagoas',   c:3000, reg:'Nordeste'},
 };
-var MAPA = {
+
+// Histórico comparativo — apenas reps ativos no V27
+// Inverno 2026 (totais finais)
+var HIST_INV26={
+  '00032':14726,'00045':11123,'00037':9071,'00018':8114,'07607':7596,
+  '06672':6290,'00052':6274,'00020':6248,'06693':5071,'07606':4927,
+  '07608':4143,'06008':3658,'00035':2559,'07520':2387,'07889':2454,
+  '07332':2401,'07890':2012,'07320':1295,'00040':1243,'07741':565
+};
+// Verão 2026 (totais finais)
+var HIST_V26={
+  '00032':17894,'00045':14360,'00018':12969,'00037':12144,'00020':11240,
+  '06672':8515,'00052':6937,'06008':6667,'06693':5737,'07607':2718,
+  '07889':2630,'07890':2393,'00040':2194,'07332':1949,'07320':1765,
+  '00035':3031,'07606':0,'07608':0,'07520':0,'07741':0,'07892':0,'07894':0,'07891':0
+};
+
+var MAPA={
   'EMANUEL BALZAN SILVEIRA':'00032','MARCIO LUIS SCHONS':'00037',
   'RAFAEL NOVAK':'00018','JOSE PEDRO GIACOMINI':'06693',
   'R PERRUTI':'07608','M. C. FERREIRA FILHO':'00052',
@@ -267,13 +334,14 @@ var MAPA = {
   'W J DE OLIVEIRA':'07606','DA VITORIA REPRESENTACOES':'07520',
   'ANTONIO MARCOS CANDIDO':'07320'
 };
-var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060','#9b7fd4','#5ec4a8','#e8a860','#7090d0','#d07090','#90d070','#d0a040','#70c0d0','#c070c0','#a0c060','#c09050','#6080c0','#b06060','#60b080','#a06080','#80a060'];
-var SHEET_ID='17qrRG-WirRmSNkCguLCNn8SmY3ApSdhjjv-g4XRBr4A';
+var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060','#9b7fd4','#5ec4a8','#e8a860','#7090d0','#d07090','#90d070','#d0a040','#70c0d0','#c070c0','#a0c060','#c09050','#6080c0','#b06060','#60b080','#a06082','#80a060'];
+
+var SHEET_ID='1-CH66MhNxaIz38Ey9KoNYq3-sNPXhNBC';
 var SHEET_BASE='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet=';
 
-var dDia=[],dSem=[],dMes=[],dAcum=[];
+var dDia=[],dSem=[],dMes=[],dAcum=[],dHist=[];
 var filtroAtual='acumulado';
-var chartCota=null,chartPizza=null,chartGPizza=null;
+var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null;
 
 function numBR(s){if(!s||!s.trim())return 0;return parseFloat(s.trim().replace(/\./g,'').replace(',','.'))||0;}
 function fmtBR(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -290,49 +358,83 @@ function resolverCod(raw,nome){
   return null;
 }
 
-function parseGeo(txt){
-  if(!txt||!txt.trim())return[];
-  var res=[],linhas=txt.trim().split('\n');
-  for(var i=0;i<linhas.length;i++){
-    var c=linhas[i].split('\t').map(function(s){return s.trim();});
-    if(c.length<10)continue;
-    var nu=c[1].toUpperCase();
-    if(nu.indexOf('RDG JEANS')>=0||nu.indexOf('TOTAL')===0||nu==='REPRESENTANTE')continue;
-    var cod=resolverCod(c[0],nu);
+function parseCSV(csv){
+  var lines=csv.trim().split('\n');
+  if(lines.length<2)return[];
+  var res=[];
+  for(var i=0;i<lines.length;i++){
+    var cols=lines[i].split(',').map(function(s){return s.replace(/^"|"$/g,'').trim();});
+    if(cols.length<10)continue;
+    var col0=cols[0].replace(/\D/g,'');
+    var col1=(cols[1]||'').toUpperCase();
+    if(!col0)continue;
+    if(col1.indexOf('REPRESENTANTE')>=0)continue;
+    if(col1.indexOf('RDG JEANS')>=0)continue;
+    if(col1.indexOf('TOTAL')===0)continue;
+    if(col1.indexOf('ACUMULADO')>=0||col1.indexOf('SEMANA')>=0||col1.indexOf('MES')>=0||col1.indexOf('DIA')>=0)continue;
+    if(col1.indexOf('COD')>=0||col1.indexOf('PRECO')>=0||col1.indexOf('GERENTE')>=0||col1.indexOf('COLE')>=0||col1.indexOf('EXPORT')>=0)continue;
+    var cod=resolverCod(col0,col1);
     if(!cod)continue;
-    var vlr=numBR(c[10]),qtde=numBR(c[17]),ped=numBR(c[19]),cliN=numBR(c[21]);
+    var vlr=numBR(cols[10]),qtde=numBR(cols[17]),ped=numBR(cols[19]),cliN=numBR(cols[21]);
+    if(qtde===0&&vlr===0)continue;
     res.push({cod:cod,vlr:vlr,qtde:qtde,pedidos:ped,cliNov:cliN,ticket:qtde>0?vlr/qtde:0});
   }
   return res;
 }
 
-function parseCSV(csv){
-  var lines=csv.trim().split('\n');if(lines.length<2)return[];
+function parseHistorico(csv){
+  // aba HISTORICO: semana,cod,qtde (ou semana,nome,qtde)
+  var lines=csv.trim().split('\n');
+  if(lines.length<2)return[];
   var res=[];
   for(var i=1;i<lines.length;i++){
     var cols=lines[i].split(',').map(function(s){return s.replace(/^"|"$/g,'').trim();});
-    if(!cols[0]||cols[0]==='COD')continue;
-    var cod=resolverCod(cols[0],(cols[1]||'').toUpperCase());
-    if(!cod)continue;
-    var vlr=numBR(cols[2]),qtde=numBR(cols[3]),ped=numBR(cols[4]),cliN=numBR(cols[5]);
-    res.push({cod:cod,vlr:vlr,qtde:qtde,pedidos:ped,cliNov:cliN,ticket:qtde>0?vlr/qtde:0});
+    if(cols.length<3)continue;
+    var sem=parseInt(cols[0])||0;
+    if(!sem)continue;
+    var cod=resolverCod(cols[1],(cols[2]||'').toUpperCase())||cols[1];
+    var qtde=numBR(cols[2]);
+    // tentar col3 se col2 nao for numero
+    if(!qtde&&cols[3])qtde=numBR(cols[3]);
+    if(qtde>0)res.push({semana:sem,cod:cod,qtde:qtde});
   }
   return res;
 }
 
-function fetchSheet(name){return fetch(SHEET_BASE+encodeURIComponent(name)).then(function(r){return r.text();}).then(parseCSV).catch(function(){return[];});}
+function fetchSheet(name){
+  return fetch(SHEET_BASE+encodeURIComponent(name))
+    .then(function(r){return r.text();})
+    .then(function(csv){return parseCSV(csv);})
+    .catch(function(){return[];});
+}
+
+function fetchHistorico(){
+  return fetch(SHEET_BASE+'HISTORICO')
+    .then(function(r){return r.text();})
+    .then(function(csv){return parseHistorico(csv);})
+    .catch(function(){return[];});
+}
+
 function fetchConfig(){
-  return fetch(SHEET_BASE+'CONFIG').then(function(r){return r.text();}).then(function(csv){
-    var cfg={},lines=csv.trim().split('\n');
-    for(var i=1;i<lines.length;i++){var c=lines[i].split(',').map(function(s){return s.replace(/^"|"$/g,'').trim();});if(c[0]&&c[1])cfg[c[0]]=c[1];}
-    return cfg;
-  }).catch(function(){return{};});
+  return fetch(SHEET_BASE+'CONFIG')
+    .then(function(r){return r.text();})
+    .then(function(csv){
+      var cfg={},lines=csv.trim().split('\n');
+      for(var i=0;i<lines.length;i++){
+        var c=lines[i].split(',').map(function(s){return s.replace(/^"|"$/g,'').replace(/\\/g,'').trim();});
+        if(c[0]&&c[1]&&c[0].indexOf('CHAVE')<0&&c[0].indexOf('CONFIG')<0)cfg[c[0]]=c[1];
+      }
+      return cfg;
+    }).catch(function(){return{};});
 }
 
 function carregarDoSheets(){
   document.getElementById('loading-bar').style.display='block';
-  Promise.all([fetchSheet('ACUMULADO'),fetchSheet('SEMANA'),fetchSheet('MES'),fetchSheet('DIA'),fetchConfig()]).then(function(r){
-    dAcum=r[0];dSem=r[1];dMes=r[2];dDia=r[3];var cfg=r[4];
+  Promise.all([
+    fetchSheet('ACUMULADO'),fetchSheet('SEMANA'),fetchSheet('MES'),
+    fetchSheet('DIA'),fetchHistorico(),fetchConfig()
+  ]).then(function(r){
+    dAcum=r[0];dSem=r[1];dMes=r[2];dDia=r[3];dHist=r[4];var cfg=r[5];
     if(cfg['PERIODO_SEM'])document.getElementById('i-sp').value=cfg['PERIODO_SEM'];
     if(cfg['PERIODO_MES'])document.getElementById('i-mp').value=cfg['PERIODO_MES'];
     if(cfg['DATA_DIA'])document.getElementById('i-dp').value=cfg['DATA_DIA'];
@@ -341,7 +443,7 @@ function carregarDoSheets(){
     var tot=dAcum.length+dSem.length+dMes.length+dDia.length;
     document.getElementById('status').innerHTML=tot>0
       ?'<div class="al aok">Dados carregados &mdash; Acumulado: '+dAcum.length+' | Semana: '+dSem.length+' | M\u00eas: '+dMes.length+' | Dia: '+dDia.length+'</div>'
-      :'<div class="al aer">Nenhum dado encontrado. Verifique as abas da planilha.</div>';
+      :'<div class="al aer">Nenhum dado encontrado.</div>';
     renderGerencial();
   });
 }
@@ -353,12 +455,32 @@ function buildLista(dados){
   for(var i=0;i<chaves.length;i++){
     var cod=chaves[i],info=REPS[cod],v=m[cod]||{};
     var qtde=v.qtde||0,vlr=v.vlr||0;
-    lista.push({cod:cod,nome:info.n,uf:info.uf,regiao:info.r,cota:info.c,
+    lista.push({cod:cod,nome:info.n,uf:info.uf,regiao:info.r,reg:info.reg,cota:info.c,
       qtde:qtde,vlr:vlr,cliNov:v.cliNov||0,pedidos:v.pedidos||0,
       ticket:qtde>0?vlr/qtde:0,pct:qtde>0?(qtde/info.c*100):0,ativo:qtde>0});
   }
   lista.sort(function(a,b){return b.pct-a.pct;});
   return lista;
+}
+
+function calcProjecao(qtde, cota){
+  var ini=new Date('2026-04-15'),h=new Date();
+  var diasPassados=Math.max((h-ini)/864e5,1);
+  var totalDias=(new Date('2026-09-30')-ini)/864e5;
+  var ritmo=qtde/diasPassados;
+  return Math.round(ritmo*totalDias);
+}
+
+function calcRitmo(qtde, cota){
+  var ini=new Date('2026-04-15'),h=new Date();
+  var diasPassados=Math.max((h-ini)/864e5,1);
+  var totalDias=(new Date('2026-09-30')-ini)/864e5;
+  var necessario=cota/totalDias;
+  var atual=qtde/diasPassados;
+  if(qtde===0)return'aguard';
+  if(atual>=necessario*0.9)return'verde';
+  if(atual>=necessario*0.6)return'amarelo';
+  return'vermelho';
 }
 
 function corBarra(p){return p>=100?'#3ecf72':p>=75?'#c9a84c':p>=50?'#e8c97a':p>0?'#e8c97a':'#444';}
@@ -384,7 +506,7 @@ function renderGerencial(){
   var pct=tCota>0?(tQ/tCota*100):0;
   var atv=laAcum.filter(function(l){return l.ativo;}).length;
   var tk=tQ>0?(tV/tQ):0;
-  var subs={acumulado:'colecao',semana:'esta semana',mes:'este mes',dia:'hoje'};
+  var subs={acumulado:'cole\u00e7\u00e3o',semana:'esta semana',mes:'este m\u00eas',dia:'hoje'};
   var s=subs[filtroAtual];
   setText('m-vlr',tV>0?'R$ '+fmtBR(tV):'--');setText('m-vlrsub',s);
   setText('m-qtde',tQ>0?fmtInt(tQ)+' pc':'--');setText('m-qtdesub',s);
@@ -392,32 +514,83 @@ function renderGerencial(){
   setText('m-atv',atv+' / 23');
   setText('m-tk',tk>0?'R$ '+tk.toFixed(2):'--');setText('m-tksub',s);
   setText('m-cn',tC>0?tC:'--');setText('m-cnsub',s);
+
+  // TOP PERFORMER
+  var ativos=lista.filter(function(l){return l.ativo;});
+  if(ativos.length>0){
+    var top=ativos[0];
+    document.getElementById('top-card').style.display='flex';
+    setText('top-nome',top.nome);
+    setText('top-sub','Lider da cole\u00e7\u00e3o &mdash; '+top.pct.toFixed(1)+'% da cota &bull; '+fmtInt(top.qtde)+' pe\u00e7as');
+    document.getElementById('top-sub').innerHTML='L&iacute;der da cole&ccedil;&atilde;o &mdash; '+top.pct.toFixed(1)+'% da cota &bull; '+fmtInt(top.qtde)+' pe&ccedil;as';
+  }
+
+  // TABELA
   var rank=0,tb=document.getElementById('tbody'),html='';
   if(lista.every(function(l){return !l.ativo;})){
-    tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px;">Cole os dados na aba Dados para visualizar.</td></tr>';
-    return;
+    tb.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:28px;">Cole os dados na planilha para visualizar.</td></tr>';
+  } else {
+    for(var i=0;i<lista.length;i++){
+      var r=lista[i];if(r.ativo)rank++;
+      var pos=r.ativo?rank:'--';
+      var bdg=pos===1?'<span class="pos g">1</span>':pos===2?'<span class="pos s">2</span>':pos===3?'<span class="pos b">3</span>':'<span class="pos nn">'+pos+'</span>';
+      var cor=corBarra(r.pct),w=Math.min(r.pct,100).toFixed(1);
+      var proj=r.ativo?calcProjecao(r.qtde,r.cota):0;
+      var ritmo=r.ativo?calcRitmo(r.qtde,r.cota):'aguard';
+      var ritmoHtml=ritmo==='verde'?'<span class="semaforo verde">&#9679; No ritmo</span>'
+        :ritmo==='amarelo'?'<span class="semaforo amarelo">&#9679; Aten&ccedil;&atilde;o</span>'
+        :ritmo==='vermelho'?'<span class="semaforo vermelho">&#9679; Risco</span>'
+        :'<span class="semaforo" style="color:var(--muted)">&#9675; Aguard.</span>';
+      var projHtml=r.ativo?'<span style="font-size:.8rem">'+(proj>=r.cota?'<span style="color:#3ecf72">':proj>=r.cota*0.8?'<span style="color:#e8c97a">':'<span style="color:#e05c5c">')+fmtInt(proj)+' / '+fmtInt(r.cota)+'</span></span>':'--';
+      html+='<tr class="'+(r.ativo?'':'ns')+'">'
+        +'<td>'+bdg+'</td>'
+        +'<td style="font-weight:600">'+r.nome+'</td>'
+        +'<td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td>'
+        +'<td style="font-weight:700;color:'+cor+'">'+r.pct.toFixed(1)+'%</td>'
+        +'<td><div class="pw"><div class="pb" style="width:'+w+'%;background:'+cor+'"></div></div></td>'
+        +'<td>'+fmtInt(r.qtde)+'</td>'
+        +'<td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td>'
+        +'<td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td>'
+        +'<td>'+r.cliNov+'</td>'
+        +'<td>'+projHtml+'</td>'
+        +'<td>'+ritmoHtml+'</td>'
+        +'<td><span class="tag '+(r.ativo?'ta':'tw2')+'">'+(r.ativo?'Ativo':'Aguard.')+'</span></td>'
+        +'</tr>';
+    }
+    tb.innerHTML=html;
   }
-  for(var i=0;i<lista.length;i++){
-    var r=lista[i];if(r.ativo)rank++;
-    var pos=r.ativo?rank:'--';
-    var bdg=pos===1?'<span class="pos g">1</span>':pos===2?'<span class="pos s">2</span>':pos===3?'<span class="pos b">3</span>':'<span class="pos nn">'+pos+'</span>';
-    var cor=corBarra(r.pct),w=Math.min(r.pct,100).toFixed(1);
-    html+='<tr class="'+(r.ativo?'':'ns')+'">'
-      +'<td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td>'
-      +'<td style="color:var(--muted)">'+r.uf+'</td>'
-      +'<td style="font-weight:700;color:'+cor+'">'+r.pct.toFixed(1)+'%</td>'
-      +'<td><div class="pw"><div class="pb" style="width:'+w+'%;background:'+cor+'"></div></div></td>'
-      +'<td>'+fmtInt(r.qtde)+'</td>'
-      +'<td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td>'
-      +'<td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td>'
-      +'<td>'+r.cliNov+'</td>'
-      +'<td><span class="tag '+(r.ativo?'ta':'tw2')+'">'+(r.ativo?'Ativo':'Aguard.')+'</span></td>'
-      +'</tr>';
-  }
-  tb.innerHTML=html;
-  var ativos=lista.filter(function(l){return l.ativo;});
+
+  renderRegioes(laAcum);
   renderBarChart(ativos);
   renderPieGerencial(ativos);
+  renderEvolucao();
+  renderComparativo(laAcum);
+}
+
+function renderRegioes(lista){
+  var regioes={};
+  for(var i=0;i<lista.length;i++){
+    var r=lista[i];
+    if(!regioes[r.reg])regioes[r.reg]={qtde:0,vlr:0,cota:0,ativos:0};
+    regioes[r.reg].qtde+=r.qtde;
+    regioes[r.reg].vlr+=r.vlr;
+    regioes[r.reg].cota+=r.cota;
+    if(r.ativo)regioes[r.reg].ativos++;
+  }
+  var html='';
+  var rgs=['Sul','Sudeste','Nordeste','Norte','Centro-Oeste'];
+  for(var i=0;i<rgs.length;i++){
+    var rg=rgs[i],d=regioes[rg]||{qtde:0,vlr:0,cota:0,ativos:0};
+    var pct=d.cota>0?(d.qtde/d.cota*100):0;
+    var cor=corBarra(pct);
+    html+='<div class="region-card">'
+      +'<div class="rn">'+rg+'</div>'
+      +'<div class="rv" style="color:'+cor+'">'+pct.toFixed(1)+'%</div>'
+      +'<div class="rs">'+fmtInt(d.qtde)+' pc &bull; '+d.ativos+' ativos</div>'
+      +'<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:6px;"><div style="height:4px;border-radius:20px;width:'+Math.min(pct,100).toFixed(1)+'%;background:'+cor+'"></div></div>'
+      +'</div>';
+  }
+  document.getElementById('region-grid').innerHTML=html;
 }
 
 function renderBarChart(atv){
@@ -427,7 +600,7 @@ function renderBarChart(atv){
     labels:atv.map(function(l){return l.nome;}),
     datasets:[{data:atv.map(function(l){return l.pct;}),backgroundColor:atv.map(function(l){return corBarra(l.pct);}),borderRadius:4}]
   },options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw.toFixed(1)+'%';}}}},
-    scales:{x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return v+'%';}},grid:{color:'#2e2e2e'}}}}});
+    scales:{x:{ticks:{color:'#888',font:{size:8}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return v+'%';}},grid:{color:'#2e2e2e'}}}}});
 }
 
 function renderPieGerencial(atv){
@@ -441,6 +614,54 @@ function renderPieGerencial(atv){
     legend:{position:'right',labels:{color:'#aaa',font:{size:9},boxWidth:9,padding:6}},
     tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'%';}}}
   }}});
+}
+
+function renderEvolucao(){
+  var ctx=document.getElementById('c-evolucao').getContext('2d');
+  if(chartEvolucao)chartEvolucao.destroy();
+  if(!dHist||dHist.length===0){
+    ctx.fillStyle='#888';ctx.font='13px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Adicione aba HISTORICO na planilha',ctx.canvas.width/2,ctx.canvas.height/2);
+    return;
+  }
+  // agrupar por semana
+  var semanas={};
+  for(var i=0;i<dHist.length;i++){
+    var s=dHist[i].semana;
+    if(!semanas[s])semanas[s]=0;
+    semanas[s]+=dHist[i].qtde;
+  }
+  var sks=Object.keys(semanas).map(Number).sort(function(a,b){return a-b;});
+  var tCota=Object.keys(REPS).reduce(function(s,k){return s+REPS[k].c;},0);
+  var labels=sks.map(function(s){return 'Sem '+s;});
+  var valores=sks.map(function(s){return (semanas[s]/tCota*100).toFixed(1)*1;});
+  chartEvolucao=new Chart(ctx,{type:'line',data:{
+    labels:labels,
+    datasets:[{label:'% Cota',data:valores,borderColor:'#c9a84c',backgroundColor:'#c9a84c22',fill:true,tension:.4,pointBackgroundColor:'#c9a84c',pointRadius:4}]
+  },options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw.toFixed(1)+'%';}}}},
+    scales:{x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return v+'%';}},grid:{color:'#2e2e2e'}}}}});
+}
+
+function renderComparativo(listaAtual){
+  var ctx=document.getElementById('c-comp').getContext('2d');
+  if(chartComp)chartComp.destroy();
+  // apenas reps ativos no V27 que tenham historico
+  var repsComComp=listaAtual.filter(function(r){
+    return r.ativo&&(HIST_INV26[r.cod]||HIST_V26[r.cod]);
+  }).slice(0,10);
+  var labels=repsComComp.map(function(r){return r.nome;});
+  var v27=repsComComp.map(function(r){return r.qtde;});
+  var inv26=repsComComp.map(function(r){return HIST_INV26[r.cod]||0;});
+  var v26=repsComComp.map(function(r){return HIST_V26[r.cod]||0;});
+  chartComp=new Chart(ctx,{type:'bar',data:{
+    labels:labels,
+    datasets:[
+      {label:'V\u00e3o 2027',data:v27,backgroundColor:'#c9a84c',borderRadius:3},
+      {label:'Inverno 2026',data:inv26,backgroundColor:'#60c9e888',borderRadius:3},
+      {label:'V\u00e3o 2026',data:v26,backgroundColor:'#3ecf7244',borderRadius:3}
+    ]
+  },options:{responsive:true,plugins:{legend:{labels:{color:'#aaa',font:{size:9}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtInt(c.raw)+' pc';}}}},
+    scales:{x:{ticks:{color:'#888',font:{size:8}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}}}}});
 }
 
 function renderGrupo(){
@@ -511,7 +732,7 @@ function renderPizzaGrupo(atv){
         txtX:px3+(cosA>=0?5:-5),txtAlign:cosA>=0?'left':'right',
         nome:ch.data.labels[i],pct:pct,cor:CORES[i%CORES.length]});
     });
-    var minD=24;
+    var minD=30;
     var left=labels.filter(function(l){return l.cosA<0;}).sort(function(a,b){return a.py3-b.py3;});
     var right=labels.filter(function(l){return l.cosA>=0;}).sort(function(a,b){return a.py3-b.py3;});
     function ajust(g){
@@ -524,12 +745,12 @@ function renderPizzaGrupo(atv){
       ctx2.strokeStyle=lb.cor;ctx2.lineWidth=1.2;
       ctx2.beginPath();ctx2.moveTo(lb.px1,lb.py1);ctx2.lineTo(lb.px2,lb.py2);ctx2.lineTo(lb.px3,lb.py3);ctx2.stroke();
       ctx2.fillStyle=lb.cor;ctx2.beginPath();ctx2.arc(lb.px3,lb.py3,2.5,0,Math.PI*2);ctx2.fill();
-      ctx2.fillStyle='#f0ede8';ctx2.font='bold 13px Segoe UI';
-      ctx2.textAlign=lb.txtAlign;ctx2.textBaseline='bottom';
-      ctx2.fillText(lb.nome,lb.txtX,lb.py3);
-      ctx2.fillStyle=lb.cor;ctx2.font='bold 12px Segoe UI';
-      ctx2.textBaseline='top';
-      ctx2.fillText(lb.pct.toFixed(1)+'%',lb.txtX,lb.py3+2);
+      ctx2.fillStyle='#f0ede8';ctx2.font='bold 11px Segoe UI';
+      ctx2.textAlign=lb.txtAlign;ctx2.textBaseline='middle';
+      ctx2.fillText(lb.nome,lb.txtX,lb.py3-7);
+      ctx2.fillStyle=lb.cor;ctx2.font='bold 10px Segoe UI';
+      ctx2.textBaseline='middle';
+      ctx2.fillText(lb.pct.toFixed(1)+'%',lb.txtX,lb.py3+7);
       ctx2.restore();
     });
   }}}});
@@ -573,37 +794,32 @@ function mudarFiltro(f){
   renderGerencial();
 }
 
-// dados atualizados — 30/04
-dAcum=[
-  {cod:'00032',vlr:406569.819,qtde:3311,pedidos:16,cliNov:1, ticket:406569.819/3311},
-  {cod:'00018',vlr:365924.815,qtde:2884,pedidos:12,cliNov:1, ticket:365924.815/2884},
-  {cod:'00037',vlr:267287.6,  qtde:2084,pedidos:13,cliNov:1, ticket:267287.6/2084},
-  {cod:'06693',vlr:126868.3,  qtde:1017,pedidos:6, cliNov:0, ticket:126868.3/1017},
-  {cod:'07608',vlr:62598.2,   qtde:468, pedidos:2, cliNov:1, ticket:62598.2/468},
-  {cod:'07607',vlr:61832.4,   qtde:466, pedidos:3, cliNov:0, ticket:61832.4/466},
-  {cod:'00052',vlr:61796.3,   qtde:497, pedidos:2, cliNov:0, ticket:61796.3/497},
-  {cod:'07891',vlr:38902,     qtde:300, pedidos:4, cliNov:4, ticket:38902/300},
-  {cod:'00040',vlr:32089.4,   qtde:266, pedidos:1, cliNov:0, ticket:32089.4/266},
-  {cod:'07606',vlr:23803.8,   qtde:182, pedidos:2, cliNov:0, ticket:23803.8/182},
-  {cod:'07890',vlr:20063.4,   qtde:166, pedidos:1, cliNov:0, ticket:20063.4/166}
-];
-dMes=dAcum;
+// dados embutidos para preview
 dSem=[
-  {cod:'00018',vlr:277857.215,qtde:2210,pedidos:10,cliNov:0, ticket:277857.215/2210},
-  {cod:'00032',vlr:143645.1,  qtde:1109,pedidos:8, cliNov:0, ticket:143645.1/1109},
-  {cod:'00037',vlr:114708.7,  qtde:913, pedidos:6, cliNov:1, ticket:114708.7/913},
-  {cod:'07608',vlr:37129,     qtde:260, pedidos:1, cliNov:0, ticket:37129/260},
-  {cod:'00040',vlr:32089.4,   qtde:266, pedidos:1, cliNov:0, ticket:32089.4/266},
-  {cod:'07607',vlr:27516.3,   qtde:217, pedidos:2, cliNov:0, ticket:27516.3/217},
-  {cod:'07891',vlr:24811.4,   qtde:186, pedidos:2, cliNov:2, ticket:24811.4/186},
-  {cod:'07606',vlr:23803.8,   qtde:182, pedidos:2, cliNov:0, ticket:23803.8/182},
-  {cod:'07890',vlr:20063.4,   qtde:166, pedidos:1, cliNov:0, ticket:20063.4/166}
+  {cod:'00018',vlr:277857.215,qtde:2210,pedidos:10,cliNov:0,ticket:277857.215/2210},
+  {cod:'00032',vlr:143645.1,  qtde:1109,pedidos:8, cliNov:0,ticket:143645.1/1109},
+  {cod:'00037',vlr:114708.7,  qtde:913, pedidos:6, cliNov:1,ticket:114708.7/913},
+  {cod:'07608',vlr:37129,     qtde:260, pedidos:1, cliNov:0,ticket:37129/260},
+  {cod:'00040',vlr:32089.4,   qtde:266, pedidos:1, cliNov:0,ticket:32089.4/266},
+  {cod:'07607',vlr:27516.3,   qtde:217, pedidos:2, cliNov:0,ticket:27516.3/217},
+  {cod:'07891',vlr:24811.4,   qtde:186, pedidos:2, cliNov:2,ticket:24811.4/186},
+  {cod:'07606',vlr:23803.8,   qtde:182, pedidos:2, cliNov:0,ticket:23803.8/182},
+  {cod:'07890',vlr:20063.4,   qtde:166, pedidos:1, cliNov:0,ticket:20063.4/166}
 ];
-dDia=[
-  {cod:'00018',vlr:158246.97, qtde:1248,pedidos:5, cliNov:0, ticket:158246.97/1248},
-  {cod:'00032',vlr:44482.7,   qtde:343, pedidos:2, cliNov:0, ticket:44482.7/343},
-  {cod:'07607',vlr:5957.5,    qtde:45,  pedidos:1, cliNov:0, ticket:5957.5/45}
+var dc=[
+  {cod:'00032',vlr:406569.819,qtde:3311,pedidos:16,cliNov:1,ticket:406569.819/3311},
+  {cod:'00018',vlr:365924.815,qtde:2884,pedidos:12,cliNov:1,ticket:365924.815/2884},
+  {cod:'00037',vlr:267287.6,  qtde:2084,pedidos:13,cliNov:1,ticket:267287.6/2084},
+  {cod:'06693',vlr:126868.3,  qtde:1017,pedidos:6, cliNov:0,ticket:126868.3/1017},
+  {cod:'07608',vlr:62598.2,   qtde:468, pedidos:2, cliNov:1,ticket:62598.2/468},
+  {cod:'07607',vlr:61832.4,   qtde:466, pedidos:3, cliNov:0,ticket:61832.4/466},
+  {cod:'00052',vlr:61796.3,   qtde:497, pedidos:2, cliNov:0,ticket:61796.3/497},
+  {cod:'07891',vlr:38902,     qtde:300, pedidos:4, cliNov:4,ticket:38902/300},
+  {cod:'00040',vlr:32089.4,   qtde:266, pedidos:1, cliNov:0,ticket:32089.4/266},
+  {cod:'07606',vlr:23803.8,   qtde:182, pedidos:2, cliNov:0,ticket:23803.8/182},
+  {cod:'07890',vlr:20063.4,   qtde:166, pedidos:1, cliNov:0,ticket:20063.4/166}
 ];
+dMes=dc;dAcum=dc;dDia=[];
 document.getElementById('i-sp').value='27/04 a 03/05';
 document.getElementById('i-mp').value='01/04 a 30/04';
 document.getElementById('i-dp').value='30/04';
