@@ -548,68 +548,104 @@ function renderGrupo(){
   renderPizzaGrupo(atv);setText('g-msgt',msg);
 }
 
+
 function renderPizzaGrupo(atv){
   var canvasEl=document.getElementById('c-gpizza');canvasEl.height=600;
   var ctx=canvasEl.getContext('2d');if(chartGPizza)chartGPizza.destroy();
   var total=atv.reduce(function(s,l){return s+l.qtde;},0);
-  chartGPizza=new Chart(ctx,{type:'pie',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:2,borderColor:'#222'}]},options:{responsive:true,layout:{padding:0},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}
-  ,animation:{onComplete:function(){
-    var ch=this,ctx2=ch.ctx,meta=ch.getDatasetMeta(0),ds=ch.data.datasets[0],labels=ch.data.labels;
-    meta.data.forEach(function(arc,i){
-      var pct=ds.data[i]/total*100;
-      var angle=(arc.startAngle+arc.endAngle)/2;
-      var cosA=Math.cos(angle);
-      var sinA=Math.sin(angle);
-      var outerR=arc.outerRadius;
-      var cx=arc.x;
-      var cy=arc.y;
+  
+  var labelPlugin={
+    id:'labelPlugin',
+    afterDatasetsDraw:function(chart){
+      var ctx2=chart.ctx;
+      var meta=chart.getDatasetMeta(0);
+      var labels=chart.data.labels;
+      var data=chart.data.datasets[0].data;
+      var colors=chart.data.datasets[0].backgroundColor;
+      var positions=[];
       
-      // Ponto na borda da fatia
-      var px1=cx+cosA*outerR;
-      var py1=cy+sinA*outerR;
+      meta.data.forEach(function(arc,i){
+        var angle=(arc.startAngle+arc.endAngle)/2;
+        var outerR=arc.outerRadius;
+        var cx=arc.x;
+        var cy=arc.y;
+        
+        var px1=cx+Math.cos(angle)*outerR;
+        var py1=cy+Math.sin(angle)*outerR;
+        var px2=cx+Math.cos(angle)*(outerR+80);
+        var py2=cy+Math.sin(angle)*(outerR+80);
+        
+        ctx2.strokeStyle=colors[i];
+        ctx2.lineWidth=2;
+        ctx2.beginPath();
+        ctx2.moveTo(px1,py1);
+        ctx2.lineTo(px2,py2);
+        ctx2.stroke();
+        
+        // Bolinha no final da linha
+        ctx2.fillStyle=colors[i];
+        ctx2.beginPath();
+        ctx2.arc(px2,py2,3,0,Math.PI*2);
+        ctx2.fill();
+        
+        var txtX=px2+Math.cos(angle)*15;
+        var txtAlign=Math.cos(angle)>=0?'left':'right';
+        var pct=(data[i]/total*100).toFixed(1);
+        var label=labels[i];
+        
+        positions.push({x:txtX,y:py2,label:label,pct:pct,color:colors[i],align:txtAlign,index:i});
+      });
       
-      // Ponto de extensão (reta)
-      var distExt=60;
-      var px2=cx+cosA*(outerR+distExt);
-      var py2=cy+sinA*(outerR+distExt);
-      
-      // Posição do texto
-      var txtX=px2+cosA*15;
-      var txtY=py2;
-      var txtAlign=cosA>=0?'left':'right';
-      
-      // Desenhar linha reta
-      ctx2.save();
-      ctx2.strokeStyle=CORES[i%CORES.length];
-      ctx2.lineWidth=1.5;
-      ctx2.beginPath();
-      ctx2.moveTo(px1,py1);
-      ctx2.lineTo(px2,py2);
-      ctx2.stroke();
-      
-      // Desenhar ponto
-      ctx2.fillStyle=CORES[i%CORES.length];
-      ctx2.beginPath();
-      ctx2.arc(px2,py2,2.5,0,Math.PI*2);
-      ctx2.fill();
-      
-      // Nome
-      ctx2.fillStyle='#f0ede8';
-      ctx2.font='bold 20px Segoe UI';
-      ctx2.textAlign=txtAlign;
-      ctx2.textBaseline='middle';
-      ctx2.fillText(labels[i],txtX,txtY-11);
-      
-      // Percentual
-      ctx2.fillStyle=CORES[i%CORES.length];
-      ctx2.font='bold 18px Segoe UI';
-      ctx2.fillText(pct.toFixed(1)+'%',txtX,txtY+11);
-      
-      ctx2.restore();
-    });
-  }}}});
+      // Segundo pass: desenhar com ajuste de sobreposição
+      positions.forEach(function(pos,idx){
+        var offsetY=0;
+        var minDist=40;
+        
+        // Verificar distância com outros
+        positions.forEach(function(other,oidx){
+          if(idx!==oidx){
+            var dist=Math.abs(pos.y-other.y);
+            if(dist<minDist){
+              offsetY=Math.abs(pos.y-other.y)<20?(idx<oidx?-25:25):0;
+            }
+          }
+        });
+        
+        ctx2.fillStyle='#f0ede8';
+        ctx2.font='bold 16px Segoe UI';
+        ctx2.textAlign=pos.align;
+        ctx2.textBaseline='middle';
+        ctx2.fillText(pos.label,pos.x,pos.y+offsetY-12);
+        
+        ctx2.fillStyle=pos.color;
+        ctx2.font='bold 14px Segoe UI';
+        ctx2.fillText(pos.pct+'%',pos.x,pos.y+offsetY+12);
+      });
+    }
+  };
+  
+  chartGPizza=new Chart(ctx,{
+    type:'pie',
+    plugins:[labelPlugin],
+    data:{
+      labels:atv.map(function(l){return l.nome;}),
+      datasets:[{
+        data:atv.map(function(l){return l.qtde;}),
+        backgroundColor:CORES.slice(0,atv.length),
+        borderWidth:2,
+        borderColor:'#222'
+      }]
+    },
+    options:{
+      responsive:true,
+      layout:{padding:200},
+      plugins:{
+        legend:{display:false},
+        tooltip:{enabled:false}
+      }
+    }
+  });
 }
-
 function calcDestaques(listaSem){
   var dest=[],usados=[];
   var evol=listaSem.filter(function(r){return r.ativo;}).sort(function(a,b){return b.pct-a.pct;});
