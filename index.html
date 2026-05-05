@@ -120,19 +120,19 @@ tbody tr.ns{opacity:.35;}
 .g-col-hdrs span:nth-child(n+3){text-align:right;}
 
 /* RANKING COMPACTO */
-.g-list{display:flex;flex-direction:column;gap:2px;}
-.gi{display:grid;grid-template-columns:44px 1fr 50px 88px 100px 90px;align-items:center;gap:6px;background:var(--bg3);border-radius:6px;padding:7px 12px;border:1px solid transparent;}
+.g-list{display:flex;flex-direction:column;gap:1px;}
+.gi{display:grid;grid-template-columns:44px 1fr 50px 88px 100px 90px;align-items:center;gap:6px;background:var(--bg3);border-radius:6px;padding:5px 12px;border:1px solid transparent;}
 .gi.t1{background:#c9a84c12;border-color:#c9a84c55;}
 .gi.t2{background:#a0a0b00a;border-color:#a0a0b033;}
 .gi.t3{background:#8b5e3c0a;border-color:#8b5e3c33;}
 .gi.gns{opacity:.4;}
 .g-num{font-size:1rem;font-weight:800;text-align:center;color:var(--muted);}
-.gnm{font-size:1rem;font-weight:700;}
-.gnm small{font-size:.78rem;color:var(--muted);display:block;font-weight:400;margin-top:1px;}
-.guf{font-size:.9rem;text-align:right;font-weight:700;}
-.gpct{font-size:1.05rem;font-weight:800;text-align:right;}
-.gtk{font-size:.88rem;font-weight:700;color:var(--white);text-align:right;}
-.gop{font-size:.88rem;font-weight:700;color:var(--white);text-align:right;}
+.gnm{font-size:1.15rem;font-weight:700;}
+.gnm small{font-size:.85rem;color:var(--muted);display:block;font-weight:400;margin-top:1px;}
+.guf{font-size:.95rem;text-align:right;font-weight:700;}
+.gpct{font-size:1.1rem;font-weight:800;text-align:right;}
+.gtk{font-size:.92rem;font-weight:700;color:var(--white);text-align:right;}
+.gop{font-size:.92rem;font-weight:700;color:var(--white);text-align:right;}
 
 .g-pizza-bottom{margin-top:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;}
 .g-pizza-title{font-size:.88rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:700;}
@@ -549,17 +549,17 @@ function renderGrupo(){
 }
 
 function renderPizzaGrupo(atv){
-  var canvasEl=document.getElementById('c-gpizza');canvasEl.height=500;
+  var canvasEl=document.getElementById('c-gpizza');canvasEl.height=700;
   var ctx=canvasEl.getContext('2d');if(chartGPizza)chartGPizza.destroy();
   var total=atv.reduce(function(s,l){return s+l.qtde;},0);
-  chartGPizza=new Chart(ctx,{type:'pie',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:2,borderColor:'#222'}]},options:{responsive:true,layout:{padding:{top:110,bottom:110,left:170,right:170}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}
+  chartGPizza=new Chart(ctx,{type:'pie',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:2,borderColor:'#222'}]},options:{responsive:true,layout:{padding:{top:180,bottom:180,left:250,right:250}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}
   ,animation:{onComplete:function(){
     var ch=this,ctx2=ch.ctx,meta=ch.getDatasetMeta(0),ds=ch.data.datasets[0],labels=[];
-    meta.data.forEach(function(arc,i){var pct=ds.data[i]/total*100,angle=(arc.startAngle+arc.endAngle)/2,cosA=Math.cos(angle),sinA=Math.sin(angle),outerR=arc.outerRadius,cx=arc.x,cy=arc.y,px2=cx+cosA*(outerR+22),py2=cy+sinA*(outerR+22),px3=px2+(cosA>=0?28:-28);labels.push({cosA:cosA,px1:cx+cosA*outerR,py1:cy+sinA*outerR,px2:px2,py2:py2,px3:px3,py3:py2,txtX:px3+(cosA>=0?5:-5),txtAlign:cosA>=0?'left':'right',nome:ch.data.labels[i],pct:pct,cor:CORES[i%CORES.length]});});
-    var minD=30,left=labels.filter(function(l){return l.cosA<0;}).sort(function(a,b){return a.py3-b.py3;}),right=labels.filter(function(l){return l.cosA>=0;}).sort(function(a,b){return a.py3-b.py3;});
-    function ajust(g){for(var k=1;k<g.length;k++)if(g[k].py3-g[k-1].py3<minD)g[k].py3=g[k-1].py3+minD;for(var k=g.length-2;k>=0;k--)if(g[k+1].py3-g[k].py3<minD)g[k].py3=g[k+1].py3-minD;}
+    meta.data.forEach(function(arc,i){var pct=ds.data[i]/total*100,angle=(arc.startAngle+arc.endAngle)/2,cosA=Math.cos(angle),sinA=Math.sin(angle),outerR=arc.outerRadius,cx=arc.x,cy=arc.y,dist=outerR+80,px=cx+cosA*dist,py=cy+sinA*dist;labels.push({angle:angle,cosA:cosA,sinA:sinA,px1:cx+cosA*outerR,py1:cy+sinA*outerR,px:px,py:py,nome:ch.data.labels[i],pct:pct,cor:CORES[i%CORES.length]});});
+    var minD=65,left=labels.filter(function(l){return l.cosA<0;}).sort(function(a,b){return a.py-b.py;}),right=labels.filter(function(l){return l.cosA>=0;}).sort(function(a,b){return a.py-b.py;});
+    function ajust(g){for(var k=1;k<g.length;k++)if(g[k].py-g[k-1].py<minD)g[k].py=g[k-1].py+minD;for(var k=g.length-2;k>=0;k--)if(g[k+1].py-g[k].py<minD)g[k].py=g[k+1].py-minD;}
     ajust(left);ajust(right);
-    labels.forEach(function(lb){ctx2.save();ctx2.strokeStyle=lb.cor;ctx2.lineWidth=1.2;ctx2.beginPath();ctx2.moveTo(lb.px1,lb.py1);ctx2.lineTo(lb.px2,lb.py2);ctx2.lineTo(lb.px3,lb.py3);ctx2.stroke();ctx2.fillStyle=lb.cor;ctx2.beginPath();ctx2.arc(lb.px3,lb.py3,2.5,0,Math.PI*2);ctx2.fill();ctx2.fillStyle='#f0ede8';ctx2.font='bold 13px Segoe UI';ctx2.textAlign=lb.txtAlign;ctx2.textBaseline='middle';ctx2.fillText(lb.nome,lb.txtX,lb.py3-8);ctx2.fillStyle=lb.cor;ctx2.font='bold 12px Segoe UI';ctx2.textBaseline='middle';ctx2.fillText(lb.pct.toFixed(1)+'%',lb.txtX,lb.py3+8);ctx2.restore();});
+    labels.forEach(function(lb){ctx2.save();ctx2.strokeStyle=lb.cor;ctx2.lineWidth=2;ctx2.beginPath();ctx2.moveTo(lb.px1,lb.py1);var mx=lb.px+(lb.cosA>=0?15:-15);ctx2.lineTo(lb.px+lb.cosA*15,lb.py);ctx2.lineTo(mx,lb.py);ctx2.stroke();ctx2.fillStyle=lb.cor;ctx2.beginPath();ctx2.arc(lb.px+lb.cosA*15,lb.py,3,0,Math.PI*2);ctx2.fill();ctx2.fillStyle='#f0ede8';ctx2.font='bold 22px Segoe UI';ctx2.textAlign=lb.cosA>=0?'left':'right';ctx2.textBaseline='middle';ctx2.fillText(lb.nome,mx+(lb.cosA>=0?8:-8),lb.py-12);ctx2.fillStyle=lb.cor;ctx2.font='bold 20px Segoe UI';ctx2.textBaseline='middle';ctx2.fillText(lb.pct.toFixed(1)+'%',mx+(lb.cosA>=0?8:-8),lb.py+12);ctx2.restore();});
   }}}});
 }
 
