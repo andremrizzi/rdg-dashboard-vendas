@@ -92,7 +92,7 @@ tbody tr.ns{opacity:.35;}
 .al.ai{background:#c9a84c10;border:1px solid #c9a84c33;color:var(--gold);}
 .al.aok{background:#3ecf7210;border:1px solid #3ecf7233;color:#3ecf72;}
 .al.aer{background:#e05c5c10;border:1px solid #e05c5c33;color:#e05c5c;}
-#loading-bar{display:none;background:#c9a84c10;border:1px solid #c9a84c33;border-radius:7px;padding:10px 14px;font-size:.78rem;color:var(--gold);margin-bottom:10px;}
+#loading-bar{background:#c9a84c10;border:1px solid #c9a84c33;border-radius:7px;padding:10px 14px;font-size:.78rem;color:var(--gold);margin-bottom:10px;}
 
 /* ===== GRUPO ===== */
 #view-grupo{padding:16px 20px;}
@@ -245,6 +245,8 @@ tbody tr.ns{opacity:.35;}
 
 <div class="view" id="view-dados">
   <div class="al ai">Os dados sao carregados automaticamente da planilha Google Sheets.</div>
+  <div id="loading-bar">Carregando dados da planilha...</div>
+  <div id="status" style="margin-bottom:15px;"></div>
   <div class="is">
     <h3>Configuracoes</h3>
     <div class="ig">
@@ -254,9 +256,7 @@ tbody tr.ns{opacity:.35;}
     </div>
     <div class="ir"><label>Mensagem motivacional</label><textarea id="i-msg" placeholder="Carregando..."></textarea></div>
   </div>
-  <div id="loading-bar">Carregando dados da planilha...</div>
   <div class="br2"><button class="btn" onclick="carregarDoSheets()">Atualizar Planilha</button></div>
-  <div id="status" style="margin-top:10px;"></div>
 </div>
 
 <script>
@@ -290,7 +290,7 @@ var HIST_V26={'00032':17894,'00045':14360,'00018':12969,'00037':12144,'00020':11
 var MAPA={'EMANUEL BALZAN SILVEIRA':'00032','MARCIO LUIS SCHONS':'00037','RAFAEL NOVAK':'00018','JOSE PEDRO GIACOMINI':'06693','R PERRUTI':'07608','M. C. FERREIRA FILHO':'00052','MULTIVISAO MARKETING':'07607','LUIZ V.APOLINARIO':'00040','A.R. REPRESENTACOES':'07891','MS GESTAO DE MODA':'07890','JOSE DANILO S CRUZ':'06672','W DE PSS VEIGA':'07741','SVF REPRESENTACOES':'00045','GEOVANE MACHADO':'00035','LAUDEMIRO DE ANDRADE':'00020','DI-PIEBREN':'07332','G & G REPRESENTACAO':'06008','W J DE OLIVEIRA':'07606','DA VITORIA REPRESENTACOES':'07520','ANTONIO MARCOS CANDIDO':'07320'};
 var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060','#9b7fd4','#5ec4a8','#e8a860','#7090d0','#d07090','#90d070','#d0a040','#70c0d0','#c070c0','#a0c060','#c09050','#6080c0','#b06060','#60b080','#a06082','#80a060'];
 var SHEET_ID='1-CH66MhNxaIz38Ey9KoNYq3-sNPXhNBC';
-var SHEET_BASE='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet=';
+var SHEET_BASE='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv';
 var dDia=[],dSem=[],dMes=[],dAcum=[],dHist=[];
 var filtroAtual='acumulado';
 var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null;
@@ -344,24 +344,77 @@ function parseHistorico(csv){
   return res;
 }
 
-function fetchSheet(name){return fetch(SHEET_BASE+encodeURIComponent(name)).then(function(r){return r.text();}).then(parseCSV).catch(function(){return[];});}
-function fetchHistorico(){return fetch(SHEET_BASE+'HISTORICO').then(function(r){return r.text();}).then(parseHistorico).catch(function(){return[];});}
+function fetchSheet(name){
+  // Tenta primeiro com gviz
+  var urlGviz=SHEET_BASE+'&sheet='+encodeURIComponent(name);
+  console.log('Tentando gviz: '+urlGviz);
+  
+  return fetch(urlGviz).then(function(r){
+    console.log('Response status gviz: '+r.status);
+    return r.text();
+  }).then(function(csv){
+    console.log('CSV via gviz recebido, parsing...');
+    return parseCSV(csv);
+  }).catch(function(e){
+    console.warn('Gviz falhou ('+name+'): '+e.message+', tentando CSV export...');
+    // Fallback: tenta via CSV export direto
+    var urlCsv='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid=0';
+    if(name==='SEMANA')urlCsv=urlCsv.replace('gid=0','gid=1');
+    else if(name==='MES')urlCsv=urlCsv.replace('gid=0','gid=2');
+    else if(name==='DIA')urlCsv=urlCsv.replace('gid=0','gid=3');
+    else if(name==='HISTORICO')urlCsv=urlCsv.replace('gid=0','gid=4');
+    else if(name==='CONFIG')urlCsv=urlCsv.replace('gid=0','gid=5');
+    
+    console.log('Tentando CSV export: '+urlCsv);
+    return fetch(urlCsv).then(function(r){
+      console.log('Response status CSV: '+r.status);
+      return r.text();
+    }).then(function(csv){
+      console.log('CSV via export recebido, parsing...');
+      return parseCSV(csv);
+    });
+  }).catch(function(e){
+    console.error('Ambos métodos falharam para '+name+': '+e.message);
+    return [];
+  });
+}
+
+function fetchHistorico(){
+  var url=SHEET_BASE+'&sheet=HISTORICO';
+  console.log('Fetching HISTORICO: '+url);
+  return fetch(url).then(function(r){
+    return r.text();
+  }).then(function(csv){
+    console.log('HISTORICO CSV received');
+    return parseHistorico(csv);
+  }).catch(function(e){
+    console.error('Erro ao carregar HISTORICO: '+e.message);
+    return [];
+  });
+}
+
 function fetchConfig(){
-  return fetch(SHEET_BASE+'CONFIG').then(function(r){return r.text();}).then(function(csv){
+  var url=SHEET_BASE+'&sheet=CONFIG';
+  return fetch(url).then(function(r){
+    return r.text();
+  }).then(function(csv){
     var cfg={},lines=csv.trim().split('\n');
     for(var i=0;i<lines.length;i++){
       var c=lines[i].split(',').map(function(s){return s.replace(/^"|"$/g,'').replace(/\\/g,'').trim();});
       if(c[0]&&c[1]&&c[0].indexOf('CHAVE')<0&&c[0].indexOf('CONFIG')<0)cfg[c[0]]=c[1];
     }
     return cfg;
-  }).catch(function(){return{};});
+  }).catch(function(){return {};});
 }
 
 function carregarDoSheets(){
+  document.getElementById('loading-bar').textContent='Carregando dados da planilha...';
   document.getElementById('loading-bar').style.display='block';
+  console.log('Iniciando carregamento...');
   Promise.all([fetchSheet('ACUMULADO'),fetchSheet('SEMANA'),fetchSheet('MES'),fetchSheet('DIA'),fetchHistorico(),fetchConfig()])
     .then(function(r){
       dAcum=r[0];dSem=r[1];dMes=r[2];dDia=r[3];dHist=r[4];var cfg=r[5];
+      console.log('Dados carregados: Acumulado='+dAcum.length+' Semana='+dSem.length+' Mes='+dMes.length+' Dia='+dDia.length+' Historico='+dHist.length);
       if(cfg['PERIODO_SEM'])document.getElementById('i-sp').value=cfg['PERIODO_SEM'];
       if(cfg['PERIODO_MES'])document.getElementById('i-mp').value=cfg['PERIODO_MES'];
       if(cfg['DATA_DIA'])document.getElementById('i-dp').value=cfg['DATA_DIA'];
@@ -369,9 +422,15 @@ function carregarDoSheets(){
       document.getElementById('loading-bar').style.display='none';
       var tot=dAcum.length+dSem.length+dMes.length+dDia.length;
       document.getElementById('status').innerHTML=tot>0
-        ?'<div class="al aok">Dados carregados - Acumulado: '+dAcum.length+' | Semana: '+dSem.length+' | Mes: '+dMes.length+' | Dia: '+dDia.length+'</div>'
-        :'<div class="al aer">Nenhum dado encontrado.</div>';
+        ?'<div class="al aok">✅ Dados carregados com sucesso! Acumulado: '+dAcum.length+' | Semana: '+dSem.length+' | Mes: '+dMes.length+' | Dia: '+dDia.length+'</div>'
+        :'<div class="al aer">❌ Nenhum dado encontrado. Verifique a planilha.</div>';
       renderGerencial();
+      renderGrupo();
+      initPeriodo();
+    }).catch(function(e){
+      console.error('Erro geral: '+e);
+      document.getElementById('loading-bar').style.display='none';
+      document.getElementById('status').innerHTML='<div class="al aer">❌ Erro ao carregar: '+e.message+'</div>';
     });
 }
 
@@ -420,10 +479,14 @@ function renderGerencial(){
       var pos=r.ativo?rank:'--';
       var bdg=pos===1?'<span class="pos g">1</span>':pos===2?'<span class="pos s">2</span>':pos===3?'<span class="pos b">3</span>':'<span class="pos nn">'+pos+'</span>';
       var cor=corBarra(r.pct),w=Math.min(r.pct,100).toFixed(1);
-      var proj=r.ativo?calcProjecao(r.qtde,r.cota):0,ritmo=r.ativo?calcRitmo(r.qtde,r.cota):'aguard';
+      var ritmo=r.ativo?calcRitmo(r.qtde,r.cota):'aguard';
       var rHtml=ritmo==='verde'?'<span class="semaforo verde">No ritmo</span>':ritmo==='amarelo'?'<span class="semaforo amarelo">Atencao</span>':ritmo==='vermelho'?'<span class="semaforo vermelho">Risco</span>':'<span style="color:var(--muted);font-size:.7rem">Aguard.</span>';
-      var pCor=proj>=r.cota?'#3ecf72':proj>=r.cota*0.8?'#e8c97a':'#e05c5c';
-      var pHtml=r.ativo?'<span style="font-size:.8rem;color:'+pCor+'">'+fmtInt(proj)+' / '+fmtInt(r.cota)+'</span>':'--';
+      var pHtml='--';
+      if(filtroAtual==='acumulado'&&r.ativo){
+        var proj=calcProjecao(r.qtde,r.cota);
+        var pCor=proj>=r.cota?'#3ecf72':proj>=r.cota*0.8?'#e8c97a':'#e05c5c';
+        pHtml='<span style="font-size:.8rem;color:'+pCor+'">'+fmtInt(proj)+' / '+fmtInt(r.cota)+'</span>';
+      }
       html+='<tr class="'+(r.ativo?'':'ns')+'"><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td style="font-weight:700;color:'+cor+'">'+r.pct.toFixed(1)+'%</td><td><div class="pw"><div class="pb" style="width:'+w+'%;background:'+cor+'"></div></div></td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+pHtml+'</td><td>'+rHtml+'</td><td><span class="tag '+(r.ativo?'ta':'tw2')+'">'+(r.ativo?'Ativo':'Aguard.')+'</span></td></tr>';
     }
     tb.innerHTML=html;
@@ -519,15 +582,73 @@ function exportarPizza(){carregarHtml2Canvas(function(){html2canvas(document.que
 function mudarAba(tab){document.querySelectorAll('.nt').forEach(function(t,i){t.classList.toggle('active',['gerencial','grupo','dados'][i]===tab);});document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});document.getElementById('view-'+tab).classList.add('active');if(tab==='grupo')renderGrupo();}
 function mudarFiltro(f){filtroAtual=f;var mapa={acumulado:'f-acumulado',semana:'f-semana',mes:'f-mes',dia:'f-dia'};Object.keys(mapa).forEach(function(k){document.getElementById(mapa[k]).classList.toggle('active',k===f);});renderGerencial();}
 
-// dados embutidos para preview
-dSem=[{cod:'00018',vlr:277857.215,qtde:2210,pedidos:10,cliNov:0,ticket:277857.215/2210},{cod:'00032',vlr:143645.1,qtde:1109,pedidos:8,cliNov:0,ticket:143645.1/1109},{cod:'00037',vlr:114708.7,qtde:913,pedidos:6,cliNov:1,ticket:114708.7/913},{cod:'07608',vlr:37129,qtde:260,pedidos:1,cliNov:0,ticket:37129/260},{cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,ticket:32089.4/266},{cod:'07607',vlr:27516.3,qtde:217,pedidos:2,cliNov:0,ticket:27516.3/217},{cod:'07891',vlr:24811.4,qtde:186,pedidos:2,cliNov:2,ticket:24811.4/186},{cod:'07606',vlr:23803.8,qtde:182,pedidos:2,cliNov:0,ticket:23803.8/182},{cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,ticket:20063.4/166}];
-var dc=[{cod:'00032',vlr:406569.819,qtde:3311,pedidos:16,cliNov:1,ticket:406569.819/3311},{cod:'00018',vlr:365924.815,qtde:2884,pedidos:12,cliNov:1,ticket:365924.815/2884},{cod:'00037',vlr:267287.6,qtde:2084,pedidos:13,cliNov:1,ticket:267287.6/2084},{cod:'06693',vlr:126868.3,qtde:1017,pedidos:6,cliNov:0,ticket:126868.3/1017},{cod:'07608',vlr:62598.2,qtde:468,pedidos:2,cliNov:1,ticket:62598.2/468},{cod:'07607',vlr:61832.4,qtde:466,pedidos:3,cliNov:0,ticket:61832.4/466},{cod:'00052',vlr:61796.3,qtde:497,pedidos:2,cliNov:0,ticket:61796.3/497},{cod:'07891',vlr:38902,qtde:300,pedidos:4,cliNov:4,ticket:38902/300},{cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,ticket:32089.4/266},{cod:'07606',vlr:23803.8,qtde:182,pedidos:2,cliNov:0,ticket:23803.8/182},{cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,ticket:20063.4/166}];
-dMes=dc;dAcum=dc;dDia=[];
+// Dados embutidos - Coleção (ACUMULADO)
+dAcum=[
+  {cod:'00032',vlr:486181.219,qtde:3947,pedidos:19,cliNov:1,ticket:123.27},
+  {cod:'00018',vlr:404288.715,qtde:3205,pedidos:13,cliNov:1,ticket:126.14},
+  {cod:'00037',vlr:281408.9,qtde:2201,pedidos:14,cliNov:1,ticket:127.85},
+  {cod:'06693',vlr:126868.3,qtde:1017,pedidos:6,cliNov:0,ticket:124.74},
+  {cod:'07607',vlr:79416.5,qtde:625,pedidos:4,cliNov:0,ticket:127.06},
+  {cod:'07608',vlr:62598.2,qtde:468,pedidos:2,cliNov:1,ticket:133.75},
+  {cod:'00052',vlr:61796.3,qtde:497,pedidos:2,cliNov:0,ticket:124.33},
+  {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,ticket:133.71},
+  {cod:'07891',vlr:38902,qtde:300,pedidos:4,cliNov:4,ticket:129.67},
+  {cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,ticket:120.63},
+  {cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,ticket:120.86},
+  {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,ticket:121.14}
+];
+
+// Dados embutidos - Mês (MES)
+dMes=[
+  {cod:'00032',vlr:486181.219,qtde:3947,pedidos:19,cliNov:1,ticket:123.27},
+  {cod:'00018',vlr:404288.715,qtde:3205,pedidos:13,cliNov:1,ticket:126.14},
+  {cod:'00037',vlr:281408.9,qtde:2201,pedidos:14,cliNov:1,ticket:127.85},
+  {cod:'06693',vlr:126868.3,qtde:1017,pedidos:6,cliNov:0,ticket:124.74},
+  {cod:'07607',vlr:79416.5,qtde:625,pedidos:4,cliNov:0,ticket:127.06},
+  {cod:'07608',vlr:62598.2,qtde:468,pedidos:2,cliNov:1,ticket:133.75},
+  {cod:'00052',vlr:61796.3,qtde:497,pedidos:2,cliNov:0,ticket:124.33},
+  {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,ticket:133.71},
+  {cod:'07891',vlr:38902,qtde:300,pedidos:4,cliNov:4,ticket:129.67},
+  {cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,ticket:120.63},
+  {cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,ticket:120.86},
+  {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,ticket:121.14}
+];
+
+// Dados embutidos - Semana (SEMANA)
+dSem=[
+  {cod:'00018',vlr:316221.115,qtde:2531,pedidos:11,cliNov:0,ticket:124.93},
+  {cod:'00032',vlr:223256.5,qtde:1745,pedidos:11,cliNov:0,ticket:127.94},
+  {cod:'00037',vlr:128830,qtde:1030,pedidos:7,cliNov:1,ticket:125.07},
+  {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,ticket:133.71},
+  {cod:'07607',vlr:45100.4,qtde:376,pedidos:3,cliNov:0,ticket:119.94},
+  {cod:'07608',vlr:37129,qtde:260,pedidos:1,cliNov:0,ticket:142.80},
+  {cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,ticket:120.63},
+  {cod:'07891',vlr:24811.4,qtde:186,pedidos:2,cliNov:2,ticket:133.39},
+  {cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,ticket:120.86},
+  {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,ticket:121.14}
+];
+
+// Dados embutidos - Dia (DIA)
+dDia=[
+  {cod:'00032',vlr:79611.4,qtde:636,pedidos:3,cliNov:0,ticket:125.17},
+  {cod:'00018',vlr:38363.9,qtde:321,pedidos:1,cliNov:0,ticket:119.51}
+];
+
+// Dados embutidos - Histórico (calculado por semana)
+dHist=[
+  {semana:1,qtde:1713},{semana:1,qtde:306},{semana:1,qtde:249},{semana:1,qtde:248},
+  {semana:2,qtde:1171},{semana:2,qtde:711},{semana:2,qtde:497},{semana:2,qtde:489},{semana:2,qtde:426},{semana:2,qtde:208},{semana:2,qtde:114},
+  {semana:3,qtde:2531},{semana:3,qtde:1745},{semana:3,qtde:1030},{semana:3,qtde:338},{semana:3,qtde:376},{semana:3,qtde:260},{semana:3,qtde:266},{semana:3,qtde:186},{semana:3,qtde:166},{semana:3,qtde:63}
+];
+
 document.getElementById('i-sp').value='27/04 a 03/05';
 document.getElementById('i-mp').value='01/04 a 30/04';
-document.getElementById('i-dp').value='30/04';
-document.getElementById('i-msg').value='A colecao Verao 2027 comecou! Cada visita conta. Vamos construir juntos os melhores resultados da nossa historia.';
-initPeriodo();renderGerencial();
+document.getElementById('i-dp').value='05/05';
+document.getElementById('i-msg').value='A colecao Verao 2027 está em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!';
+
+initPeriodo();
+renderGerencial();
+renderGrupo();
 </script>
 </body>
 </html>
