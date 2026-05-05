@@ -549,17 +549,64 @@ function renderGrupo(){
 }
 
 function renderPizzaGrupo(atv){
-  var canvasEl=document.getElementById('c-gpizza');canvasEl.height=700;
+  var canvasEl=document.getElementById('c-gpizza');canvasEl.height=600;
   var ctx=canvasEl.getContext('2d');if(chartGPizza)chartGPizza.destroy();
   var total=atv.reduce(function(s,l){return s+l.qtde;},0);
-  chartGPizza=new Chart(ctx,{type:'pie',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:2,borderColor:'#222'}]},options:{responsive:true,layout:{padding:{top:180,bottom:180,left:250,right:250}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}
+  chartGPizza=new Chart(ctx,{type:'pie',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:2,borderColor:'#222'}]},options:{responsive:true,layout:{padding:0},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}
   ,animation:{onComplete:function(){
-    var ch=this,ctx2=ch.ctx,meta=ch.getDatasetMeta(0),ds=ch.data.datasets[0],labels=[];
-    meta.data.forEach(function(arc,i){var pct=ds.data[i]/total*100,angle=(arc.startAngle+arc.endAngle)/2,cosA=Math.cos(angle),sinA=Math.sin(angle),outerR=arc.outerRadius,cx=arc.x,cy=arc.y,dist=outerR+80,px=cx+cosA*dist,py=cy+sinA*dist;labels.push({angle:angle,cosA:cosA,sinA:sinA,px1:cx+cosA*outerR,py1:cy+sinA*outerR,px:px,py:py,nome:ch.data.labels[i],pct:pct,cor:CORES[i%CORES.length]});});
-    var minD=65,left=labels.filter(function(l){return l.cosA<0;}).sort(function(a,b){return a.py-b.py;}),right=labels.filter(function(l){return l.cosA>=0;}).sort(function(a,b){return a.py-b.py;});
-    function ajust(g){for(var k=1;k<g.length;k++)if(g[k].py-g[k-1].py<minD)g[k].py=g[k-1].py+minD;for(var k=g.length-2;k>=0;k--)if(g[k+1].py-g[k].py<minD)g[k].py=g[k+1].py-minD;}
-    ajust(left);ajust(right);
-    labels.forEach(function(lb){ctx2.save();ctx2.strokeStyle=lb.cor;ctx2.lineWidth=2;ctx2.beginPath();ctx2.moveTo(lb.px1,lb.py1);var mx=lb.px+(lb.cosA>=0?15:-15);ctx2.lineTo(lb.px+lb.cosA*15,lb.py);ctx2.lineTo(mx,lb.py);ctx2.stroke();ctx2.fillStyle=lb.cor;ctx2.beginPath();ctx2.arc(lb.px+lb.cosA*15,lb.py,3,0,Math.PI*2);ctx2.fill();ctx2.fillStyle='#f0ede8';ctx2.font='bold 22px Segoe UI';ctx2.textAlign=lb.cosA>=0?'left':'right';ctx2.textBaseline='middle';ctx2.fillText(lb.nome,mx+(lb.cosA>=0?8:-8),lb.py-12);ctx2.fillStyle=lb.cor;ctx2.font='bold 20px Segoe UI';ctx2.textBaseline='middle';ctx2.fillText(lb.pct.toFixed(1)+'%',mx+(lb.cosA>=0?8:-8),lb.py+12);ctx2.restore();});
+    var ch=this,ctx2=ch.ctx,meta=ch.getDatasetMeta(0),ds=ch.data.datasets[0],labels=ch.data.labels;
+    meta.data.forEach(function(arc,i){
+      var pct=ds.data[i]/total*100;
+      var angle=(arc.startAngle+arc.endAngle)/2;
+      var cosA=Math.cos(angle);
+      var sinA=Math.sin(angle);
+      var outerR=arc.outerRadius;
+      var cx=arc.x;
+      var cy=arc.y;
+      
+      // Ponto na borda da fatia
+      var px1=cx+cosA*outerR;
+      var py1=cy+sinA*outerR;
+      
+      // Ponto de extensão (reta)
+      var distExt=60;
+      var px2=cx+cosA*(outerR+distExt);
+      var py2=cy+sinA*(outerR+distExt);
+      
+      // Posição do texto
+      var txtX=px2+cosA*15;
+      var txtY=py2;
+      var txtAlign=cosA>=0?'left':'right';
+      
+      // Desenhar linha reta
+      ctx2.save();
+      ctx2.strokeStyle=CORES[i%CORES.length];
+      ctx2.lineWidth=1.5;
+      ctx2.beginPath();
+      ctx2.moveTo(px1,py1);
+      ctx2.lineTo(px2,py2);
+      ctx2.stroke();
+      
+      // Desenhar ponto
+      ctx2.fillStyle=CORES[i%CORES.length];
+      ctx2.beginPath();
+      ctx2.arc(px2,py2,2.5,0,Math.PI*2);
+      ctx2.fill();
+      
+      // Nome
+      ctx2.fillStyle='#f0ede8';
+      ctx2.font='bold 20px Segoe UI';
+      ctx2.textAlign=txtAlign;
+      ctx2.textBaseline='middle';
+      ctx2.fillText(labels[i],txtX,txtY-11);
+      
+      // Percentual
+      ctx2.fillStyle=CORES[i%CORES.length];
+      ctx2.font='bold 18px Segoe UI';
+      ctx2.fillText(pct.toFixed(1)+'%',txtX,txtY+11);
+      
+      ctx2.restore();
+    });
   }}}});
 }
 
