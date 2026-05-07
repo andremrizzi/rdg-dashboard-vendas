@@ -2197,6 +2197,2607 @@ function exportarPizza(){carregarHtml2Canvas(function(){html2canvas(document.que
 // ============================================================
 
 // Semanas da coleção: seg 30/06 até dom 30/11/2026
+function opMkDate(y,m,d){return new Date(y,m-1,d);}// evita UTC offset
+
+var OP_SEMANAS = (function(){
+  var semanas = [];
+  var cur = opMkDate(2026,6,29); // seg 29/06/2026
+  var fim = opMkDate(2026,11,29);
+  while(cur <= fim){
+    var seg = new Date(cur);
+    var dom = new Date(cur); dom.setDate(dom.getDate()+6);
+    var fmt = function(d){return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);};
+    var mes = dom.getMonth();
+    var mesNome = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes];
+    semanas.push({id:'s'+semanas.length, lbl: fmt(seg)+' a '+fmt(dom), mes: mes, mesNome: mesNome, seg: new Date(seg), dom: new Date(dom)});
+    cur.setDate(cur.getDate()+7);
+  }
+  return semanas;
+})();
+
+// Dias úteis de corte pré-carregados
+var OP_CORTE_DIAS = {
+  '26/03/2026': 980,
+  '27/03/2026': 860,
+  '30/03/2026': 321,
+  '31/03/2026': 640,
+  '01/04/2026': 690,
+  '06/04/2026': 105,
+  '17/04/2026': 340,
+  '20/04/2026': 315,
+  '21/04/2026': 1230,
+  '22/04/2026': 2920,
+  '24/04/2026': 255,
+  '27/04/2026': 1090,
+  '28/04/2026': 971,
+  '29/04/2026': 1770,
+  '30/04/2026': 825,
+  '04/05/2026': 1595,
+  '05/05/2026': 1910,
+  '06/05/2026': 2242
+};
+
+// Faturamento previsto por semana (id -> valor)
+var OP_FAT = {};
+
+// Storage em memória (persiste enquanto página aberta)
+// Carrega do localStorage se disponível
+function opLoad(){
+  try {
+    var f = localStorage.getItem('rdg_op_fat');
+    if(f) OP_FAT = JSON.parse(f);
+    var c = localStorage.getItem('rdg_op_corte');
+    if(c) OP_CORTE_DIAS = Object.assign(OP_CORTE_DIAS, JSON.parse(c));
+  } catch(e){}
+}
+function opSave(){
+  try {
+    localStorage.setItem('rdg_op_fat', JSON.stringify(OP_FAT));
+    localStorage.setItem('rdg_op_corte', JSON.stringify(OP_CORTE_DIAS));
+  } catch(e){}
+}
+
+function opSemCor(val, meta, limAma){
+  if(!val || val===0) return 'neutro';
+  if(val <= meta) return 'verde';
+  if(val <= limAma) return 'amarelo';
+  return 'vermelho';
+}
+function opCorteCor(val, meta){
+  if(!val || val===0) return 'neutro';
+  if(val >= meta) return 'verde';
+  if(val >= meta*0.8) return 'amarelo';
+  return 'vermelho';
+}
+function opCorteCorDia(val){
+  if(!val || val===0) return 'var(--muted)';
+  if(val >= 1200) return '#3ecf72';
+  if(val >= 960) return '#e8c97a';
+  return '#e05c5c';
+}
+
+function opFmtDtKey(d){
+  // d = Date → dd/mm/yyyy
+  return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function opDiasUteis(seg, dom){
+  // retorna array de Dates seg-sex dentro da semana
+  var dias = [];
+  var d = new Date(seg);
+  for(var i=0;i<5;i++){
+    dias.push(new Date(d));
+    d.setDate(d.getDate()+1);
+  }
+  return dias;
+}
+
+function opGetCorteTotal(dias){
+  return dias.reduce(function(s,d){return s+(OP_CORTE_DIAS[opFmtDtKey(d)]||0);},0);
+}
+
+function opGetFatSem(semId){
+  return OP_FAT[semId]||0;
+}
+
+// Agrupa semanas por mês
+function opSemanasPorMes(){
+  var meses = {};
+  OP_SEMANAS.forEach(function(s){
+    if(!meses[s.mes]) meses[s.mes] = {nome:s.mesNome, semanas:[]};
+    meses[s.mes].semanas.push(s);
+  });
+  return meses;
+}
+
+function renderOperacional(){
+  opLoad();
+  renderOpKPIs();
+  renderOpFaturamento();
+  renderOpCorte();
+  renderOpComparativo();
+}
+
+function renderOpKPIs(){
+  // KPIs: total cortado, total previsto faturar (jul-nov), semana atual corte, semana atual fat
+  var hoje = new Date();
+  var totalCortado = Object.values(OP_CORTE_DIAS).reduce(function(s,v){return s+v;},0);
+  var totalFat = Object.values(OP_FAT).reduce(function(s,v){return s+v;},0);
+
+  // semana atual
+  var semAtual = null;
+  OP_SEMANAS.forEach(function(s){
+    if(hoje >= s.seg && hoje <= s.dom) semAtual = s;
+  });
+  var corteAtual = semAtual ? opGetCorteTotal(opDiasUteis(semAtual.seg, semAtual.dom)) : 0;
+  var fatAtual = semAtual ? opGetFatSem(semAtual.id) : 0;
+
+  var corSemCorte = opCorteCor(corteAtual, 6000);
+  var corSemFat = opSemCor(fatAtual, 5500, 6500);
+
+  document.getElementById('op-kpis').innerHTML =
+    '<div class="op-kpi"><div class="lbl">Total Cortado</div><div class="val" style="color:var(--gold)">'+fmtInt(totalCortado)+'</div><div class="sub">peças na coleção</div></div>'+
+    '<div class="op-kpi"><div class="lbl">Fat. Programado</div><div class="val" style="color:var(--gold)">'+fmtInt(totalFat)+'</div><div class="sub">jul–nov previsto</div></div>'+
+    '<div class="op-kpi '+corSemCorte+'"><div class="lbl">Corte Esta Semana</div><div class="val">'+fmtInt(corteAtual)+'</div><div class="sub">meta 6.000</div></div>'+
+    '<div class="op-kpi '+corSemFat+'"><div class="lbl">Fat. Esta Semana</div><div class="val">'+fmtInt(fatAtual)+'</div><div class="sub">cap. 5.500</div></div>'+
+    '<div class="op-kpi"><div class="lbl">Capacidade Mensal</div><div class="val" style="color:var(--muted)">22.000</div><div class="sub">sem hora extra</div></div>'+
+    '<div class="op-kpi"><div class="lbl">Meta Corte/Dia</div><div class="val" style="color:var(--muted)">1.200</div><div class="sub">5 dias úteis</div></div>';
+}
+
+function renderOpFaturamento(){
+  var meses = opSemanasPorMes();
+  var html = '';
+  Object.keys(meses).sort().forEach(function(mesNum){
+    var m = meses[mesNum];
+    var semanas = m.semanas;
+    var totalMes = semanas.reduce(function(s,sem){return s+opGetFatSem(sem.id);},0);
+    var corMes = opSemCor(totalMes, 22000, 26000);
+    var corMesStyle = corMes==='verde'?'#3ecf72':corMes==='amarelo'?'#e8c97a':corMes==='vermelho'?'#e05c5c':'var(--muted)';
+
+    html += '<div class="op-month-block">';
+    html += '<div class="op-month-hdr">';
+    html += '<span class="op-month-name">'+m.nome+'</span>';
+    html += '<div class="op-month-total">';
+    // quinzenas
+    var q1 = semanas.slice(0,2).reduce(function(s,sem){return s+opGetFatSem(sem.id);},0);
+    var q2 = semanas.slice(2).reduce(function(s,sem){return s+opGetFatSem(sem.id);},0);
+    var corQ1 = opSemCor(q1,11000,13000), corQ2 = opSemCor(q2,11000,13000);
+    var cQ1 = corQ1==='verde'?'#3ecf72':corQ1==='amarelo'?'#e8c97a':corQ1==='vermelho'?'#e05c5c':'var(--muted)';
+    var cQ2 = corQ2==='verde'?'#3ecf72':corQ2==='amarelo'?'#e8c97a':corQ2==='vermelho'?'#e05c5c':'var(--muted)';
+    html += '<span style="font-size:.72rem;color:var(--muted)">Q1: <strong style="color:'+cQ1+'">'+fmtInt(q1)+'</strong></span>';
+    html += '<span style="font-size:.72rem;color:var(--muted)">Q2: <strong style="color:'+cQ2+'">'+fmtInt(q2)+'</strong></span>';
+    html += '<span style="font-size:.82rem;font-weight:700;color:'+corMesStyle+'">Total: '+fmtInt(totalMes)+'</span>';
+    html += '</div></div>';
+
+    html += '<div class="op-col-hdrs"><span>Semana</span><span>Qtde Prevista</span><span>Semáforo</span><span></span><span></span></div>';
+
+    semanas.forEach(function(sem, idx){
+      var val = opGetFatSem(sem.id);
+      var cor = opSemCor(val, 5500, 6500);
+      var sep = idx===2?' quinz-sep':'';
+      html += '<div class="op-week-row'+sep+'">';
+      html += '<div class="op-week-lbl"><strong>'+sem.lbl+'</strong></div>';
+      html += '<input class="op-input" type="number" min="0" id="fat_'+sem.id+'" value="'+(val||'')+'" placeholder="0" onchange="opSetFat(\''+sem.id+'\',this.value)">';
+      html += '<div class="op-sem '+cor+'" id="fat_sem_'+sem.id+'">'+(cor==='verde'?'✓ OK':cor==='amarelo'?'⚠ Atenção':cor==='vermelho'?'✗ Acima':'—')+'</div>';
+      html += '<div></div><div></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('op-fat-blocks').innerHTML = html;
+}
+
+function opSetFat(semId, val){
+  OP_FAT[semId] = parseInt(val)||0;
+  opSave();
+  // atualiza semáforo da linha
+  var v = OP_FAT[semId];
+  var cor = opSemCor(v, 5500, 6500);
+  var el = document.getElementById('fat_sem_'+semId);
+  if(el){el.className='op-sem '+cor;el.textContent=cor==='verde'?'✓ OK':cor==='amarelo'?'⚠ Atenção':cor==='vermelho'?'✗ Acima':'—';}
+  renderOpKPIs();
+  renderOpComparativo();
+  // atualiza totais do mês sem re-render completo
+  renderOpFaturamento();
+}
+
+function renderOpCorte(){
+  // Agrupa dias por semana e mês
+  var meses = {};
+  // Usa as semanas de março a novembro para cobrir histórico
+  var todasSemanas = [];
+  // semanas históricas: mar/abr/mai (antes das semanas da coleção)
+  var histSems = [];
+  var cur = opMkDate(2026,3,23); // seg 23/03/2026
+  var inicioColecao = opMkDate(2026,6,29);
+  while(cur < inicioColecao){
+    var seg = new Date(cur);
+    var dom = new Date(cur); dom.setDate(dom.getDate()+6);
+    var mes = dom.getMonth();
+    var mesNome = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes];
+    var fmt = function(d){return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);};
+    histSems.push({id:'ch'+histSems.length, lbl:fmt(seg)+' a '+fmt(dom), mes:mes, mesNome:mesNome, seg:new Date(seg), dom:new Date(dom)});
+    cur.setDate(cur.getDate()+7);
+  }
+  todasSemanas = histSems.concat(OP_SEMANAS);
+
+  // agrupa por mês
+  var mesesMap = {};
+  todasSemanas.forEach(function(s){
+    var dias = opDiasUteis(s.seg, s.dom);
+    var temDados = dias.some(function(d){return OP_CORTE_DIAS[opFmtDtKey(d)]>0;});
+    // só mostra meses com dados ou futuros da coleção (jul+)
+    if(!temDados && s.mes < 6) return;
+    if(!mesesMap[s.mes]) mesesMap[s.mes]={nome:s.mesNome, semanas:[]};
+    mesesMap[s.mes].semanas.push(s);
+  });
+
+  var html = '<div class="op-corte-grid">';
+  Object.keys(mesesMap).sort(function(a,b){return a-b;}).forEach(function(mesNum){
+    var m = mesesMap[mesNum];
+    var totalMes = 0;
+    m.semanas.forEach(function(s){totalMes+=opGetCorteTotal(opDiasUteis(s.seg,s.dom));});
+    var corMes = opCorteCor(totalMes, 24000);
+    var corMesStyle = corMes==='verde'?'#3ecf72':corMes==='amarelo'?'#e8c97a':corMes==='vermelho'?'#e05c5c':'var(--muted)';
+
+    html += '<div class="op-corte-month">';
+    html += '<div class="op-corte-month-hdr"><span>'+m.nome+'</span><span style="color:'+corMesStyle+';font-size:.82rem;font-weight:700;">'+fmtInt(totalMes)+' pc</span></div>';
+
+    m.semanas.forEach(function(s){
+      var dias = opDiasUteis(s.seg, s.dom);
+      var totalSem = opGetCorteTotal(dias);
+      var corSem = opCorteCor(totalSem, 6000);
+      var corSemStyle = corSem==='verde'?'#3ecf72':corSem==='amarelo'?'#e8c97a':corSem==='vermelho'?'#e05c5c':'var(--muted)';
+
+      html += '<div class="op-corte-week">';
+      html += '<div class="op-corte-week-hdr">';
+      html += '<span class="op-corte-week-lbl">'+s.lbl+'</span>';
+      html += '<span class="op-corte-week-total" style="color:'+corSemStyle+'">'+fmtInt(totalSem)+' pc</span>';
+      html += '</div>';
+      html += '<div class="op-corte-days">';
+      var diasNomes = ['Seg','Ter','Qua','Qui','Sex'];
+      dias.forEach(function(d, idx){
+        var key = opFmtDtKey(d);
+        var val = OP_CORTE_DIAS[key]||0;
+        var cor = opCorteCorDia(val);
+        html += '<div class="op-day-box" style="border-color:'+(val>=1200?'#3ecf7244':val>=960?'#e8c97a44':val>0?'#e05c5c44':'var(--border)')+';">';
+        html += '<div class="op-day-lbl" style="color:'+cor+'">'+diasNomes[idx]+' '+(d.getDate()<10?'0':'')+d.getDate()+'/'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'</div>';
+        html += '<input class="op-day-input" type="number" min="0" id="corte_'+key.replace(/\//g,'_')+'" value="'+(val||'')+'" placeholder="—" style="color:'+cor+'" onchange="opSetCorte(\''+key+'\',this.value)" onfocus="this.select()">';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('op-corte-blocks').innerHTML = html;
+}
+
+function opSetCorte(key, val){
+  OP_CORTE_DIAS[key] = parseInt(val)||0;
+  opSave();
+  renderOpKPIs();
+  renderOpCorte();
+  renderOpComparativo();
+}
+
+function renderOpComparativo(){
+  // Só semanas de julho em diante
+  var semsFat = OP_SEMANAS;
+  var html = '<div class="op-comp-grid">';
+  semsFat.forEach(function(s){
+    var dias = opDiasUteis(s.seg, s.dom);
+    var cortado = opGetCorteTotal(dias);
+    var previsto = opGetFatSem(s.id);
+    if(cortado===0 && previsto===0) return;
+    var saldo = cortado - previsto;
+    var maxBar = Math.max(cortado, previsto, 1);
+    var wC = (cortado/maxBar*100).toFixed(1);
+    var wP = (previsto/maxBar*100).toFixed(1);
+    var corSaldo = saldo>=0?'#3ecf72':'#e05c5c';
+
+    html += '<div class="op-comp-card">';
+    html += '<div class="sem-lbl" style="color:var(--gold);font-weight:700;">'+s.lbl+' <span style="color:var(--muted);font-weight:400;">'+s.mesNome+'</span></div>';
+    html += '<div class="op-comp-row"><span>✂️ Cortado</span><strong style="color:#3ecf72">'+fmtInt(cortado)+'</strong></div>';
+    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wC+'%;background:#3ecf7266;"></div></div>';
+    html += '<div class="op-comp-row" style="margin-top:4px"><span>📦 Previsto Fat.</span><strong style="color:#c9a84c">'+fmtInt(previsto)+'</strong></div>';
+    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wP+'%;background:#c9a84c66;"></div></div>';
+    html += '<div class="op-comp-row" style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;"><span>Saldo</span><strong style="color:'+corSaldo+'">'+(saldo>=0?'+':'')+fmtInt(saldo)+'</strong></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  if(html === '<div class="op-comp-grid"></div>'){
+    html = '<div class="op-comp-grid"><div style="color:var(--muted);font-size:.82rem;padding:12px;">Preencha o faturamento previsto para ver o comparativo.</div></div>';
+  }
+  document.getElementById('op-comp-blocks').innerHTML = html;
+}
+
+function mudarAba(tab){
+  var abas=['gerencial','grupo','referencias','operacional'];
+  document.querySelectorAll('.nt').forEach(function(t,i){t.classList.toggle('active',abas[i]===tab);});
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='grupo') renderGrupo();
+  if(tab==='referencias') renderReferencias();
+  if(tab==='operacional') renderOperacional();
+}
+function mudarFiltro(f){
+  filtroAtual=f;
+  var mapa={acumulado:'f-acumulado',semana:'f-semana',mes:'f-mes',dia:'f-dia'};
+  Object.keys(mapa).forEach(function(k){document.getElementById(mapa[k]).classList.toggle('active',k===f);});
+  renderGerencial();
+}
+function mudarMes(m){
+  mesAtual=m;
+  [4,5].forEach(function(n){var el=document.getElementById('fm-'+n);if(el)el.classList.toggle('active',n===m);});
+  var nomes={4:'Mês 04 (Abril)',5:'Mês 05 (Maio)'};
+  var el=document.getElementById('titulo-mes');if(el)el.textContent='Quantidade de Peças - '+nomes[m];
+  var listaMes=buildLista(dMesDados[m]||[]);
+  var laAcum=buildLista(dAcum);
+  atualizarKPIs(dMesDados[m]||[],laAcum);
+  renderTabelaSimples('tbody-mes',listaMes);
+  chartMes=renderBarrasSimples('c-mes',chartMes,listaMes);
+}
+function mudarSemana(s){
+  semanaAtual=s;
+  [1,2,3,4].forEach(function(n){var el=document.getElementById('fs-'+n);if(el)el.classList.toggle('active',n===s);});
+  var el=document.getElementById('titulo-sem');if(el)el.textContent='Quantidade de Peças - Semana '+s;
+  var listaSem=buildLista(dSemDados[s]||[]);
+  var laAcum=buildLista(dAcum);
+  atualizarKPIs(dSemDados[s]||[],laAcum);
+  renderTabelaSimples('tbody-sem',listaSem);
+  chartSem=renderBarrasSimples('c-sem',chartSem,listaSem);
+}
+
+// ============================================================
+// DADOS VENDAS
+// ============================================================
+dDia=[
+  {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
+  {cod:'00040',vlr:42653.2,qtde:328,pedidos:1,cliNov:0,cliCompra:1,ticket:130.04},
+  {cod:'00018',vlr:22599.4,qtde:176,pedidos:3,cliNov:1,cliCompra:3,ticket:128.41},
+  {cod:'00032',vlr:18146.6,qtde:144,pedidos:1,cliNov:0,cliCompra:1,ticket:126.02}
+];
+dSem=dDia; // semana atual = sem4 (ver dSemDados)
+
+// Semanas históricas
+dSemDados={
+  1:[
+    {cod:'00032',vlr:204214.869,qtde:1713,pedidos:5,cliNov:0,cliCompra:5,ticket:119.21},
+    {cod:'06693',vlr:38370.4,qtde:306,pedidos:2,cliNov:0,cliCompra:2,ticket:125.39},
+    {cod:'07607',vlr:34316.1,qtde:249,pedidos:1,cliNov:0,cliCompra:1,ticket:137.82},
+    {cod:'00018',vlr:32434.2,qtde:248,pedidos:1,cliNov:0,cliCompra:1,ticket:130.78}
+  ],
+  2:[
+    {cod:'00037',vlr:152578.9,qtde:1171,pedidos:7,cliNov:0,cliCompra:7,ticket:130.30},
+    {cod:'06693',vlr:88497.9,qtde:711,pedidos:4,cliNov:0,cliCompra:4,ticket:124.47},
+    {cod:'00052',vlr:61796.3,qtde:497,pedidos:2,cliNov:0,cliCompra:2,ticket:124.34},
+    {cod:'00032',vlr:58709.85,qtde:489,pedidos:3,cliNov:1,cliCompra:3,ticket:120.06},
+    {cod:'00018',vlr:55633.4,qtde:426,pedidos:1,cliNov:0,cliCompra:1,ticket:130.59},
+    {cod:'07608',vlr:25469.2,qtde:208,pedidos:1,cliNov:1,cliCompra:1,ticket:122.45},
+    {cod:'07891',vlr:14090.6,qtde:114,pedidos:2,cliNov:2,cliCompra:2,ticket:123.60}
+  ],
+  3:[
+    {cod:'00018',vlr:316221.115,qtde:2531,pedidos:11,cliNov:0,cliCompra:11,ticket:124.94},
+    {cod:'00032',vlr:223256.5,qtde:1745,pedidos:11,cliNov:0,cliCompra:11,ticket:127.94},
+    {cod:'00037',vlr:128830,qtde:1030,pedidos:7,cliNov:1,cliCompra:7,ticket:125.08},
+    {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,cliCompra:3,ticket:133.72},
+    {cod:'07607',vlr:43869.513,qtde:376,pedidos:3,cliNov:0,cliCompra:3,ticket:116.67},
+    {cod:'07608',vlr:37129,qtde:260,pedidos:1,cliNov:0,cliCompra:1,ticket:142.80},
+    {cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,cliCompra:1,ticket:120.64},
+    {cod:'07891',vlr:24811.4,qtde:186,pedidos:2,cliNov:2,cliCompra:2,ticket:133.39},
+    {cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,cliCompra:1,ticket:120.86},
+    {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,cliCompra:1,ticket:121.14}
+  ],
+  4:[
+    {cod:'00032',vlr:111566.1,qtde:869,pedidos:6,cliNov:0,cliCompra:6,ticket:128.38},
+    {cod:'00020',vlr:82242.5,qtde:695,pedidos:1,cliNov:0,cliCompra:1,ticket:118.33},
+    {cod:'07890',vlr:49792.6,qtde:384,pedidos:4,cliNov:1,cliCompra:4,ticket:129.67},
+    {cod:'00018',vlr:47318.5,qtde:365,pedidos:4,cliNov:1,cliCompra:4,ticket:129.64},
+    {cod:'00040',vlr:45669.9,qtde:351,pedidos:2,cliNov:0,cliCompra:2,ticket:130.11},
+    {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
+    {cod:'07607',vlr:24250.3,qtde:187,pedidos:3,cliNov:2,cliCompra:3,ticket:129.68},
+    {cod:'07608',vlr:11498.9,qtde:91,pedidos:1,cliNov:0,cliCompra:1,ticket:126.36}
+  ]
+};
+
+// Meses históricos
+dMesDados={
+  4:[
+    {cod:'00032',vlr:406569.819,qtde:3311,pedidos:16,cliNov:1,cliCompra:16,ticket:122.79},
+    {cod:'00018',vlr:365924.815,qtde:2884,pedidos:12,cliNov:1,cliCompra:12,ticket:126.88},
+    {cod:'00037',vlr:281408.9,qtde:2201,pedidos:14,cliNov:1,cliCompra:14,ticket:127.86},
+    {cod:'06693',vlr:126868.3,qtde:1017,pedidos:6,cliNov:0,cliCompra:6,ticket:124.75},
+    {cod:'07607',vlr:78185.613,qtde:625,pedidos:4,cliNov:0,cliCompra:4,ticket:125.10},
+    {cod:'07608',vlr:62598.2,qtde:468,pedidos:2,cliNov:1,cliCompra:2,ticket:133.76},
+    {cod:'00052',vlr:61796.3,qtde:497,pedidos:2,cliNov:0,cliCompra:2,ticket:124.34},
+    {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,cliCompra:3,ticket:133.72},
+    {cod:'07891',vlr:38902,qtde:300,pedidos:4,cliNov:4,cliCompra:4,ticket:129.67},
+    {cod:'00040',vlr:32089.4,qtde:266,pedidos:1,cliNov:0,cliCompra:1,ticket:120.64},
+    {cod:'07890',vlr:20063.4,qtde:166,pedidos:1,cliNov:0,cliCompra:1,ticket:120.86},
+    {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,cliCompra:1,ticket:121.14}
+  ],
+  5:[
+    {cod:'00032',vlr:191177.5,qtde:1505,pedidos:9,cliNov:0,cliCompra:9,ticket:127.03},
+    {cod:'00018',vlr:85682.4,qtde:686,pedidos:5,cliNov:1,cliCompra:5,ticket:124.90},
+    {cod:'00020',vlr:82242.5,qtde:695,pedidos:1,cliNov:0,cliCompra:1,ticket:118.33},
+    {cod:'07890',vlr:49792.6,qtde:384,pedidos:4,cliNov:1,cliCompra:4,ticket:129.67},
+    {cod:'00040',vlr:45669.9,qtde:351,pedidos:2,cliNov:0,cliCompra:2,ticket:130.11},
+    {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
+    {cod:'07607',vlr:24250.3,qtde:187,pedidos:3,cliNov:2,cliCompra:3,ticket:129.68},
+    {cod:'07608',vlr:11498.9,qtde:91,pedidos:1,cliNov:0,cliCompra:1,ticket:126.36}
+  ]
+};
+
+dMes=dMesDados[5];
+dSem=dSemDados[4];
+
+dAcum=[
+  {cod:'00032',vlr:597747.319,qtde:4816,pedidos:25,cliNov:1,cliCompra:25,ticket:124.12},
+  {cod:'00018',vlr:451607.215,qtde:3570,pedidos:17,cliNov:2,cliCompra:17,ticket:126.50},
+  {cod:'00037',vlr:281408.9,qtde:2201,pedidos:14,cliNov:1,cliCompra:14,ticket:127.86},
+  {cod:'06693',vlr:126868.3,qtde:1017,pedidos:6,cliNov:0,cliCompra:6,ticket:124.75},
+  {cod:'07607',vlr:102435.913,qtde:812,pedidos:7,cliNov:2,cliCompra:7,ticket:126.15},
+  {cod:'00020',vlr:82242.5,qtde:695,pedidos:1,cliNov:0,cliCompra:1,ticket:118.33},
+  {cod:'00040',vlr:77759.3,qtde:617,pedidos:3,cliNov:0,cliCompra:3,ticket:126.03},
+  {cod:'07608',vlr:74097.1,qtde:559,pedidos:3,cliNov:1,cliCompra:3,ticket:132.55},
+  {cod:'07890',vlr:69856,qtde:550,pedidos:5,cliNov:1,cliCompra:5,ticket:127.01},
+  {cod:'00052',vlr:61796.3,qtde:497,pedidos:2,cliNov:0,cliCompra:2,ticket:124.34},
+  {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,cliCompra:3,ticket:133.72},
+  {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
+  {cod:'07891',vlr:38902,qtde:300,pedidos:4,cliNov:4,cliCompra:4,ticket:129.67},
+  {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,cliCompra:1,ticket:121.14}
+];
+dHist=[
+  {semana:1,qtde:1713},{semana:1,qtde:306},{semana:1,qtde:249},{semana:1,qtde:248},
+  {semana:2,qtde:1171},{semana:2,qtde:711},{semana:2,qtde:497},{semana:2,qtde:489},{semana:2,qtde:426},{semana:2,qtde:208},{semana:2,qtde:114},
+  {semana:3,qtde:2531},{semana:3,qtde:1745},{semana:3,qtde:1030},{semana:3,qtde:338},{semana:3,qtde:376},{semana:3,qtde:260},{semana:3,qtde:266},{semana:3,qtde:186},{semana:3,qtde:166},{semana:3,qtde:63},
+  {semana:4,qtde:869},{semana:4,qtde:695},{semana:4,qtde:384},{semana:4,qtde:365},{semana:4,qtde:351},{semana:4,qtde:327},{semana:4,qtde:187},{semana:4,qtde:91}
+];
+
+// ============================================================
+// INIT
+// ============================================================
+initPeriodo();
+initRefSelect();
+renderGerencial();
+renderGrupo();
+</script>
+</body>
+</html>.semaforo.vermelho{background:#e05c5c18;color:#e05c5c;border:1px solid #e05c5c33;}
+.sec{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin:22px 0 12px;}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+.cg .full{grid-column:1 / -1;}
+.cc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.cc h3{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.region-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+.region-card{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:12px 14px;}
+.region-card .rn{font-size:.75rem;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.region-card .rv{font-size:1.1rem;font-weight:700;}
+.region-card .rs{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.ger-dest-wrap{margin-bottom:18px;}
+.ger-dest-title{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.ger-dest-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.ger-dest-card{background:linear-gradient(135deg,#c9a84c08,#c9a84c14);border:1px solid #c9a84c33;border-radius:9px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.ger-dest-card .dicon{font-size:1.4rem;}
+.ger-dest-card .dinfo .dlabel{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.ger-dest-card .dinfo .dname{font-size:.95rem;font-weight:700;color:var(--gold);margin-top:2px;}
+.ger-dest-card .dinfo .ddesc{font-size:.72rem;color:var(--white);margin-top:3px;line-height:1.4;}
+.rsem-wrap{background:var(--bg2);border:1px solid #c9a84c33;border-radius:10px;padding:14px 18px;margin-bottom:18px;}
+.rsem-title{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.rsem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.rsem-item{display:flex;flex-direction:column;gap:3px;}
+.rsem-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.rsem-val{font-size:1.1rem;font-weight:700;color:var(--white);}
+.rsem-sub{font-size:.65rem;color:var(--muted);}
+.evolucao-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;}
+.evolucao-wrap h3{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.simple-chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px;}
+.simple-chart-wrap h3{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+#view-grupo{padding:22px 26px;}
+.g-wrap{background:var(--bg2);border:1px solid #c9a84c33;border-radius:14px;overflow:hidden;}
+.g-hdr{background:linear-gradient(135deg,#141414,#1e1c18);border-bottom:1px solid #c9a84c33;padding:20px 26px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.g-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.g-hdr-l h2{font-size:1.8rem;font-weight:800;letter-spacing:4px;}
+.g-hdr-l h2 span{color:var(--gold);}
+.g-hdr-l p{font-size:.95rem;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.g-hdr-r{text-align:right;}
+.gsem{font-size:1.2rem;font-weight:700;color:var(--gold);}
+.gper{font-size:.9rem;color:var(--muted);margin-top:2px;}
+.greg{font-size:.95rem;color:var(--white);margin-top:3px;}
+.g-body{padding:20px 24px;}
+.dest-wrap{margin-bottom:16px;}
+.dest-title{font-size:.95rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-weight:700;}
+.dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.dest-card{background:linear-gradient(135deg,#c9a84c0a,#c9a84c14);border:1px solid #c9a84c33;border-radius:9px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.dest-icon{font-size:1.6rem;margin-top:1px;}
+.dest-info .dn{font-size:1.05rem;font-weight:700;color:var(--gold);}
+.dest-info .ds{font-size:.85rem;color:var(--muted);margin-top:4px;line-height:1.4;}
+.g-rank-title{font-size:.95rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700;margin-top:16px;}
+.g-col-hdrs{display:grid;grid-template-columns:44px 1fr 50px 88px 100px 90px;gap:6px;padding:0 12px;margin-bottom:4px;}
+.g-col-hdrs span{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.g-col-hdrs span:nth-child(n+3){text-align:right;}
+.g-list{display:flex;flex-direction:column;gap:1px;}
+.gi{display:grid;grid-template-columns:44px 1fr 50px 88px 100px 90px;align-items:center;gap:6px;background:var(--bg3);border-radius:6px;padding:5px 12px;border:1px solid transparent;}
+.gi.t1{background:#c9a84c12;border-color:#c9a84c55;}
+.gi.t2{background:#a0a0b00a;border-color:#a0a0b033;}
+.gi.t3{background:#8b5e3c0a;border-color:#8b5e3c33;}
+.gi.gns{opacity:.4;}
+.g-num{font-size:1rem;font-weight:800;text-align:center;color:var(--muted);}
+.gnm{font-size:1.15rem;font-weight:700;}
+.gnm small{font-size:.85rem;color:var(--muted);display:block;font-weight:400;margin-top:1px;}
+.guf{font-size:.95rem;text-align:right;font-weight:700;}
+.gpct{font-size:1.1rem;font-weight:800;text-align:right;}
+.gtk{font-size:.92rem;font-weight:700;color:var(--white);text-align:right;}
+.gop{font-size:.92rem;font-weight:700;color:var(--white);text-align:right;}
+.g-pizza-bottom{margin-top:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.g-pizza-title{font-size:.88rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:700;}
+.g-tops{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;}
+.g-top-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.g-top-card h4{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.g-top-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1a1a1a;}
+.g-top-row:last-child{border-bottom:none;}
+.g-top-medal{font-size:.95rem;min-width:22px;text-align:center;}
+.g-top-name{font-size:.82rem;font-weight:600;flex:1;}
+.g-top-val{font-size:.82rem;color:var(--gold);font-weight:700;white-space:nowrap;}
+.g-footer{margin-top:16px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;}
+.g-msg{background:linear-gradient(135deg,#c9a84c08,#c9a84c14);border:1px solid #c9a84c22;border-radius:9px;padding:14px 18px;}
+.g-msg p{font-size:1.05rem;color:var(--white);line-height:1.7;font-style:italic;}
+.g-msg small{font-size:.8rem;color:var(--gold);display:block;margin-top:5px;letter-spacing:1px;}
+.g-leg{font-size:.8rem;color:var(--muted);text-align:right;line-height:1.8;white-space:nowrap;}
+.btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#111;border:none;padding:10px 22px;border-radius:7px;font-weight:700;font-size:.82rem;cursor:pointer;}
+.btn:hover{opacity:.9;}
+
+/* ===== REFERÊNCIAS ===== */
+.ref-filtro-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:16px;}
+.ref-filtro-wrap label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.ref-select{background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:8px 14px;border-radius:7px;font-size:.85rem;font-family:'Segoe UI',sans-serif;cursor:pointer;flex:1;max-width:420px;}
+.ref-select:focus{outline:none;border-color:var(--gold);}
+.ref-select option{background:var(--bg3);}
+.ref-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
+.ref-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.ref-kpi.gold{border-color:#c9a84c44;}
+.ref-kpi .lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.ref-kpi .val{font-size:1.4rem;font-weight:700;color:var(--white);}
+.ref-kpi .sub{font-size:.68rem;color:var(--muted);margin-top:3px;}
+.ref-kpi.gold .val{color:var(--gold);}
+.ref-tipo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px;}
+.ref-tipo-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;}
+.ref-tipo-card .tn{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.ref-tipo-card .tv{font-size:1.2rem;font-weight:700;color:var(--white);}
+.ref-tipo-card .tp{font-size:.72rem;color:var(--gold);margin-top:2px;}
+.ref-tipo-card .tbar-bg{background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;}
+.ref-tipo-card .tbar-fill{height:4px;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.ref-charts-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;margin-bottom:18px;}
+.ref-chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.ref-chart-box h3{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.ref-tipo-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.ref-tipo-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:.73rem;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap;}
+.ref-tipo-btn.active{background:#c9a84c18;border-color:var(--gold);color:var(--gold);}
+.ref-tipo-btn:hover{color:var(--white);}
+.ref-table-wrap{border-radius:10px;border:1px solid var(--border);overflow-x:auto;}
+.ref-badge{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;}
+.ref-badge.cf{background:#6090d018;color:#6090d0;border:1px solid #6090d033;}
+.ref-badge.cm{background:#9060c018;color:#9060c0;border:1px solid #9060c033;}
+.ref-badge.sh{background:#3ecf7218;color:#3ecf72;border:1px solid #3ecf7233;}
+.ref-badge.sa{background:#e07090 18;color:#e07090;border:1px solid #e0709033;}
+.ref-badge.bf{background:#e0906018;color:#e09060;border:1px solid #e0906033;}
+.ref-badge.bm{background:#7090e018;color:#7090e0;border:1px solid #7090e033;}
+.ref-badge.bl{background:#60d0c018;color:#60d0c0;border:1px solid #60d0c033;}
+.ref-badge.tp{background:#d0a04018;color:#d0a040;border:1px solid #d0a04033;}
+.ref-badge.ss{background:#d0609018;color:#d06090;border:1px solid #d0609033;}
+.ref-badge.vt{background:#a060d018;color:#a060d0;border:1px solid #a060d033;}
+.ref-badge.sa2{background:#c0706018;color:#c07060;border:1px solid #c0706033;}
+.ref-cod{font-size:.78rem;color:var(--gold);font-weight:700;font-family:monospace;}
+.ref-mod{font-size:.72rem;color:var(--muted);}
+.ref-bar-cell{min-width:80px;}
+@media(max-width:900px){.ref-charts-grid{grid-template-columns:1fr;}.ger-dest-grid{grid-template-columns:1fr 1fr;}.cg{grid-template-columns:1fr;}.g-tops{grid-template-columns:1fr;}.dest-grid{grid-template-columns:1fr;}.g-footer{grid-template-columns:1fr;}}
+
+/* ===== OPERACIONAL ===== */
+.op-section{margin-bottom:28px;}
+.op-section-title{font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.op-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+.op-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.op-kpi .lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.op-kpi .val{font-size:1.3rem;font-weight:700;}
+.op-kpi .sub{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.op-kpi.verde{border-color:#3ecf7244;}
+.op-kpi.amarelo{border-color:#e8c97a44;}
+.op-kpi.vermelho{border-color:#e05c5c44;}
+.op-kpi.verde .val{color:#3ecf72;}
+.op-kpi.amarelo .val{color:#e8c97a;}
+.op-kpi.vermelho .val{color:#e05c5c;}
+.op-weeks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;}
+.op-month-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.op-month-hdr{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.op-month-name{font-size:.8rem;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;}
+.op-month-total{display:flex;gap:16px;align-items:center;}
+.op-month-val{font-size:.85rem;font-weight:700;}
+.op-week-row{display:grid;grid-template-columns:140px 1fr 110px 110px 80px;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid #1a1a1a;}
+.op-week-row:last-child{border-bottom:none;}
+.op-week-row.quinz-sep{border-top:1px solid #c9a84c22;}
+.op-week-lbl{font-size:.72rem;color:var(--muted);}
+.op-week-lbl strong{color:var(--white);display:block;font-size:.78rem;}
+.op-input{background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:6px;font-size:.85rem;font-family:'Segoe UI',sans-serif;width:100%;text-align:right;}
+.op-input:focus{outline:none;border-color:var(--gold);}
+.op-sem{font-size:.75rem;font-weight:700;padding:3px 8px;border-radius:6px;text-align:center;white-space:nowrap;}
+.op-sem.verde{background:#3ecf7218;color:#3ecf72;border:1px solid #3ecf7233;}
+.op-sem.amarelo{background:#e8c97a18;color:#e8c97a;border:1px solid #e8c97a33;}
+.op-sem.vermelho{background:#e05c5c18;color:#e05c5c;border:1px solid #e05c5c33;}
+.op-sem.neutro{background:var(--bg3);color:var(--muted);border:1px solid var(--border);}
+.op-col-hdrs{display:grid;grid-template-columns:140px 1fr 110px 110px 80px;gap:8px;padding:6px 16px;background:var(--bg3);}
+.op-col-hdrs span{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.op-col-hdrs span:nth-child(n+3){text-align:center;}
+.op-corte-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+.op-corte-month{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.op-corte-month-hdr{padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.op-corte-month-hdr span{font-size:.75rem;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;}
+.op-corte-week{padding:8px 16px;border-bottom:1px solid #1a1a1a;}
+.op-corte-week:last-child{border-bottom:none;}
+.op-corte-week-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.op-corte-week-lbl{font-size:.7rem;color:var(--muted);}
+.op-corte-week-total{font-size:.78rem;font-weight:700;}
+.op-corte-days{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+.op-day-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;}
+.op-day-lbl{font-size:.58rem;color:var(--muted);text-align:center;}
+.op-day-input{background:transparent;border:none;color:var(--white);font-size:.78rem;font-weight:700;text-align:center;width:100%;font-family:'Segoe UI',sans-serif;padding:0;}
+.op-day-input:focus{outline:none;color:var(--gold);}
+.op-comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;}
+.op-comp-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;}
+.op-comp-card .sem-lbl{font-size:.68rem;color:var(--muted);margin-bottom:8px;}
+.op-comp-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;}
+.op-comp-row span{font-size:.78rem;color:var(--muted);}
+.op-comp-row strong{font-size:.85rem;font-weight:700;}
+.op-comp-bar-wrap{background:var(--border);border-radius:20px;height:5px;margin-top:6px;overflow:hidden;position:relative;}
+.op-comp-bar{height:5px;border-radius:20px;position:absolute;top:0;left:0;}
+.op-save-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#111;border:none;padding:8px 20px;border-radius:7px;font-weight:700;font-size:.78rem;cursor:pointer;margin-top:16px;}
+.op-save-btn:hover{opacity:.9;}
+
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><h1>RDG <span>JEANS</span></h1><p>DASHBOARD COMERCIAL - COLECAO VERAO 2027</p></div>
+  <span class="badge">VERAO 2027</span>
+</div>
+<div class="nav">
+  <div class="nt active" onclick="mudarAba('gerencial')">Gerencial</div>
+  <div class="nt" onclick="mudarAba('grupo')">Grupo</div>
+  <div class="nt" onclick="mudarAba('referencias')">Referências</div>
+  <div class="nt" onclick="mudarAba('operacional')">Operacional</div>
+</div>
+
+<!-- ===== GERENCIAL ===== -->
+<div class="view active" id="view-gerencial">
+  <div class="periodo">
+    <div class="p-info">
+      <div class="p-lbl">Progresso da Colecao - Verao 2027</div>
+      <div class="p-track"><div class="p-fill" id="pfill" style="width:0%"></div></div>
+      <div class="p-dates"><span>15/04/2026</span><span>30/09/2026</span></div>
+    </div>
+    <div class="p-right"><strong id="psem">--</strong><small id="ppct">de 24 semanas</small></div>
+  </div>
+  <div class="mets">
+    <div class="mc gold"><div class="lbl">Vlr Liquido</div><div class="val" id="m-vlr">--</div><div class="sub" id="m-vlrsub">--</div></div>
+    <div class="mc"><div class="lbl">Qtde Pecas</div><div class="val" id="m-qtde">--</div><div class="sub" id="m-qtdesub">--</div></div>
+    <div class="mc"><div class="lbl">% Cota</div><div class="val" id="m-pct">--</div><div class="sub">media ponderada</div></div>
+    <div class="mc green"><div class="lbl">Ativos</div><div class="val" id="m-atv">-- / 23</div><div class="sub">ja iniciaram</div></div>
+    <div class="mc"><div class="lbl">Ticket Medio</div><div class="val" id="m-tk">--</div><div class="sub" id="m-tksub">--</div></div>
+    <div class="mc"><div class="lbl">Cli. Novos</div><div class="val" id="m-cn">--</div><div class="sub" id="m-cnsub">--</div></div>
+  </div>
+  <div class="ftrs">
+    <span class="ftrs-lbl">Periodo:</span>
+    <button class="fb active" id="f-acumulado" onclick="mudarFiltro('acumulado')">Colecao</button>
+    <button class="fb" id="f-mes" onclick="mudarFiltro('mes')">Mes</button>
+    <button class="fb" id="f-semana" onclick="mudarFiltro('semana')">Semana</button>
+    <button class="fb" id="f-dia" onclick="mudarFiltro('dia')">Dia</button>
+  </div>
+  <div id="bloco-colecao">
+    <div id="ger-destaques-wrap" class="ger-dest-wrap">
+      <div class="ger-dest-title">Destaques da Colecao</div>
+      <div class="ger-dest-grid" id="ger-destaques-grid"></div>
+    </div>
+    <div id="rsem-wrap" class="rsem-wrap">
+      <div class="rsem-title">⚡ Resumo da Semana Atual</div>
+      <div class="rsem-grid" id="rsem-grid"></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th>#</th><th>Representante</th><th>Regiao</th><th>% Cota</th>
+        <th style="min-width:80px">Progresso</th><th>Qtde</th>
+        <th>Vlr Liquido</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th>
+        <th>Projecao Final</th><th>Ritmo</th><th>Status</th>
+      </tr></thead>
+      <tbody id="tbody-acum"></tbody>
+    </table></div>
+    <div class="sec">Evolucao Semanal - Quantidade de Pecas</div>
+    <div class="evolucao-wrap"><canvas id="c-evolucao" height="160"></canvas></div>
+    <div class="sec">Resumo por Regiao</div>
+    <div class="region-grid" id="region-grid"></div>
+    <div class="cg">
+      <div class="cc"><h3>% Cota Atingida</h3><canvas id="c-cota" height="230"></canvas></div>
+      <div class="cc"><h3>Representatividade Qtde - Colecao</h3><canvas id="c-pizza" height="230"></canvas></div>
+    </div>
+    <div class="cg" style="margin-top:14px;">
+      <div class="cc full"><h3>Comparativo Colecoes Anteriores (Qtde Pecas)</h3><canvas id="c-comp" height="200"></canvas></div>
+    </div>
+  </div>
+  <div id="bloco-mes" style="display:none;">
+    <div class="ftrs" style="margin-bottom:12px;">
+      <span class="ftrs-lbl">Mês:</span>
+      <button class="fb" id="fm-4" onclick="mudarMes(4)">Mês 04 (Abril)</button>
+      <button class="fb active" id="fm-5" onclick="mudarMes(5)">Mês 05 (Maio)</button>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Vlr Liquido</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
+      <tbody id="tbody-mes"></tbody>
+    </table></div>
+    <div class="simple-chart-wrap"><h3 id="titulo-mes">Quantidade de Pecas - Mes 5 (Maio)</h3><canvas id="c-mes" height="180"></canvas></div>
+  </div>
+  <div id="bloco-semana" style="display:none;">
+    <div class="ftrs" style="margin-bottom:12px;">
+      <span class="ftrs-lbl">Semana:</span>
+      <button class="fb" id="fs-1" onclick="mudarSemana(1)">Semana 1</button>
+      <button class="fb" id="fs-2" onclick="mudarSemana(2)">Semana 2</button>
+      <button class="fb" id="fs-3" onclick="mudarSemana(3)">Semana 3</button>
+      <button class="fb active" id="fs-4" onclick="mudarSemana(4)">Semana 4</button>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Vlr Liquido</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
+      <tbody id="tbody-sem"></tbody>
+    </table></div>
+    <div class="simple-chart-wrap"><h3 id="titulo-sem">Quantidade de Pecas - Semana Atual</h3><canvas id="c-sem" height="180"></canvas></div>
+  </div>
+  <div id="bloco-dia" style="display:none;">
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde Pecas</th><th>Status</th></tr></thead>
+      <tbody id="tbody-dia"></tbody>
+    </table></div>
+    <div class="simple-chart-wrap"><h3>Quantidade de Pecas - Hoje</h3><canvas id="c-dia" height="180"></canvas></div>
+  </div>
+</div>
+
+<!-- ===== GRUPO ===== -->
+<div class="view" id="view-grupo">
+  <div class="g-wrap">
+    <div class="g-hdr">
+      <div class="g-hdr-l"><h2>RDG <span>JEANS</span></h2><p>ACOMPANHAMENTO SEMANAL - VERAO 2027</p></div>
+      <div class="g-hdr-r">
+        <div class="gsem">Semana <span id="g-semn">--</span> de 24</div>
+        <div class="gper" id="g-per">--</div>
+        <div class="greg">Faltam <span id="g-falt">--</span> semanas</div>
+      </div>
+    </div>
+    <div class="g-body">
+      <div class="dest-wrap">
+        <div class="dest-title">Destaques da Semana</div>
+        <div class="dest-grid" id="g-dest"></div>
+      </div>
+      <div class="g-rank-title">Ranking % Cota - Colecao Verao 2027</div>
+      <div class="g-col-hdrs">
+        <span>#</span><span>Representante</span><span>UF</span><span>% Cota</span><span>Ticket Medio</span><span>Aberturas</span>
+      </div>
+      <div class="g-list" id="g-list"></div>
+      <div class="g-pizza-bottom">
+        <div class="g-pizza-title">Representatividade no Volume Total (Qtde de Pecas)</div>
+        <div style="max-width:600px;margin:0 auto;"><canvas id="c-gpizza" height="320"></canvas></div>
+      </div>
+      <div class="g-tops" id="g-tops-wrap" style="grid-template-columns:repeat(3,1fr)">
+        <div class="g-top-card"><h4>🏆 Top 5 Quantidade</h4><div id="top5-qtde"></div></div>
+        <div class="g-top-card"><h4>🌿 Top 5 Aberturas</h4><div id="top5-aberturas"></div></div>
+      </div>
+      <div class="g-tops" id="g-tops-regioes" style="grid-template-columns:repeat(5,1fr);margin-top:14px;">
+        <div class="g-top-card"><h4>🔵 Sul</h4><div id="top5-sul"></div></div>
+        <div class="g-top-card"><h4>🟡 Sudeste</h4><div id="top5-sudeste"></div></div>
+        <div class="g-top-card"><h4>🟢 Centro-Oeste</h4><div id="top5-co"></div></div>
+        <div class="g-top-card"><h4>🟠 Nordeste</h4><div id="top5-nordeste"></div></div>
+        <div class="g-top-card"><h4>🔴 Norte</h4><div id="top5-norte"></div></div>
+      </div>
+      <div class="g-footer">
+        <div class="g-msg"><p id="g-msgt">--</p><small>RDG JEANS - VERAO 2027</small></div>
+        <div class="g-leg">Ativo | Aguardando inicio<br><span style="color:var(--gold);font-size:.65rem">* Destaque da semana</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== OPERACIONAL ===== -->
+<div class="view" id="view-operacional">
+  <!-- KPIs resumo -->
+  <div class="op-kpi-grid" id="op-kpis"></div>
+
+  <!-- Programação de Faturamento -->
+  <div class="op-section">
+    <div class="op-section-title">📦 Programação de Faturamento</div>
+    <div id="op-fat-blocks"></div>
+  </div>
+
+  <!-- Corte -->
+  <div class="op-section">
+    <div class="op-section-title">✂️ Corte por Dia</div>
+    <div id="op-corte-blocks"></div>
+  </div>
+
+  <!-- Comparativo -->
+  <div class="op-section">
+    <div class="op-section-title">📊 Comparativo Corte x Faturamento por Semana</div>
+    <div id="op-comp-blocks"></div>
+  </div>
+</div>
+
+<!-- ===== REFERÊNCIAS ===== -->
+<div class="view" id="view-referencias">
+  <div class="ref-filtro-wrap">
+    <label>Representante:</label>
+    <select class="ref-select" id="ref-rep-select" onchange="renderReferencias()">
+      <option value="TODOS">Todos os Representantes</option>
+    </select>
+  </div>
+  <div class="ref-kpi-grid" id="ref-kpis"></div>
+  <div class="sec">Distribuição por Tipo de Produto</div>
+  <div class="ref-tipo-grid" id="ref-tipo-cards"></div>
+  <div class="ref-charts-grid">
+    <div class="ref-chart-box"><h3>% por Tipo de Produto</h3><canvas id="c-ref-rosca" height="260"></canvas></div>
+    <div class="ref-chart-box"><h3>Top 15 Modelagens</h3><canvas id="c-ref-barras" height="260"></canvas></div>
+  </div>
+  <div class="sec">Ranking de Referências</div>
+  <div class="ref-tipo-btns" id="ref-tipo-btns"></div>
+  <div class="ref-table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Código</th><th>Descrição</th><th>Tipo</th><th>Modelagem</th>
+        <th style="text-align:right">Qtde</th><th style="text-align:right">% Total</th>
+        <th style="min-width:90px">Relativo</th>
+      </tr></thead>
+      <tbody id="ref-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DADOS BASE
+// ============================================================
+var REPS={
+  '07889':{n:'JUSCELINO',uf:'BA',r:'Bahia',c:4000,reg:'Nordeste'},
+  '07890':{n:'MADSON E JAU',uf:'BA',r:'Bahia',c:4000,reg:'Nordeste'},
+  '00035':{n:'GEOVANE',uf:'CE',r:'Ceara',c:5000,reg:'Nordeste'},
+  '07606':{n:'WELLS',uf:'ES',r:'Espirito Santo',c:6000,reg:'Sudeste'},
+  '07892':{n:'BRUNO FERNANDES',uf:'GO',r:'Goias/DF/TO',c:3000,reg:'Centro-Oeste'},
+  '06008':{n:'GILIARDE',uf:'MA',r:'Maranhao/Piaui',c:9000,reg:'Nordeste'},
+  '07607':{n:'LEANDRO',uf:'MT',r:'Mato Grosso',c:8500,reg:'Centro-Oeste'},
+  '07608':{n:'ROMILDO',uf:'MG',r:'Minas Gerais',c:5000,reg:'Sudeste'},
+  '06672':{n:'DANILO',uf:'MG',r:'Minas Gerais',c:9500,reg:'Sudeste'},
+  '00020':{n:'LAURO',uf:'PA',r:'Para',c:9000,reg:'Norte'},
+  '07891':{n:'ALLAN',uf:'PA',r:'Para/Amapa',c:4500,reg:'Norte'},
+  '07320':{n:'MARCOS CANDIDO',uf:'PB',r:'Paraiba/RN',c:3000,reg:'Nordeste'},
+  '00018':{n:'RAFAEL',uf:'PR',r:'Parana',c:13500,reg:'Sul'},
+  '07520':{n:'LUCIANO',uf:'PR',r:'Parana',c:3500,reg:'Sul'},
+  '07332':{n:'ISAIAS E GIZELE',uf:'PE',r:'Pernambuco',c:3500,reg:'Nordeste'},
+  '00032':{n:'EMANUEL E CONRADO',uf:'RS',r:'Rio Grande do Sul',c:18000,reg:'Sul'},
+  '00037':{n:'MARCIO',uf:'RS',r:'Rio Grande do Sul',c:12500,reg:'Sul'},
+  '00052':{n:'MANO',uf:'RO',r:'Rondonia/Acre',c:7000,reg:'Norte'},
+  '00045':{n:'SILVIO E VANESSA',uf:'SC',r:'Santa Catarina',c:13500,reg:'Sul'},
+  '06693':{n:'JOSE PEDRO',uf:'SC',r:'Santa Catarina',c:6500,reg:'Sul'},
+  '00040':{n:'LUIZ',uf:'SC',r:'Santa Catarina',c:4000,reg:'Sul'},
+  '07894':{n:'BRUNO VINICIUS',uf:'SP',r:'Sao Paulo',c:3000,reg:'Sudeste'},
+  '07741':{n:'WEMERSON',uf:'SE',r:'Sergipe/Alagoas',c:3000,reg:'Nordeste'}
+};
+var HIST_INV26={'00032':14726,'00045':11123,'00037':9071,'00018':8114,'07607':7596,'06672':6290,'00052':6274,'00020':6248,'06693':5071,'07606':4927,'07608':4143,'06008':3658,'00035':2559,'07520':2387,'07889':2454,'07332':2401,'07890':2012,'07320':1295,'00040':1243,'07741':565};
+var HIST_V26={'00032':17894,'00045':14360,'00018':12969,'00037':12144,'00020':11240,'06672':8515,'00052':6937,'06008':6667,'06693':5737,'07607':2718,'07889':2630,'07890':2393,'00040':2194,'07332':1949,'07320':1765,'00035':3031};
+var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060','#9b7fd4','#5ec4a8','#e8a860','#7090d0','#d07090','#90d070','#d0a040','#70c0d0','#c070c0','#a0c060','#c09050','#6080c0','#b06060','#60b080','#a06082','#80a060'];
+
+var dDia=[],dSem=[],dMes=[],dAcum=[],dHist=[];
+var filtroAtual='acumulado';
+var mesAtual=5, semanaAtual=4;
+var dMesDados={}, dSemDados={};
+var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null,chartMes=null,chartSem=null,chartDia=null;
+var chartRefRosca=null,chartRefBarras=null;
+var refFiltroTipo='TODOS';
+
+// ============================================================
+// DADOS DE REFERÊNCIAS (1209 linhas parseadas)
+// ============================================================
+var RAW_REF = [
+["00032","CF22158","CALCA FEM. WIDELEG CROPPED",300],
+["00032","CF22092","CALCA FEM. SKINNY",115],
+["00032","CF22152","CALCA FEM. WIDELEG",105],
+["00032","CF22105","CALCA FEM. LITTLEBOOT",100],
+["00018","CF22152","CALCA FEM. WIDELEG",93],
+["00032","CF22124","CALCA FEM. MOM",92],
+["00032","CF22155","CALCA FEM. WIDECROPPED LIPO",88],
+["00032","CF22086","CALCA FEM. CIGARRETE LIPO",88],
+["00032","CF22107","CALCA FEM. LITTLEBOOT",85],
+["00032","S22068","SHORTS FEM. MOMMEIA COXA",78],
+["00018","CF22090","CALCA FEM. SKINNY",72],
+["00018","CF22158","CALCA FEM. WIDELEG CROPPED",71],
+["00032","CF22103","CALCA FEM. LITTLEBOOT",71],
+["00018","CF22124","CALCA FEM. MOM",70],
+["00032","S22062","SHORTS FEM. MOMMEIA COXA",69],
+["00032","CF22163","CALCA FEM. WIDECROPPED",68],
+["00032","S22056","SHORTS FEM. MEIACOXA SPORT FINO",68],
+["00037","CF22124","CALCA FEM. MOM",64],
+["00032","CF22083","CALCA FEM. CIGARRETE",62],
+["00032","CF22088","CALCA FEM. CIGARRETE",61],
+["00032","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",60],
+["00032","CF22150","CALCA FEM. WIDELEG",58],
+["00032","CF22123","CALCA FEM. MOM",57],
+["00018","CF22107","CALCA FEM. LITTLEBOOT",56],
+["00018","B30945","BERMUDA MASC. MEDIA",55],
+["00018","S22043","SHORTS FEM. CURTO",54],
+["00032","S22043","SHORTS FEM. CURTO",54],
+["00032","S22059","SHORTS FEM. MOMMEIA COXA",53],
+["00032","CF22114","CALCA FEM. CIGARRETE SPORT FINO",53],
+["00052","CF22158","CALCA FEM. WIDELEG CROPPED",52],
+["00018","CM30891","CALCA MASC. SLIM",51],
+["00032","CF22101","CALCA FEM. CAPRI",51],
+["00032","CF22157","CALCA FEM. WIDECROPPED",50],
+["00037","CF22152","CALCA FEM. WIDELEG",50],
+["00032","CF22147","CALCA FEM. WIDELEG",49],
+["00032","CF22106","CALCA FEM. LITTLEBOOT",49],
+["00020","S22034","SHORTS FEM. CURTO",48],
+["00020","S22048","SHORTS FEM. MEIACOXA",48],
+["00037","S22062","SHORTS FEM. MOMMEIA COXA",48],
+["00018","CF22099","CALCA FEM. CAPRI",47],
+["00032","S22061","SHORTS FEM. MOMMEIA COXA",47],
+["00032","S22042","SHORTS FEM. CURTO",47],
+["00032","CF22162","CALCA FEM. WIDELEG",47],
+["00018","CF22093","CALCA FEM. SKINNY",46],
+["00032","S22064","SHORTS FEM. MOMMEIA COXA",46],
+["00037","S22053","SHORTS FEM. MEIACOXA",46],
+["00018","CF22092","CALCA FEM. SKINNY",45],
+["00020","B30945","BERMUDA MASC. MEDIA",45],
+["00032","S22039","SHORTS FEM. CURTO",45],
+["00037","CF22162","CALCA FEM. WIDELEG",45],
+["00037","S22061","SHORTS FEM. MOMMEIA COXA",45],
+["00018","B30925","BERMUDA MASC. TRADICIONAL",44],
+["00018","B30946","BERMUDA MASC. MEDIA",43],
+["00032","SA22016","SAIA FEM. MEDIA",43],
+["00032","SA22015","SAIA FEM. MINICARGO",43],
+["00032","S22044","SHORTS FEM. MEIACOXA",43],
+["00037","CF22155","CALCA FEM. WIDECROPPED LIPO",43],
+["00018","CM30895","CALCA MASC. SLIM",42],
+["00018","SS22033","SHORT SAIA FEM.",42],
+["00018","SA22029","SAIA FEM. MIDI",42],
+["00032","S22053","SHORTS FEM. MEIACOXA",42],
+["00032","CF22109","CALCA FEM. BOOTCUT",42],
+["00032","CF22122","CALCA FEM. MOM",41],
+["00037","CF22146","CALCA FEM. WIDELEG",41],
+["00032","SA22029","SAIA FEM. MIDI",41],
+["00032","CF22100","CALCA FEM. CAPRI",41],
+["00037","S22059","SHORTS FEM. MOMMEIA COXA",41],
+["00018","CF22115","CALCA FEM. CIGARRETE SPORT FINO",40],
+["00032","S22051","SHORTS FEM. MEIACOXA",40],
+["00032","CF22097","CALCA FEM. SKINNY",40],
+["00032","CF22082","CALCA FEM. CIGARRETE",40],
+["00018","CF22150","CALCA FEM. WIDELEG",39],
+["00018","CF22106","CALCA FEM. LITTLEBOOT",39],
+["00032","CF22142","CALCA FEM. RETA CROPPED LIPO",39],
+["00018","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",38],
+["00018","S22062","SHORTS FEM. MOMMEIA COXA",38],
+["00018","CF22083","CALCA FEM. CIGARRETE",38],
+["00018","CF22097","CALCA FEM. SKINNY",38],
+["00032","CF22154","CALCA FEM. WIDECROPPED",38],
+["00032","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",38],
+["07607","B22069","BERMUDA FEM. WIDELEG",38],
+["07890","CF22163","CALCA FEM. WIDECROPPED",38],
+["00018","CF22101","CALCA FEM. CAPRI",37],
+["00018","CF22155","CALCA FEM. WIDECROPPED LIPO",37],
+["00032","CF22125","CALCA FEM. MOM",37],
+["00018","CM30886","CALCA MASC. SKINNY",36],
+["00020","CF22152","CALCA FEM. WIDELEG",36],
+["00032","CF22128","CALCA FEM. BARREL",36],
+["00032","CF22119","CALCA FEM. SLOUCHY",36],
+["00018","CF22147","CALCA FEM. WIDELEG",35],
+["00018","CF22127","CALCA FEM. BARREL",35],
+["00018","CF22119","CALCA FEM. SLOUCHY",35],
+["00037","CF22107","CALCA FEM. LITTLEBOOT",35],
+["07608","CF22152","CALCA FEM. WIDELEG",35],
+["00018","S22039","SHORTS FEM. CURTO",34],
+["00032","S22067","SHORTS FEM. CICLISTA",34],
+["00032","CF22084","CALCA FEM. CIGARRETE",34],
+["00032","S22038","SHORTS FEM. CURTO",34],
+["00032","CF22099","CALCA FEM. CAPRI",34],
+["00037","S22039","SHORTS FEM. CURTO",34],
+["00018","BL22076","BLUSA FEM.",33],
+["00018","CF22128","CALCA FEM. BARREL",33],
+["00032","S22006","SHORTS FEM. MEIACOXA PLUS SIZE",33],
+["00032","CF22129","CALCA FEM. RETA LIPO",33],
+["00032","CM30891","CALCA MASC. SLIM",33],
+["00018","CF22104","CALCA FEM. LITTLEBOOT",32],
+["00018","CF22163","CALCA FEM. WIDECROPPED",32],
+["00020","S22064","SHORTS FEM. MOMMEIA COXA",32],
+["00020","S22047","SHORTS FEM. MEIACOXA",32],
+["00032","CF22151","CALCA FEM. WIDELEG ALFAIATARIA",32],
+["00032","SA22017","SAIA FEM. MEDIA",32],
+["00052","CF22092","CALCA FEM. SKINNY",32],
+["07607","CF22127","CALCA FEM. BARREL",31],
+["07607","CF22148","CALCA FEM. WIDELEG LIPO",31],
+["00018","CF22086","CALCA FEM. CIGARRETE LIPO",30],
+["00018","CF21989","CALCA FEM. SKINNY PLUS SIZE",30],
+["00037","CF22154","CALCA FEM. WIDECROPPED",30],
+["07607","CF22160","CALCA FEM. SUPERWIDE",30],
+["00018","CF22159","CALCA FEM. SUPERWIDE",29],
+["00018","B30944","BERMUDA MASC. SPORT FINO MEDIA",29],
+["00037","CF22105","CALCA FEM. LITTLEBOOT",29],
+["00037","CF22122","CALCA FEM. MOM",29],
+["00037","SA22029","SAIA FEM. MIDI",29],
+["00018","CF22125","CALCA FEM. MOM",28],
+["00018","CM30884","CALCA MASC. SKINNY",28],
+["00018","CF22132","CALCA FEM. RETA",28],
+["00018","CM30896","CALCA MASC. SLIM",28],
+["00020","S22037","SHORTS FEM. CURTO",28],
+["00020","B30928","BERMUDA MASC. TRADICIONAL",28],
+["00020","S22039","SHORTS FEM. CURTO",28],
+["00020","S22059","SHORTS FEM. MOMMEIA COXA",28],
+["00018","B30920","BERMUDA MASC. TRADICIONAL",28],
+["00037","CF22157","CALCA FEM. WIDECROPPED",28],
+["00037","S22056","SHORTS FEM. MEIACOXA SPORT FINO",28],
+["07607","CF22158","CALCA FEM. WIDELEG CROPPED",28],
+["07890","S22061","SHORTS FEM. MOMMEIA COXA",28],
+["07890","CF22159","CALCA FEM. SUPERWIDE",28],
+["00018","CM30881","CALCA MASC. SKINNY",27],
+["00018","CM30877","CALCA MASC. CIGARRETE",27],
+["00032","CF22085","CALCA FEM. CIGARRETE",27],
+["00032","S22047","SHORTS FEM. MEIACOXA",27],
+["00032","S22066","SHORTS FEM. CICLISTA",27],
+["00037","CF22130","CALCA FEM. RETA",27],
+["00032","SA22024","SAIA FEM. MIDICURTA",27],
+["00037","CF22093","CALCA FEM. SKINNY",27],
+["00037","CF22150","CALCA FEM. WIDELEG",27],
+["00018","CF22085","CALCA FEM. CIGARRETE",26],
+["00018","CM30909","CALCA MASC. SPORT FINO",26],
+["00032","SA22013","SAIA FEM. MINI",26],
+["00032","CF22108","CALCA FEM. BOOTCUT",26],
+["00032","S22057","SHORTS FEM. SPORT FINO MEIA COXA",26],
+["00037","CF22153","CALCA FEM. WIDELEG",26],
+["06693","CF22152","CALCA FEM. WIDELEG",26],
+["00018","CF22084","CALCA FEM. CIGARRETE",25],
+["00018","S22061","SHORTS FEM. MOMMEIA COXA",25],
+["00032","BL22076","BLUSA FEM.",25],
+["00018","CM30894","CALCA MASC. SLIM",25],
+["00037","CF22114","CALCA FEM. CIGARRETE SPORT FINO",25],
+["00037","CF22142","CALCA FEM. RETA CROPPED LIPO",25],
+["00032","CF22138","CALCA FEM. RETA CROPPED",25],
+["00032","SS22033","SHORT SAIA FEM.",25],
+["00032","S22055","SHORTS FEM. SPORT FINO MEIA COXA",25],
+["00032","CF22002","CALCA FEM. CAPRI PLUS SIZE",25],
+["00037","S22035","SHORTS FEM. CURTO",25],
+["00037","S22065","SHORTS FEM. CICLISTA",25],
+["00037","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",25],
+["00018","CF22088","CALCA FEM. CIGARRETE",24],
+["00020","B30937","BERMUDA MASC. SPORT FINO MEDIA",24],
+["00032","CF22081","CALCA FEM. CIGARRETE",24],
+["00037","S22066","SHORTS FEM. CICLISTA",24],
+["00052","CF22152","CALCA FEM. WIDELEG",24],
+["07890","S22040","SHORTS FEM. CURTO",24],
+["07890","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",24],
+["07890","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",24],
+["07890","CF22150","CALCA FEM. WIDELEG",24],
+["07890","CF22157","CALCA FEM. WIDECROPPED",24],
+["00018","CM30914","CALCA MASC. SPORT FINO CROPPED",23],
+["00018","S22042","SHORTS FEM. CURTO",23],
+["00018","SA22015","SAIA FEM. MINICARGO",23],
+["00018","CM30876","CALCA MASC. CIGARRETE",23],
+["00032","S22037","SHORTS FEM. CURTO",23],
+["00032","CF22095","CALCA FEM. SKINNY LIPO",23],
+["07606","CF22152","CALCA FEM. WIDELEG",23],
+["07891","CM30891","CALCA MASC. SLIM",23],
+["07607","CF22155","CALCA FEM. WIDECROPPED LIPO",23],
+["00018","CF22153","CALCA FEM. WIDELEG",22],
+["00018","B30922","BERMUDA MASC. TRADICIONAL",22],
+["00018","CF22122","CALCA FEM. MOM",22],
+["00018","CM30890","CALCA MASC. SLIM",22],
+["00032","S22005","SHORTS FEM. MEIACOXA PLUS SIZE",22],
+["00032","CF22090","CALCA FEM. SKINNY",22],
+["00037","CF22108","CALCA FEM. BOOTCUT",22],
+["00037","S22068","SHORTS FEM. MOMMEIA COXA",22],
+["06693","CF22155","CALCA FEM. WIDECROPPED LIPO",22],
+["07607","CF22152","CALCA FEM. WIDELEG",22],
+["00018","CM30879","CALCA MASC. CIGARRETE",21],
+["00020","B30920","BERMUDA MASC. TRADICIONAL",21],
+["00020","B30924","BERMUDA MASC. TRADICIONAL",21],
+["00018","CM30902","CALCA MASC. RETA",21],
+["00037","B30920","BERMUDA MASC. TRADICIONAL",21],
+["00037","CF22117","CALCA FEM. CIGARRETE SPORT FINO",21],
+["00037","CF22133","CALCA FEM. RETA",21],
+["00032","CF22104","CALCA FEM. LITTLEBOOT",21],
+["00032","CF22093","CALCA FEM. SKINNY",21],
+["00052","B30925","BERMUDA MASC. TRADICIONAL",21],
+["00037","SA22015","SAIA FEM. MINICARGO",21],
+["00037","S22055","SHORTS FEM. SPORT FINO MEIA COXA",21],
+["07607","CF22128","CALCA FEM. BARREL",21],
+["06693","CF22142","CALCA FEM. RETA CROPPED LIPO",21],
+["07890","CF22092","CALCA FEM. SKINNY",21],
+["00020","S22036","SHORTS FEM. CURTO",20],
+["00020","CM30892","CALCA MASC. SLIM",20],
+["00018","CM30913","CALCA MASC. SPORT FINO CROPPED",20],
+["00018","CF22139","CALCA FEM. RETA CROPPED",20],
+["00018","CM30878","CALCA MASC. CIGARRETE",20],
+["00018","CF22131","CALCA FEM. RETA",20],
+["00032","CF22140","CALCA FEM. RETA CROPPED",20],
+["00037","CF22106","CALCA FEM. LITTLEBOOT",20],
+["00040","S22044","SHORTS FEM. MEIACOXA",20],
+["06693","B30920","BERMUDA MASC. TRADICIONAL",20],
+["06693","B30925","BERMUDA MASC. TRADICIONAL",20],
+["07607","CF22092","CALCA FEM. SKINNY",20],
+["07890","B22069","BERMUDA FEM. WIDELEG",20],
+["07890","B22070","BERMUDA FEM. WIDE ALFAIATARIA",20],
+["07607","CF22142","CALCA FEM. RETA CROPPED LIPO",20],
+["00018","B30924","BERMUDA MASC. TRADICIONAL",19],
+["00018","CF22166","CALCA FEM. RETA COUNTRY",19],
+["00018","CF22129","CALCA FEM. RETA LIPO",19],
+["00037","CF22099","CALCA FEM. CAPRI",19],
+["00037","CF22129","CALCA FEM. RETA LIPO",19],
+["00032","SA22027","SAIA FEM. MIDICARGO",19],
+["00037","CF22101","CALCA FEM. CAPRI",19],
+["00032","CF22136","CALCA FEM. RETA CARGO",19],
+["00032","T22074","TOP FEM. CROPPED",19],
+["00032","CM30890","CALCA MASC. SLIM",19],
+["00037","S22042","SHORTS FEM. CURTO",19],
+["00037","SA22017","SAIA FEM. MEDIA",19],
+["06693","S22056","SHORTS FEM. MEIACOXA SPORT FINO",19],
+["07607","CF22108","CALCA FEM. BOOTCUT",19],
+["06693","CF22115","CALCA FEM. CIGARRETE SPORT FINO",19],
+["07607","CF22157","CALCA FEM. WIDECROPPED",19],
+["00020","CF22122","CALCA FEM. MOM",18],
+["00020","CF22130","CALCA FEM. RETA",18],
+["00020","CF22132","CALCA FEM. RETA",18],
+["00020","CF22162","CALCA FEM. WIDELEG",18],
+["00020","CF22091","CALCA FEM. SKINNY",18],
+["00020","B30923","BERMUDA MASC. TRADICIONAL",18],
+["00018","CF22120","CALCA FEM. SLOUCHY",18],
+["00020","CF22090","CALCA FEM. SKINNY",18],
+["00020","CF22086","CALCA FEM. CIGARRETE LIPO",18],
+["00020","CF22142","CALCA FEM. RETA CROPPED LIPO",18],
+["00018","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",18],
+["00018","SA22028","SAIA FEM. MIDI",18],
+["00018","SA22027","SAIA FEM. MIDICARGO",18],
+["00020","CF22093","CALCA FEM. SKINNY",18],
+["00032","S22009","SHORTS FEM. CICLISTA PLUS SIZE",18],
+["00032","SA22012","SAIA FEM. MINI",18],
+["00032","CF22117","CALCA FEM. CIGARRETE SPORT FINO",18],
+["00032","CF22001","CALCA FEM. CAPRI PLUS SIZE",18],
+["00037","SA22028","SAIA FEM. MIDI",18],
+["00037","SA22025","SAIA FEM. MIDICURTA",18],
+["06693","B30922","BERMUDA MASC. TRADICIONAL",18],
+["00037","S22067","SHORTS FEM. CICLISTA",18],
+["06693","CF22105","CALCA FEM. LITTLEBOOT",18],
+["07607","SA22031","SAIA FEM. EVASE",18],
+["00018","CM30888","CALCA MASC. SKINNY",17],
+["00018","CM30887","CALCA MASC. SKINNY",17],
+["00018","CF22096","CALCA FEM. SKINNY",17],
+["00032","CF21989","CALCA FEM. SKINNY PLUS SIZE",17],
+["00018","S22057","SHORTS FEM. SPORT FINO MEIA COXA",17],
+["00018","CF22142","CALCA FEM. RETA CROPPED LIPO",17],
+["00018","CF22168","CALCA FEM. LITTLEBOOT COUNTRY",17],
+["00018","CM30885","CALCA MASC. SKINNY",17],
+["00032","S22034","SHORTS FEM. CURTO",17],
+["00032","SA22025","SAIA FEM. MIDICURTA",17],
+["06693","B30919","BERMUDA MASC. TRADICIONAL",17],
+["00037","CF22163","CALCA FEM. WIDECROPPED",17],
+["00037","CM30888","CALCA MASC. SKINNY",17],
+["00037","CM30890","CALCA MASC. SLIM",17],
+["06693","S22053","SHORTS FEM. MEIACOXA",17],
+["07890","S22053","SHORTS FEM. MEIACOXA",17],
+["07608","BL22076","BLUSA FEM.",17],
+["07608","CF22150","CALCA FEM. WIDELEG",17],
+["00018","CM30949","CALCA MASC. RETA COUNTRY",16],
+["00018","CF22156","CALCA FEM. WIDECROPPED",16],
+["00018","CF22135","CALCA FEM. RETA ALFAIATARIA",16],
+["00018","CM30907","CALCA MASC. SPORT FINO",16],
+["00018","SA22025","SAIA FEM. MIDICURTA",16],
+["00032","S22010","SHORTS FEM. CICLISTA PLUS SIZE",16],
+["00032","CF22110","CALCA FEM. BOOTCUT",16],
+["00032","SA22028","SAIA FEM. MIDI",16],
+["00032","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",16],
+["00037","BL22076","BLUSA FEM.",16],
+["00037","CF22119","CALCA FEM. SLOUCHY",16],
+["00032","CM30888","CALCA MASC. SKINNY",16],
+["00037","CF22086","CALCA FEM. CIGARRETE LIPO",16],
+["00037","CF22140","CALCA FEM. RETA CROPPED",16],
+["00037","CF22115","CALCA FEM. CIGARRETE SPORT FINO",16],
+["00037","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",16],
+["00052","CF22147","CALCA FEM. WIDELEG",16],
+["00037","CF22147","CALCA FEM. WIDELEG",16],
+["06693","S22068","SHORTS FEM. MOMMEIA COXA",16],
+["06693","CF22086","CALCA FEM. CIGARRETE LIPO",16],
+["06693","CF22107","CALCA FEM. LITTLEBOOT",16],
+["07607","CF22130","CALCA FEM. RETA",16],
+["07608","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",16],
+["07608","CF22154","CALCA FEM. WIDECROPPED",16],
+["07607","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",16],
+["07608","V22079","VESTIDO FEM. LONGO",16],
+["00020","CM30894","CALCA MASC. SLIM",15],
+["00020","CM30895","CALCA MASC. SLIM",15],
+["00018","B30926","BERMUDA MASC. TRADICIONAL",15],
+["00032","B30918","BERMUDA MASC. TRADICIONAL",15],
+["00018","CF22091","CALCA FEM. SKINNY",15],
+["00018","S22053","SHORTS FEM. MEIACOXA",15],
+["00032","CF22159","CALCA FEM. SUPERWIDE",15],
+["00037","B30921","BERMUDA MASC. TRADICIONAL",15],
+["00032","SA22020","SAIA FEM. LAPIS",15],
+["00037","CF21994","CALCA FEM. RETA PLUS SIZE",15],
+["00032","CF22156","CALCA FEM. WIDECROPPED",15],
+["00032","S22041","SHORTS FEM. CURTO",15],
+["00032","SA22014","SAIA FEM. MINI",15],
+["00052","CF22145","CALCA FEM. WIDELEG CARGO",15],
+["00037","SA22012","SAIA FEM. MINI",15],
+["06693","S22062","SHORTS FEM. MOMMEIA COXA",15],
+["07607","CF22159","CALCA FEM. SUPERWIDE",15],
+["07608","T22075","TOP FEM. CROPPED",15],
+["07608","BL22077","BLUSA FEM. CROPPED",15],
+["07890","CF22114","CALCA FEM. CIGARRETE SPORT FINO",15],
+["07607","S22053","SHORTS FEM. MEIACOXA",15],
+["07607","S22064","SHORTS FEM. MOMMEIA COXA",15],
+["00018","CF22108","CALCA FEM. BOOTCUT",14],
+["00020","S22005","SHORTS FEM. MEIACOXA PLUS SIZE",14],
+["00018","CM30916","CALCA MASC. SPORT FINO CROPPED",14],
+["00018","SA22012","SAIA FEM. MINI",14],
+["00018","CF22138","CALCA FEM. RETA CROPPED",14],
+["00018","CF22100","CALCA FEM. CAPRI",14],
+["00032","B30932","BERMUDA MASC. SPORT FINO",14],
+["00032","V22079","VESTIDO FEM. LONGO",14],
+["00032","CF22116","CALCA FEM. CIGARRETE SPORT FINO",14],
+["00032","T22075","TOP FEM. CROPPED",14],
+["00032","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",14],
+["00032","S22048","SHORTS FEM. MEIACOXA",14],
+["00037","CF22092","CALCA FEM. SKINNY",14],
+["00037","CF22128","CALCA FEM. BARREL",14],
+["00037","CF22139","CALCA FEM. RETA CROPPED",14],
+["00037","CF22156","CALCA FEM. WIDECROPPED",14],
+["00040","B22069","BERMUDA FEM. WIDELEG",14],
+["07606","CF22147","CALCA FEM. WIDELEG",14],
+["07606","S22061","SHORTS FEM. MOMMEIA COXA",14],
+["06693","CF22090","CALCA FEM. SKINNY",14],
+["06693","S22057","SHORTS FEM. SPORT FINO MEIA COXA",14],
+["07608","SA22029","SAIA FEM. MIDI",14],
+["07607","CF22153","CALCA FEM. WIDELEG",14],
+["00018","CF22154","CALCA FEM. WIDECROPPED",13],
+["00018","V22079","VESTIDO FEM. LONGO",13],
+["00018","BL22077","BLUSA FEM. CROPPED",13],
+["00018","CF22140","CALCA FEM. RETA CROPPED",13],
+["00032","B30923","BERMUDA MASC. TRADICIONAL",13],
+["00018","CF22114","CALCA FEM. CIGARRETE SPORT FINO",13],
+["00018","CF22172","CALCA FEM. BOOTCUT COUNTRY",13],
+["00032","B22069","BERMUDA FEM. WIDELEG",13],
+["00018","B30938","BERMUDA MASC. SPORT FINO MEDIA",13],
+["00032","CF22146","CALCA FEM. WIDELEG",13],
+["00032","CF21998","CALCA FEM. WIDELEG PLUS SIZE",13],
+["00032","CF22096","CALCA FEM. SKINNY",13],
+["00032","S22035","SHORTS FEM. CURTO",13],
+["00037","CF22123","CALCA FEM. MOM",13],
+["00032","CM30893","CALCA MASC. SLIM",13],
+["00037","CF22135","CALCA FEM. RETA ALFAIATARIA",13],
+["00032","SA22031","SAIA FEM. EVASE",13],
+["00032","CF22130","CALCA FEM. RETA",13],
+["00032","CF22134","CALCA FEM. RETA",13],
+["00037","CF21989","CALCA FEM. SKINNY PLUS SIZE",13],
+["00040","CF22099","CALCA FEM. CAPRI",13],
+["00037","SA22016","SAIA FEM. MEDIA",13],
+["00052","SA22015","SAIA FEM. MINICARGO",13],
+["00037","SA22014","SAIA FEM. MINI",13],
+["00052","CF22136","CALCA FEM. RETA CARGO",13],
+["07607","CF22135","CALCA FEM. RETA ALFAIATARIA",13],
+["07607","S22042","SHORTS FEM. CURTO",13],
+["07608","S22053","SHORTS FEM. MEIACOXA",13],
+["00018","B30929","BERMUDA MASC. TRADICIONAL",12],
+["00018","S22041","SHORTS FEM. CURTO",12],
+["00020","CM30899","CALCA MASC. RETA",12],
+["00018","CF21996","CALCA FEM. RETA PLUS SIZE",12],
+["00018","CF22082","CALCA FEM. CIGARRETE",12],
+["00018","CF22105","CALCA FEM. LITTLEBOOT",12],
+["00032","B30924","BERMUDA MASC. TRADICIONAL",12],
+["00032","SA22032","SAIA FEM. LONGA",12],
+["06693","B30928","BERMUDA MASC. TRADICIONAL",12],
+["00037","S22037","SHORTS FEM. CURTO",12],
+["00037","S22010","SHORTS FEM. CICLISTA PLUS SIZE",12],
+["00037","SS22033","SHORT SAIA FEM.",12],
+["07607","CF22124","CALCA FEM. MOM",12],
+["06693","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",12],
+["06693","CF22117","CALCA FEM. CIGARRETE SPORT FINO",12],
+["07606","S22038","SHORTS FEM. CURTO",12],
+["07607","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",12],
+["07608","CF22159","CALCA FEM. SUPERWIDE",12],
+["07608","CF22145","CALCA FEM. WIDELEG CARGO",12],
+["07608","CF22147","CALCA FEM. WIDELEG",12],
+["07608","CF22146","CALCA FEM. WIDELEG",12],
+["07890","S22010","SHORTS FEM. CICLISTA PLUS SIZE",12],
+["07890","B30926","BERMUDA MASC. TRADICIONAL",12],
+["07890","B30927","BERMUDA MASC. TRADICIONAL",12],
+["07608","CF22135","CALCA FEM. RETA ALFAIATARIA",12],
+["07608","CF22134","CALCA FEM. RETA",12],
+["07607","S22035","SHORTS FEM. CURTO",12],
+["07608","CF22144","CALCA FEM. WIDELEG CARGO",12],
+["00018","CF21992","CALCA FEM. LITTLEBOOT PLUS SIZE",11],
+["00018","SA22016","SAIA FEM. MEDIA",11],
+["00018","CF22116","CALCA FEM. CIGARRETE SPORT FINO",11],
+["00018","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",11],
+["00018","CF22157","CALCA FEM. WIDECROPPED",11],
+["00018","CF22087","CALCA FEM. CIGARRETE LIPO",11],
+["00032","B30928","BERMUDA MASC. TRADICIONAL",11],
+["00037","CF22084","CALCA FEM. CIGARRETE",11],
+["00037","B22069","BERMUDA FEM. WIDELEG",11],
+["00037","CF22090","CALCA FEM. SKINNY",11],
+["00037","CF22103","CALCA FEM. LITTLEBOOT",11],
+["00032","CF22133","CALCA FEM. RETA",11],
+["00032","CM30895","CALCA MASC. SLIM",11],
+["00037","CF22083","CALCA FEM. CIGARRETE",11],
+["00037","CF22132","CALCA FEM. RETA",11],
+["00032","CF22139","CALCA FEM. RETA CROPPED",11],
+["00037","CF22096","CALCA FEM. SKINNY",11],
+["00032","CM30885","CALCA MASC. SKINNY",11],
+["00052","CF22103","CALCA FEM. LITTLEBOOT",11],
+["06693","B30944","BERMUDA MASC. SPORT FINO MEDIA",11],
+["00037","S22064","SHORTS FEM. MOMMEIA COXA",11],
+["00037","S22008","SHORTS FEM. CICLISTA PLUS SIZE",11],
+["06693","B30921","BERMUDA MASC. TRADICIONAL",11],
+["00052","CF22155","CALCA FEM. WIDECROPPED LIPO",11],
+["00037","CF22159","CALCA FEM. SUPERWIDE",11],
+["00037","CF22148","CALCA FEM. WIDELEG LIPO",11],
+["06693","B30933","BERMUDA MASC. SPORT FINO",11],
+["06693","B30934","BERMUDA MASC. SPORT FINO",11],
+["06693","CF22095","CALCA FEM. SKINNY LIPO",11],
+["07606","CF22119","CALCA FEM. SLOUCHY",11],
+["06693","CF22138","CALCA FEM. RETA CROPPED",11],
+["07607","CF22107","CALCA FEM. LITTLEBOOT",11],
+["07607","CF22132","CALCA FEM. RETA",11],
+["06693","CF22124","CALCA FEM. MOM",11],
+["06693","CF22162","CALCA FEM. WIDELEG",11],
+["07606","CF22170","CALCA FEM. LITTLEBOOT COUNTRY",11],
+["06693","CF22093","CALCA FEM. SKINNY",11],
+["07890","T22075","TOP FEM. CROPPED",11],
+["07607","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",11],
+["07608","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",11],
+["07890","CF21992","CALCA FEM. LITTLEBOOT PLUS SIZE",11],
+["07890","CF21998","CALCA FEM. WIDELEG PLUS SIZE",11],
+["07890","CF21994","CALCA FEM. RETA PLUS SIZE",11],
+["07608","CF22149","CALCA FEM. WIDELEG",11],
+["07608","CF22117","CALCA FEM. CIGARRETE SPORT FINO",11],
+["00018","B30943","BERMUDA MASC. SPORT FINO MEDIA",10],
+["00032","CF21992","CALCA FEM. LITTLEBOOT PLUS SIZE",10],
+["00018","S22068","SHORTS FEM. MOMMEIA COXA",10],
+["00018","S22009","SHORTS FEM. CICLISTA PLUS SIZE",10],
+["00018","T22074","TOP FEM. CROPPED",10],
+["00018","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",10],
+["00037","BL22077","BLUSA FEM. CROPPED",10],
+["00032","SA22018","SAIA FEM. MEDIA ALFAIATARIA",10],
+["00032","S22065","SHORTS FEM. CICLISTA",10],
+["00037","CF22095","CALCA FEM. SKINNY LIPO",10],
+["00037","B30918","BERMUDA MASC. TRADICIONAL",10],
+["00037","CF22097","CALCA FEM. SKINNY",10],
+["00037","CF22001","CALCA FEM. CAPRI PLUS SIZE",10],
+["00032","CF22132","CALCA FEM. RETA",10],
+["06693","B30918","BERMUDA MASC. TRADICIONAL",10],
+["00037","S22047","SHORTS FEM. MEIACOXA",10],
+["00037","SA22024","SAIA FEM. MIDICURTA",10],
+["00052","S22038","SHORTS FEM. CURTO",10],
+["00052","CF22144","CALCA FEM. WIDELEG CARGO",10],
+["00037","SA22019","SAIA FEM. LAPIS",10],
+["00052","CF22173","CALCA FEM. BOOTCUT COUNTRY",10],
+["00037","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",10],
+["07607","BL22077","BLUSA FEM. CROPPED",10],
+["07606","CF22153","CALCA FEM. WIDELEG",10],
+["06693","S22051","SHORTS FEM. MEIACOXA",10],
+["06693","CM30888","CALCA MASC. SKINNY",10],
+["07607","CF22125","CALCA FEM. MOM",10],
+["06693","CF22108","CALCA FEM. BOOTCUT",10],
+["06693","CF22122","CALCA FEM. MOM",10],
+["07607","CF22119","CALCA FEM. SLOUCHY",10],
+["07608","T22074","TOP FEM. CROPPED",10],
+["07608","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",10],
+["07608","SA22015","SAIA FEM. MINICARGO",10],
+["07608","CF22090","CALCA FEM. SKINNY",10],
+["07607","CF22141","CALCA FEM. RETA CROPPED",10],
+["07607","CF22138","CALCA FEM. RETA CROPPED",10],
+["07608","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",10],
+["07608","CF22157","CALCA FEM. WIDECROPPED",10],
+["07607","CF22146","CALCA FEM. WIDELEG",10],
+["07607","S22056","SHORTS FEM. MEIACOXA SPORT FINO",10],
+["07891","CM30899","CALCA MASC. RETA",10],
+["07890","B30945","BERMUDA MASC. MEDIA",10],
+["00018","CM30882","CALCA MASC. SKINNY",9],
+["00032","CF21986","CALCA FEM. CIGARRETE PLUS SIZE",9],
+["00018","CF22117","CALCA FEM. CIGARRETE SPORT FINO",9],
+["00018","SA22013","SAIA FEM. MINI",9],
+["00018","SA22014","SAIA FEM. MINI",9],
+["00018","CM30899","CALCA MASC. RETA",9],
+["00018","CF22141","CALCA FEM. RETA CROPPED",9],
+["00018","S22059","SHORTS FEM. MOMMEIA COXA",9],
+["00018","T22075","TOP FEM. CROPPED",9],
+["00032","B30930","BERMUDA MASC. SPORT FINO",9],
+["00037","CF22088","CALCA FEM. CIGARRETE",9],
+["00037","CF22104","CALCA FEM. LITTLEBOOT",9],
+["00032","CF22148","CALCA FEM. WIDELEG LIPO",9],
+["00037","CF22109","CALCA FEM. BOOTCUT",9],
+["00032","CF22087","CALCA FEM. CIGARRETE LIPO",9],
+["00032","CF22153","CALCA FEM. WIDELEG",9],
+["00037","CM30901","CALCA MASC. RETA",9],
+["06693","B30942","BERMUDA MASC. SPORT FINO MEDIA",9],
+["00037","S22009","SHORTS FEM. CICLISTA PLUS SIZE",9],
+["00052","CF22107","CALCA FEM. LITTLEBOOT",9],
+["00040","CF22140","CALCA FEM. RETA CROPPED",9],
+["00040","S22068","SHORTS FEM. MOMMEIA COXA",9],
+["00037","S22051","SHORTS FEM. MEIACOXA",9],
+["00037","CM30887","CALCA MASC. SKINNY",9],
+["06693","CF22114","CALCA FEM. CIGARRETE SPORT FINO",9],
+["06693","S22055","SHORTS FEM. SPORT FINO MEIA COXA",9],
+["06693","CF22151","CALCA FEM. WIDELEG ALFAIATARIA",9],
+["06693","CF22156","CALCA FEM. WIDECROPPED",9],
+["06693","SA22017","SAIA FEM. MEDIA",9],
+["06693","S22006","SHORTS FEM. MEIACOXA PLUS SIZE",9],
+["07890","CM30902","CALCA MASC. RETA",9],
+["07891","CM30900","CALCA MASC. RETA",9],
+["07608","CF22163","CALCA FEM. WIDECROPPED",9],
+["07890","CF22125","CALCA FEM. MOM",9],
+["07890","CF22147","CALCA FEM. WIDELEG",9],
+["07890","CF21987","CALCA FEM. CIGARRETE PLUS SIZE",9],
+["07891","CM30897","CALCA MASC. SLIM",9],
+["07607","SA22027","SAIA FEM. MIDICARGO",9],
+["07891","CF22166","CALCA FEM. RETA COUNTRY",9],
+["07607","S22067","SHORTS FEM. CICLISTA",9],
+["07890","CF21990","CALCA FEM. SKINNY PLUS SIZE",9],
+["00018","CF21998","CALCA FEM. WIDELEG PLUS SIZE",8],
+["00018","CM30901","CALCA MASC. RETA",8],
+["00018","S22048","SHORTS FEM. MEIACOXA",8],
+["00018","SA22018","SAIA FEM. MEDIA ALFAIATARIA",8],
+["00032","B30922","BERMUDA MASC. TRADICIONAL",8],
+["00018","S22064","SHORTS FEM. MOMMEIA COXA",8],
+["00018","CM30915","CALCA MASC. SPORT FINO CROPPED",8],
+["00032","B22071","BERMUDA FEM. WIDE ALFAIATARIA",8],
+["00018","B30921","BERMUDA MASC. TRADICIONAL",8],
+["00018","S22056","SHORTS FEM. MEIACOXA SPORT FINO",8],
+["00018","B22070","BERMUDA FEM. WIDE ALFAIATARIA",8],
+["00018","SA22019","SAIA FEM. LAPIS",8],
+["00018","CF22162","CALCA FEM. WIDELEG",8],
+["00018","CF22151","CALCA FEM. WIDELEG ALFAIATARIA",8],
+["00032","B30933","BERMUDA MASC. SPORT FINO",8],
+["00037","B30945","BERMUDA MASC. MEDIA",8],
+["00032","CM30887","CALCA MASC. SKINNY",8],
+["00032","CF22094","CALCA FEM. SKINNY",8],
+["00037","CF22144","CALCA FEM. WIDELEG CARGO",8],
+["00032","CF22144","CALCA FEM. WIDELEG CARGO",8],
+["00040","S22066","SHORTS FEM. CICLISTA",8],
+["00037","SA22013","SAIA FEM. MINI",8],
+["00040","S22041","SHORTS FEM. CURTO",8],
+["00052","CF22110","CALCA FEM. BOOTCUT",8],
+["00040","S22039","SHORTS FEM. CURTO",8],
+["00040","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",8],
+["00037","SA22031","SAIA FEM. EVASE",8],
+["00040","CF22152","CALCA FEM. WIDELEG",8],
+["06693","CF21989","CALCA FEM. SKINNY PLUS SIZE",8],
+["00052","CM30890","CALCA MASC. SLIM",8],
+["07520","S22061","SHORTS FEM. MOMMEIA COXA",8],
+["07520","S22059","SHORTS FEM. MOMMEIA COXA",8],
+["06693","S22036","SHORTS FEM. CURTO",8],
+["07606","CF22158","CALCA FEM. WIDELEG CROPPED",8],
+["06693","S22059","SHORTS FEM. MOMMEIA COXA",8],
+["06693","SA22028","SAIA FEM. MIDI",8],
+["06693","CF22163","CALCA FEM. WIDECROPPED",8],
+["06693","CM30887","CALCA MASC. SKINNY",8],
+["07607","BL22076","BLUSA FEM.",8],
+["07607","CF22120","CALCA FEM. SLOUCHY",8],
+["07520","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",8],
+["06693","CM30895","CALCA MASC. SLIM",8],
+["06693","CF22116","CALCA FEM. CIGARRETE SPORT FINO",8],
+["07606","CF22148","CALCA FEM. WIDELEG LIPO",8],
+["06693","CF22082","CALCA FEM. CIGARRETE",8],
+["07890","B30923","BERMUDA MASC. TRADICIONAL",8],
+["07890","S22066","SHORTS FEM. CICLISTA",8],
+["07890","S22067","SHORTS FEM. CICLISTA",8],
+["07608","SA22020","SAIA FEM. LAPIS",8],
+["07608","S22056","SHORTS FEM. MEIACOXA SPORT FINO",8],
+["07890","CF22152","CALCA FEM. WIDELEG",8],
+["07890","CF22138","CALCA FEM. RETA CROPPED",8],
+["07890","SA22025","SAIA FEM. MIDICURTA",8],
+["07890","CF22128","CALCA FEM. BARREL",8],
+["07890","SA22029","SAIA FEM. MIDI",8],
+["07608","CF22151","CALCA FEM. WIDELEG ALFAIATARIA",8],
+["07608","CF22082","CALCA FEM. CIGARRETE",8],
+["07607","CF22145","CALCA FEM. WIDELEG CARGO",8],
+["07891","CM30949","CALCA MASC. RETA COUNTRY",8],
+["07607","S22065","SHORTS FEM. CICLISTA",8],
+["00018","CF22109","CALCA FEM. BOOTCUT",7],
+["00018","CM30904","CALCA MASC. RETA BAGGY",7],
+["00018","CF22110","CALCA FEM. BOOTCUT",7],
+["00018","B30928","BERMUDA MASC. TRADICIONAL",7],
+["00018","CF22149","CALCA FEM. WIDELEG",7],
+["00018","CF21987","CALCA FEM. CIGARRETE PLUS SIZE",7],
+["00032","CF21994","CALCA FEM. RETA PLUS SIZE",7],
+["00018","SA22032","SAIA FEM. LONGA",7],
+["00018","CF22094","CALCA FEM. SKINNY",7],
+["00018","CF22173","CALCA FEM. BOOTCUT COUNTRY",7],
+["00032","B30934","BERMUDA MASC. SPORT FINO",7],
+["00032","CF22166","CALCA FEM. RETA COUNTRY",7],
+["00037","B30925","BERMUDA MASC. TRADICIONAL",7],
+["00032","S22040","SHORTS FEM. CURTO",7],
+["00032","S22060","SHORTS FEM. MOMMEIA COXA",7],
+["00037","B30946","BERMUDA MASC. MEDIA",7],
+["00037","CF22100","CALCA FEM. CAPRI",7],
+["00032","CF21996","CALCA FEM. RETA PLUS SIZE",7],
+["00037","B30919","BERMUDA MASC. TRADICIONAL",7],
+["00037","S22038","SHORTS FEM. CURTO",7],
+["00037","T22074","TOP FEM. CROPPED",7],
+["00040","S22051","SHORTS FEM. MEIACOXA",7],
+["00040","S22062","SHORTS FEM. MOMMEIA COXA",7],
+["00037","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",7],
+["00040","S22061","SHORTS FEM. MOMMEIA COXA",7],
+["00040","SA22016","SAIA FEM. MEDIA",7],
+["00040","S22059","SHORTS FEM. MOMMEIA COXA",7],
+["00052","CF22135","CALCA FEM. RETA ALFAIATARIA",7],
+["00040","S22060","SHORTS FEM. MOMMEIA COXA",7],
+["00037","CM30909","CALCA MASC. SPORT FINO",7],
+["00052","CF22114","CALCA FEM. CIGARRETE SPORT FINO",7],
+["00052","CF22088","CALCA FEM. CIGARRETE",7],
+["00052","CF22149","CALCA FEM. WIDELEG",7],
+["00040","S22057","SHORTS FEM. SPORT FINO MEIA COXA",7],
+["00040","CF22139","CALCA FEM. RETA CROPPED",7],
+["00052","CF22123","CALCA FEM. MOM",7],
+["00037","CM30894","CALCA MASC. SLIM",7],
+["00040","SS22033","SHORT SAIA FEM.",7],
+["07520","BL22077","BLUSA FEM. CROPPED",7],
+["07606","CF22166","CALCA FEM. RETA COUNTRY",7],
+["06693","CF22145","CALCA FEM. WIDELEG CARGO",7],
+["07520","CF22157","CALCA FEM. WIDECROPPED",7],
+["07520","CF22138","CALCA FEM. RETA CROPPED",7],
+["07520","SS22033","SHORT SAIA FEM.",7],
+["06693","S22048","SHORTS FEM. MEIACOXA",7],
+["06693","S22037","SHORTS FEM. CURTO",7],
+["06693","S22039","SHORTS FEM. CURTO",7],
+["06693","S22046","SHORTS FEM. MEIACOXA",7],
+["06693","S22047","SHORTS FEM. MEIACOXA",7],
+["06693","SA22024","SAIA FEM. MIDICURTA",7],
+["06693","CF22154","CALCA FEM. WIDECROPPED",7],
+["06693","CF22083","CALCA FEM. CIGARRETE",7],
+["07606","CF22130","CALCA FEM. RETA",7],
+["06693","CM30894","CALCA MASC. SLIM",7],
+["06693","SS22033","SHORT SAIA FEM.",7],
+["07607","S22043","SHORTS FEM. CURTO",7],
+["07890","CF22127","CALCA FEM. BARREL",7],
+["07608","CF22106","CALCA FEM. LITTLEBOOT",7],
+["07608","CF22097","CALCA FEM. SKINNY",7],
+["07608","T22073","TOP FEM.",7],
+["07890","S22043","SHORTS FEM. CURTO",7],
+["07607","S22040","SHORTS FEM. CURTO",7],
+["07607","S22061","SHORTS FEM. MOMMEIA COXA",7],
+["07607","SA22014","SAIA FEM. MINI",7],
+["07608","CF22105","CALCA FEM. LITTLEBOOT",7],
+["07608","CF22108","CALCA FEM. BOOTCUT",7],
+["07890","CF22098","CALCA FEM. SKINNY LIPO",7],
+["07890","CM30894","CALCA MASC. SLIM",7],
+["07608","B30932","BERMUDA MASC. SPORT FINO",7],
+["00018","S22035","SHORTS FEM. CURTO",6],
+["00032","B30920","BERMUDA MASC. TRADICIONAL",6],
+["00018","B22069","BERMUDA FEM. WIDELEG",6],
+["00018","CF22145","CALCA FEM. WIDELEG CARGO",6],
+["00018","S22040","SHORTS FEM. CURTO",6],
+["00018","CF22123","CALCA FEM. MOM",6],
+["00018","CF22144","CALCA FEM. WIDELEG CARGO",6],
+["00018","B30939","BERMUDA MASC. SPORT FINO MEDIA",6],
+["00037","B30928","BERMUDA MASC. TRADICIONAL",6],
+["00037","B30926","BERMUDA MASC. TRADICIONAL",6],
+["00037","CF22120","CALCA FEM. SLOUCHY",6],
+["00032","CF22120","CALCA FEM. SLOUCHY",6],
+["00037","CF22125","CALCA FEM. MOM",6],
+["00032","CF22173","CALCA FEM. BOOTCUT COUNTRY",6],
+["00032","CF22160","CALCA FEM. SUPERWIDE",6],
+["00037","CF22091","CALCA FEM. SKINNY",6],
+["00032","CF22165","CALCA FEM. RETA COUNTRY",6],
+["00032","CF22170","CALCA FEM. LITTLEBOOT COUNTRY",6],
+["00040","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",6],
+["00052","S22042","SHORTS FEM. CURTO",6],
+["00052","S22046","SHORTS FEM. MEIACOXA",6],
+["00052","S22041","SHORTS FEM. CURTO",6],
+["00040","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",6],
+["00040","CF22125","CALCA FEM. MOM",6],
+["00040","CF22133","CALCA FEM. RETA",6],
+["06693","CF21992","CALCA FEM. LITTLEBOOT PLUS SIZE",6],
+["00040","CF22107","CALCA FEM. LITTLEBOOT",6],
+["00040","CF22150","CALCA FEM. WIDELEG",6],
+["00052","CF22154","CALCA FEM. WIDECROPPED",6],
+["06693","B30938","BERMUDA MASC. SPORT FINO MEDIA",6],
+["07606","S22062","SHORTS FEM. MOMMEIA COXA",6],
+["06693","S22066","SHORTS FEM. CICLISTA",6],
+["07606","S22059","SHORTS FEM. MOMMEIA COXA",6],
+["06693","CM30907","CALCA MASC. SPORT FINO",6],
+["07606","S22058","SHORTS FEM. MEIACOXA ALFAIATARIA",6],
+["06693","CF22088","CALCA FEM. CIGARRETE",6],
+["06693","CF22129","CALCA FEM. RETA LIPO",6],
+["07606","CF22107","CALCA FEM. LITTLEBOOT",6],
+["06693","SA22025","SAIA FEM. MIDICURTA",6],
+["06693","CF22123","CALCA FEM. MOM",6],
+["07606","CF22162","CALCA FEM. WIDELEG",6],
+["07606","CF22104","CALCA FEM. LITTLEBOOT",6],
+["07606","CF21989","CALCA FEM. SKINNY PLUS SIZE",6],
+["06693","CF22150","CALCA FEM. WIDELEG",6],
+["06693","CF22097","CALCA FEM. SKINNY",6],
+["07607","CF22110","CALCA FEM. BOOTCUT",6],
+["07520","CF22124","CALCA FEM. MOM",6],
+["07607","S22010","SHORTS FEM. CICLISTA PLUS SIZE",6],
+["07607","S22049","SHORTS FEM. SPORT FINO MEIA COXA",6],
+["07891","SA22021","SAIA FEM. LAPIS",6],
+["07608","S22063","SHORTS FEM. GODE",6],
+["07890","CM30914","CALCA MASC. SPORT FINO CROPPED",6],
+["07891","CM30907","CALCA MASC. SPORT FINO",6],
+["07608","CF22085","CALCA FEM. CIGARRETE",6],
+["07608","B22070","BERMUDA FEM. WIDE ALFAIATARIA",6],
+["07891","SA22019","SAIA FEM. LAPIS",6],
+["07890","CM30905","CALCA MASC. RETA BAGGY",6],
+["07891","CF22129","CALCA FEM. RETA LIPO",6],
+["07607","CF22139","CALCA FEM. RETA CROPPED",6],
+["07608","CF22172","CALCA FEM. BOOTCUT COUNTRY",6],
+["07891","CF22172","CALCA FEM. BOOTCUT COUNTRY",6],
+["07607","SA22029","SAIA FEM. MIDI",6],
+["07608","CF22109","CALCA FEM. BOOTCUT",6],
+["07607","CF22150","CALCA FEM. WIDELEG",6],
+["07608","CF22169","CALCA FEM. LITTLEBOOT COUNTRY",6],
+["07608","SS22033","SHORT SAIA FEM.",6],
+["07607","S22006","SHORTS FEM. MEIACOXA PLUS SIZE",6],
+["07891","CM30910","CALCA MASC. SPORT FINO",6],
+["00032","B30926","BERMUDA MASC. TRADICIONAL",5],
+["00018","CM30908","CALCA MASC. SPORT FINO",5],
+["00018","SA22024","SAIA FEM. MIDICURTA",5],
+["00032","B30944","BERMUDA MASC. SPORT FINO MEDIA",5],
+["00018","S22038","SHORTS FEM. CURTO",5],
+["00018","CF22146","CALCA FEM. WIDELEG",5],
+["00018","CF22103","CALCA FEM. LITTLEBOOT",5],
+["00018","CF22002","CALCA FEM. CAPRI PLUS SIZE",5],
+["00018","CF22170","CALCA FEM. LITTLEBOOT COUNTRY",5],
+["00018","B30937","BERMUDA MASC. SPORT FINO MEDIA",5],
+["00037","B30922","BERMUDA MASC. TRADICIONAL",5],
+["00032","S22004","SHORTS FEM. MOMMEIA COXA PLUS SIZE",5],
+["00032","CM30900","CALCA MASC. RETA",5],
+["00037","CF22110","CALCA FEM. BOOTCUT",5],
+["00032","SA22022","SAIA FEM. LAPIS",5],
+["00032","SA22019","SAIA FEM. LAPIS",5],
+["00032","CF22169","CALCA FEM. LITTLEBOOT COUNTRY",5],
+["00032","CF22115","CALCA FEM. CIGARRETE SPORT FINO",5],
+["00037","CF22116","CALCA FEM. CIGARRETE SPORT FINO",5],
+["00032","CM30948","CALCA MASC. RETA CARPINTEIRO COUNTRY",5],
+["00037","CF22145","CALCA FEM. WIDELEG CARGO",5],
+["00032","CF22091","CALCA FEM. SKINNY",5],
+["00037","B30932","BERMUDA MASC. SPORT FINO",5],
+["00037","B30934","BERMUDA MASC. SPORT FINO",5],
+["00040","T22074","TOP FEM. CROPPED",5],
+["00037","S22044","SHORTS FEM. MEIACOXA",5],
+["00037","S22048","SHORTS FEM. MEIACOXA",5],
+["00040","S22006","SHORTS FEM. MEIACOXA PLUS SIZE",5],
+["00052","S22053","SHORTS FEM. MEIACOXA",5],
+["00052","B30928","BERMUDA MASC. TRADICIONAL",5],
+["00052","S22040","SHORTS FEM. CURTO",5],
+["00037","SA22021","SAIA FEM. LAPIS",5],
+["00037","S22063","SHORTS FEM. GODE",5],
+["00040","S22004","SHORTS FEM. MOMMEIA COXA PLUS SIZE",5],
+["00052","S22061","SHORTS FEM. MOMMEIA COXA",5],
+["00040","S22067","SHORTS FEM. CICLISTA",5],
+["00040","S22010","SHORTS FEM. CICLISTA PLUS SIZE",5],
+["00040","S22005","SHORTS FEM. MEIACOXA PLUS SIZE",5],
+["06693","B30927","BERMUDA MASC. TRADICIONAL",5],
+["00037","CF22158","CALCA FEM. WIDELEG CROPPED",5],
+["00052","SA22014","SAIA FEM. MINI",5],
+["00040","S22009","SHORTS FEM. CICLISTA PLUS SIZE",5],
+["00052","CF22105","CALCA FEM. LITTLEBOOT",5],
+["00052","CF22133","CALCA FEM. RETA",5],
+["00052","CF22108","CALCA FEM. BOOTCUT",5],
+["00040","CF22129","CALCA FEM. RETA LIPO",5],
+["00040","CF22002","CALCA FEM. CAPRI PLUS SIZE",5],
+["00052","CM30896","CALCA MASC. SLIM",5],
+["00037","SA22027","SAIA FEM. MIDICARGO",5],
+["00040","CF21996","CALCA FEM. RETA PLUS SIZE",5],
+["00052","CM30892","CALCA MASC. SLIM",5],
+["00037","CM30892","CALCA MASC. SLIM",5],
+["00052","CF22148","CALCA FEM. WIDELEG LIPO",5],
+["00052","CF22164","CALCA FEM. RETA COUNTRY",5],
+["00052","CF22157","CALCA FEM. WIDECROPPED",5],
+["00040","CF22097","CALCA FEM. SKINNY",5],
+["00040","V22079","VESTIDO FEM. LONGO",5],
+["00037","V22079","VESTIDO FEM. LONGO",5],
+["07606","CF22084","CALCA FEM. CIGARRETE",5],
+["06693","S22065","SHORTS FEM. CICLISTA",5],
+["06693","S22049","SHORTS FEM. SPORT FINO MEIA COXA",5],
+["07606","SA22021","SAIA FEM. LAPIS",5],
+["06693","SA22016","SAIA FEM. MEDIA",5],
+["06693","S22005","SHORTS FEM. MEIACOXA PLUS SIZE",5],
+["07606","B22069","BERMUDA FEM. WIDELEG",5],
+["07606","S22009","SHORTS FEM. CICLISTA PLUS SIZE",5],
+["07606","CF22105","CALCA FEM. LITTLEBOOT",5],
+["06693","CF22085","CALCA FEM. CIGARRETE",5],
+["07606","SA22019","SAIA FEM. LAPIS",5],
+["07606","CF22124","CALCA FEM. MOM",5],
+["07606","CF21994","CALCA FEM. RETA PLUS SIZE",5],
+["06693","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",5],
+["07607","CF22106","CALCA FEM. LITTLEBOOT",5],
+["07606","CF22156","CALCA FEM. WIDECROPPED",5],
+["07606","CF22157","CALCA FEM. WIDECROPPED",5],
+["07520","CF22146","CALCA FEM. WIDELEG",5],
+["07608","S22062","SHORTS FEM. MOMMEIA COXA",5],
+["07607","S22062","SHORTS FEM. MOMMEIA COXA",5],
+["07607","S22066","SHORTS FEM. CICLISTA",5],
+["07608","S22010","SHORTS FEM. CICLISTA PLUS SIZE",5],
+["07608","CF21999","CALCA FEM. WIDECROPPED PLUS SIZE",5],
+["07891","CM30908","CALCA MASC. SPORT FINO",5],
+["07607","CF22133","CALCA FEM. RETA",5],
+["07608","CF22173","CALCA FEM. BOOTCUT COUNTRY",5],
+["07891","CF22173","CALCA FEM. BOOTCUT COUNTRY",5],
+["07608","CF22002","CALCA FEM. CAPRI PLUS SIZE",5],
+["07608","SA22027","SAIA FEM. MIDICARGO",5],
+["07608","CF22115","CALCA FEM. CIGARRETE SPORT FINO",5],
+["07607","CF22162","CALCA FEM. WIDELEG",5],
+["07608","CF21989","CALCA FEM. SKINNY PLUS SIZE",5],
+["07607","SS22033","SHORT SAIA FEM.",5],
+["07891","CF22155","CALCA FEM. WIDECROPPED LIPO",5],
+["07607","CF22156","CALCA FEM. WIDECROPPED",5],
+["07608","CM30949","CALCA MASC. RETA COUNTRY",5],
+["07607","CF22147","CALCA FEM. WIDELEG",5],
+["07607","S22068","SHORTS FEM. MOMMEIA COXA",5],
+["07891","CM30885","CALCA MASC. SKINNY",5],
+["07891","SA22031","SAIA FEM. EVASE",5],
+["07891","SA22025","SAIA FEM. MIDICURTA",5],
+["00018","S22060","SHORTS FEM. MOMMEIA COXA",4],
+["00018","S22037","SHORTS FEM. CURTO",4],
+["00018","B30918","BERMUDA MASC. TRADICIONAL",4],
+["00018","S22067","SHORTS FEM. CICLISTA",4],
+["00018","B30927","BERMUDA MASC. TRADICIONAL",4],
+["00018","S22047","SHORTS FEM. MEIACOXA",4],
+["00032","B30943","BERMUDA MASC. SPORT FINO MEDIA",4],
+["00018","SA22031","SAIA FEM. EVASE",4],
+["00032","B22070","BERMUDA FEM. WIDE ALFAIATARIA",4],
+["00018","CM30892","CALCA MASC. SLIM",4],
+["00018","CF22148","CALCA FEM. WIDELEG LIPO",4],
+["00018","CF21986","CALCA FEM. CIGARRETE PLUS SIZE",4],
+["00018","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",4],
+["00018","B30930","BERMUDA MASC. SPORT FINO",4],
+["00018","B30931","BERMUDA MASC. SPORT FINO",4],
+["00018","B30933","BERMUDA MASC. SPORT FINO",4],
+["00018","B30934","BERMUDA MASC. SPORT FINO",4],
+["00018","CM30911","CALCA MASC. SPORT FINO",4],
+["00037","B30923","BERMUDA MASC. TRADICIONAL",4],
+["00032","CM30902","CALCA MASC. RETA",4],
+["00032","CM30908","CALCA MASC. SPORT FINO",4],
+["00037","CF22138","CALCA FEM. RETA CROPPED",4],
+["00037","CF22002","CALCA FEM. CAPRI PLUS SIZE",4],
+["00037","CF21996","CALCA FEM. RETA PLUS SIZE",4],
+["00037","B30937","BERMUDA MASC. SPORT FINO MEDIA",4],
+["00037","B30939","BERMUDA MASC. SPORT FINO MEDIA",4],
+["00052","T22073","TOP FEM.",4],
+["06693","B30945","BERMUDA MASC. MEDIA",4],
+["00052","S22068","SHORTS FEM. MOMMEIA COXA",4],
+["00052","S22006","SHORTS FEM. MEIACOXA PLUS SIZE",4],
+["00037","S22043","SHORTS FEM. CURTO",4],
+["00052","S22051","SHORTS FEM. MEIACOXA",4],
+["00037","S22046","SHORTS FEM. MEIACOXA",4],
+["00037","CM30902","CALCA MASC. RETA",4],
+["00052","S22059","SHORTS FEM. MOMMEIA COXA",4],
+["00037","S22041","SHORTS FEM. CURTO",4],
+["06693","B30924","BERMUDA MASC. TRADICIONAL",4],
+["00052","CF22120","CALCA FEM. SLOUCHY",4],
+["00052","CF22163","CALCA FEM. WIDECROPPED",4],
+["00052","CF22090","CALCA FEM. SKINNY",4],
+["00037","CF22149","CALCA FEM. WIDELEG",4],
+["00052","S22056","SHORTS FEM. MEIACOXA SPORT FINO",4],
+["00052","CF22174","CALCA FEM. BOOTCUT COUNTRY",4],
+["00037","CM30884","CALCA MASC. SKINNY",4],
+["00052","CF22122","CALCA FEM. MOM",4],
+["00040","CF22001","CALCA FEM. CAPRI PLUS SIZE",4],
+["00052","CF22083","CALCA FEM. CIGARRETE",4],
+["00037","CM30899","CALCA MASC. RETA",4],
+["06693","CF21996","CALCA FEM. RETA PLUS SIZE",4],
+["00037","SA22032","SAIA FEM. LONGA",4],
+["00052","CM30894","CALCA MASC. SLIM",4],
+["00052","CF22162","CALCA FEM. WIDELEG",4],
+["00052","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",4],
+["00037","CF22161","CALCA FEM. WIDELEG ALFAIATARIA",4],
+["00052","CF22150","CALCA FEM. WIDELEG",4],
+["00052","CF22156","CALCA FEM. WIDECROPPED",4],
+["00052","CF22146","CALCA FEM. WIDELEG",4],
+["00052","B30930","BERMUDA MASC. SPORT FINO",4],
+["06693","B30937","BERMUDA MASC. SPORT FINO MEDIA",4],
+["06693","S22034","SHORTS FEM. CURTO",4],
+["07606","S22068","SHORTS FEM. MOMMEIA COXA",4],
+["06693","S22043","SHORTS FEM. CURTO",4],
+["07606","S22040","SHORTS FEM. CURTO",4],
+["07606","S22042","SHORTS FEM. CURTO",4],
+["06693","S22042","SHORTS FEM. CURTO",4],
+["06693","S22010","SHORTS FEM. CICLISTA PLUS SIZE",4],
+["06693","SA22015","SAIA FEM. MINICARGO",4],
+["07606","S22041","SHORTS FEM. CURTO",4],
+["06693","CF22119","CALCA FEM. SLOUCHY",4],
+["06693","CM30909","CALCA MASC. SPORT FINO",4],
+["06693","SA22012","SAIA FEM. MINI",4],
+["07606","CF22120","CALCA FEM. SLOUCHY",4],
+["06693","CF22120","CALCA FEM. SLOUCHY",4],
+["07607","CF22088","CALCA FEM. CIGARRETE",4],
+["06693","SA22020","SAIA FEM. LAPIS",4],
+["07606","CF22154","CALCA FEM. WIDECROPPED",4],
+["06693","CF22098","CALCA FEM. SKINNY LIPO",4],
+["07606","CF22138","CALCA FEM. RETA CROPPED",4],
+["07607","CF22129","CALCA FEM. RETA LIPO",4],
+["06693","CF22139","CALCA FEM. RETA CROPPED",4],
+["06693","CF22091","CALCA FEM. SKINNY",4],
+["06693","CF22104","CALCA FEM. LITTLEBOOT",4],
+["06693","CF22161","CALCA FEM. WIDELEG ALFAIATARIA",4],
+["07606","CF22165","CALCA FEM. RETA COUNTRY",4],
+["06693","CF22087","CALCA FEM. CIGARRETE LIPO",4],
+["06693","CM30886","CALCA MASC. SKINNY",4],
+["07606","CF22096","CALCA FEM. SKINNY",4],
+["07607","CF21989","CALCA FEM. SKINNY PLUS SIZE",4],
+["07607","T22074","TOP FEM. CROPPED",4],
+["07607","S22048","SHORTS FEM. MEIACOXA",4],
+["07607","S22037","SHORTS FEM. CURTO",4],
+["07891","CF22095","CALCA FEM. SKINNY LIPO",4],
+["07608","S22039","SHORTS FEM. CURTO",4],
+["07607","S22039","SHORTS FEM. CURTO",4],
+["07607","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",4],
+["07608","SA22013","SAIA FEM. MINI",4],
+["07608","SA22014","SAIA FEM. MINI",4],
+["07608","SA22012","SAIA FEM. MINI",4],
+["07891","CF22168","CALCA FEM. LITTLEBOOT COUNTRY",4],
+["07608","CM30888","CALCA MASC. SKINNY",4],
+["07608","CF22125","CALCA FEM. MOM",4],
+["07891","SA22020","SAIA FEM. LAPIS",4],
+["07608","CF22133","CALCA FEM. RETA",4],
+["07891","CM30895","CALCA MASC. SLIM",4],
+["07890","CM30876","CALCA MASC. CIGARRETE",4],
+["07891","CF22104","CALCA FEM. LITTLEBOOT",4],
+["07608","CF22155","CALCA FEM. WIDECROPPED LIPO",4],
+["07891","CF22170","CALCA FEM. LITTLEBOOT COUNTRY",4],
+["07891","CM30911","CALCA MASC. SPORT FINO",4],
+["07891","SA22022","SAIA FEM. LAPIS",4],
+["00018","SA22017","SAIA FEM. MEDIA",3],
+["00032","B30925","BERMUDA MASC. TRADICIONAL",3],
+["00018","S22004","SHORTS FEM. MOMMEIA COXA PLUS SIZE",3],
+["00032","B30946","BERMUDA MASC. MEDIA",3],
+["00018","CM30910","CALCA MASC. SPORT FINO",3],
+["00018","CF21990","CALCA FEM. SKINNY PLUS SIZE",3],
+["00032","S22036","SHORTS FEM. CURTO",3],
+["00032","S22008","SHORTS FEM. CICLISTA PLUS SIZE",3],
+["00032","CF21999","CALCA FEM. WIDECROPPED PLUS SIZE",3],
+["00032","CM30905","CALCA MASC. RETA BAGGY",3],
+["00037","CF21987","CALCA FEM. CIGARRETE PLUS SIZE",3],
+["00032","CF22131","CALCA FEM. RETA",3],
+["00032","CF22145","CALCA FEM. WIDELEG CARGO",3],
+["00032","CM30949","CALCA MASC. RETA COUNTRY",3],
+["00037","B30938","BERMUDA MASC. SPORT FINO MEDIA",3],
+["00037","CF21990","CALCA FEM. SKINNY PLUS SIZE",3],
+["00037","T22075","TOP FEM. CROPPED",3],
+["00037","SA22018","SAIA FEM. MEDIA ALFAIATARIA",3],
+["00037","S22040","SHORTS FEM. CURTO",3],
+["00037","S22036","SHORTS FEM. CURTO",3],
+["00037","CM30893","CALCA MASC. SLIM",3],
+["00052","BL22076","BLUSA FEM.",3],
+["06693","BL22076","BLUSA FEM.",3],
+["06693","B30926","BERMUDA MASC. TRADICIONAL",3],
+["00052","SA22028","SAIA FEM. MIDI",3],
+["06693","B30946","BERMUDA MASC. MEDIA",3],
+["00052","CF21995","CALCA FEM. RETA CROPPED PLUS SIZE",3],
+["00040","CF22086","CALCA FEM. CIGARRETE LIPO",3],
+["00037","CM30905","CALCA MASC. RETA BAGGY",3],
+["00040","CF22083","CALCA FEM. CIGARRETE",3],
+["00052","CF22130","CALCA FEM. RETA",3],
+["00040","CF22132","CALCA FEM. RETA",3],
+["00037","CM30897","CALCA MASC. SLIM",3],
+["06693","CF21998","CALCA FEM. WIDELEG PLUS SIZE",3],
+["00052","SA22027","SAIA FEM. MIDICARGO",3],
+["06693","CF21994","CALCA FEM. RETA PLUS SIZE",3],
+["00037","CM30886","CALCA MASC. SKINNY",3],
+["00037","CM30904","CALCA MASC. RETA BAGGY",3],
+["00040","CF22146","CALCA FEM. WIDELEG",3],
+["00052","CF22170","CALCA FEM. LITTLEBOOT COUNTRY",3],
+["06693","B30932","BERMUDA MASC. SPORT FINO",3],
+["00052","B30934","BERMUDA MASC. SPORT FINO",3],
+["06693","T22073","TOP FEM.",3],
+["06693","S22035","SHORTS FEM. CURTO",3],
+["06693","T22075","TOP FEM. CROPPED",3],
+["06693","SA22018","SAIA FEM. MEDIA ALFAIATARIA",3],
+["07606","S22043","SHORTS FEM. CURTO",3],
+["06693","S22040","SHORTS FEM. CURTO",3],
+["07606","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",3],
+["06693","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",3],
+["07606","S22005","SHORTS FEM. MEIACOXA PLUS SIZE",3],
+["06693","S22041","SHORTS FEM. CURTO",3],
+["07606","S22060","SHORTS FEM. MOMMEIA COXA",3],
+["06693","CF22100","CALCA FEM. CAPRI",3],
+["07606","CF22125","CALCA FEM. MOM",3],
+["07606","CF22174","CALCA FEM. BOOTCUT COUNTRY",3],
+["07606","B22070","BERMUDA FEM. WIDE ALFAIATARIA",3],
+["07606","CF22122","CALCA FEM. MOM",3],
+["07606","CF22001","CALCA FEM. CAPRI PLUS SIZE",3],
+["06693","CF22130","CALCA FEM. RETA",3],
+["07606","CF22132","CALCA FEM. RETA",3],
+["06693","CF22128","CALCA FEM. BARREL",3],
+["07606","CF22139","CALCA FEM. RETA CROPPED",3],
+["07606","CF22172","CALCA FEM. BOOTCUT COUNTRY",3],
+["07606","CF22160","CALCA FEM. SUPERWIDE",3],
+["07606","CF22109","CALCA FEM. BOOTCUT",3],
+["07606","CF22143","CALCA FEM. WIDELEG CINTURA INTERMEDIARIA",3],
+["07606","CF22127","CALCA FEM. BARREL",3],
+["07606","CF22151","CALCA FEM. WIDELEG ALFAIATARIA",3],
+["06693","CF22094","CALCA FEM. SKINNY",3],
+["06693","CF22081","CALCA FEM. CIGARRETE",3],
+["07606","CF22146","CALCA FEM. WIDELEG",3],
+["06693","CF22144","CALCA FEM. WIDELEG CARGO",3],
+["06693","CM30885","CALCA MASC. SKINNY",3],
+["07607","S22044","SHORTS FEM. MEIACOXA",3],
+["07891","S22061","SHORTS FEM. MOMMEIA COXA",3],
+["07891","SA22016","SAIA FEM. MEDIA",3],
+["07891","S22042","SHORTS FEM. CURTO",3],
+["07891","S22067","SHORTS FEM. CICLISTA",3],
+["07891","S22045","SHORTS FEM. MEIACOXA MAIS CURTO",3],
+["07607","SA22013","SAIA FEM. MINI",3],
+["07891","CM30902","CALCA MASC. RETA",3],
+["07891","S22059","SHORTS FEM. MOMMEIA COXA",3],
+["07607","S22059","SHORTS FEM. MOMMEIA COXA",3],
+["07891","S22041","SHORTS FEM. CURTO",3],
+["07891","SA22014","SAIA FEM. MINI",3],
+["07891","CM30909","CALCA MASC. SPORT FINO",3],
+["07891","SA22012","SAIA FEM. MINI",3],
+["07607","SA22024","SAIA FEM. MIDICURTA",3],
+["07891","CF22103","CALCA FEM. LITTLEBOOT",3],
+["07891","CF22114","CALCA FEM. CIGARRETE SPORT FINO",3],
+["07607","CF22149","CALCA FEM. WIDELEG",3],
+["07891","S22056","SHORTS FEM. MEIACOXA SPORT FINO",3],
+["07891","CF22099","CALCA FEM. CAPRI",3],
+["07891","CF22169","CALCA FEM. LITTLEBOOT COUNTRY",3],
+["07891","CF22139","CALCA FEM. RETA CROPPED",3],
+["07891","CF22140","CALCA FEM. RETA CROPPED",3],
+["07607","CF22140","CALCA FEM. RETA CROPPED",3],
+["07891","CF22124","CALCA FEM. MOM",3],
+["07891","CF22101","CALCA FEM. CAPRI",3],
+["07891","CM30892","CALCA MASC. SLIM",3],
+["07891","CM30894","CALCA MASC. SLIM",3],
+["07891","S22038","SHORTS FEM. CURTO",3],
+["07607","S22038","SHORTS FEM. CURTO",3],
+["07891","CF22164","CALCA FEM. RETA COUNTRY",3],
+["07891","CF22147","CALCA FEM. WIDELEG",3],
+["07891","CF22146","CALCA FEM. WIDELEG",3],
+["07607","CF22144","CALCA FEM. WIDELEG CARGO",3],
+["07607","S22005","SHORTS FEM. MEIACOXA PLUS SIZE",3],
+["07891","SA22028","SAIA FEM. MIDI",3],
+["07891","SA22027","SAIA FEM. MIDICARGO",3],
+["00032","CF21995","CALCA FEM. RETA CROPPED PLUS SIZE",2],
+["00018","CF22169","CALCA FEM. LITTLEBOOT COUNTRY",2],
+["00018","SA22011","SAIA FEM. MIDI PLUS SIZE",2],
+["00032","CM30907","CALCA MASC. SPORT FINO",2],
+["00037","CF21995","CALCA FEM. RETA CROPPED PLUS SIZE",2],
+["00037","B30943","BERMUDA MASC. SPORT FINO MEDIA",2],
+["00037","B30944","BERMUDA MASC. SPORT FINO MEDIA",2],
+["00037","CF22141","CALCA FEM. RETA CROPPED",2],
+["00037","B22070","BERMUDA FEM. WIDE ALFAIATARIA",2],
+["00032","CM30884","CALCA MASC. SKINNY",2],
+["00032","CF22098","CALCA FEM. SKINNY LIPO",2],
+["00037","CF21986","CALCA FEM. CIGARRETE PLUS SIZE",2],
+["00037","CF22127","CALCA FEM. BARREL",2],
+["00032","CF22161","CALCA FEM. WIDELEG ALFAIATARIA",2],
+["00037","CF22094","CALCA FEM. SKINNY",2],
+["00037","CF22087","CALCA FEM. CIGARRETE LIPO",2],
+["00037","CF22081","CALCA FEM. CIGARRETE",2],
+["00040","SA22017","SAIA FEM. MEDIA",2],
+["00040","CF22084","CALCA FEM. CIGARRETE",2],
+["00037","S22049","SHORTS FEM. SPORT FINO MEIA COXA",2],
+["00037","S22054","SHORTS FEM. GODE",2],
+["00037","CM30900","CALCA MASC. RETA",2],
+["00052","SA22012","SAIA FEM. MINI",2],
+["06693","B22069","BERMUDA FEM. WIDELEG",2],
+["00052","CF22142","CALCA FEM. RETA CROPPED LIPO",2],
+["00037","CF22169","CALCA FEM. LITTLEBOOT COUNTRY",2],
+["00040","CF22122","CALCA FEM. MOM",2],
+["00052","CF21996","CALCA FEM. RETA PLUS SIZE",2],
+["00052","CF22091","CALCA FEM. SKINNY",2],
+["00052","CF22151","CALCA FEM. WIDELEG ALFAIATARIA",2],
+["00037","CF22170","CALCA FEM. LITTLEBOOT COUNTRY",2],
+["00040","CF22093","CALCA FEM. SKINNY",2],
+["06693","CF21990","CALCA FEM. SKINNY PLUS SIZE",2],
+["06693","T22074","TOP FEM. CROPPED",2],
+["06693","CF22084","CALCA FEM. CIGARRETE",2],
+["07606","S22006","SHORTS FEM. MEIACOXA PLUS SIZE",2],
+["06693","S22063","SHORTS FEM. GODE",2],
+["07606","S22039","SHORTS FEM. CURTO",2],
+["06693","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",2],
+["06693","CM30893","CALCA MASC. SLIM",2],
+["06693","S22067","SHORTS FEM. CICLISTA",2],
+["06693","SA22013","SAIA FEM. MINI",2],
+["06693","SA22014","SAIA FEM. MINI",2],
+["06693","CF22110","CALCA FEM. BOOTCUT",2],
+["06693","CF22103","CALCA FEM. LITTLEBOOT",2],
+["06693","S22009","SHORTS FEM. CICLISTA PLUS SIZE",2],
+["06693","CF22125","CALCA FEM. MOM",2],
+["06693","CF22149","CALCA FEM. WIDELEG",2],
+["06693","CF22099","CALCA FEM. CAPRI",2],
+["07607","CF22099","CALCA FEM. CAPRI",2],
+["06693","CF22133","CALCA FEM. RETA",2],
+["06693","CM30883","CALCA MASC. SKINNY",2],
+["06693","CM30884","CALCA MASC. SKINNY",2],
+["07606","CF22129","CALCA FEM. RETA LIPO",2],
+["06693","CF22132","CALCA FEM. RETA",2],
+["07606","CF22140","CALCA FEM. RETA CROPPED",2],
+["07606","CF21998","CALCA FEM. WIDELEG PLUS SIZE",2],
+["06693","CF22101","CALCA FEM. CAPRI",2],
+["06693","SA22029","SAIA FEM. MIDI",2],
+["07606","CF22159","CALCA FEM. SUPERWIDE",2],
+["07607","CF22117","CALCA FEM. CIGARRETE SPORT FINO",2],
+["06693","CF22148","CALCA FEM. WIDELEG LIPO",2],
+["06693","CF22109","CALCA FEM. BOOTCUT",2],
+["07606","CF22155","CALCA FEM. WIDECROPPED LIPO",2],
+["07606","CF22131","CALCA FEM. RETA",2],
+["07607","CF22131","CALCA FEM. RETA",2],
+["06693","CF22157","CALCA FEM. WIDECROPPED",2],
+["06693","CF22147","CALCA FEM. WIDELEG",2],
+["06693","CF22146","CALCA FEM. WIDELEG",2],
+["07606","V22079","VESTIDO FEM. LONGO",2],
+["07607","T22073","TOP FEM.",2],
+["07891","BL22077","BLUSA FEM. CROPPED",2],
+["07891","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",2],
+["07891","S22068","SHORTS FEM. MOMMEIA COXA",2],
+["07891","S22053","SHORTS FEM. MEIACOXA",2],
+["07891","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",2],
+["07891","CF22135","CALCA FEM. RETA ALFAIATARIA",2],
+["07608","CM30900","CALCA MASC. RETA",2],
+["07891","B22069","BERMUDA FEM. WIDELEG",2],
+["07607","SA22022","SAIA FEM. LAPIS",2],
+["07891","B22070","BERMUDA FEM. WIDE ALFAIATARIA",2],
+["07891","B22071","BERMUDA FEM. WIDE ALFAIATARIA",2],
+["07891","CF22108","CALCA FEM. BOOTCUT",2],
+["07608","CM30905","CALCA MASC. RETA BAGGY",2],
+["07891","CF22098","CALCA FEM. SKINNY LIPO",2],
+["07891","CF22083","CALCA FEM. CIGARRETE",2],
+["07891","CF22130","CALCA FEM. RETA",2],
+["07891","CM30948","CALCA MASC. RETA CARPINTEIRO COUNTRY",2],
+["07891","CF22131","CALCA FEM. RETA",2],
+["07891","CM30886","CALCA MASC. SKINNY",2],
+["07891","CF22156","CALCA FEM. WIDECROPPED",2],
+["07891","CF22157","CALCA FEM. WIDECROPPED",2],
+["07891","CF22096","CALCA FEM. SKINNY",2],
+["07891","T22074","TOP FEM. CROPPED",2],
+["07891","SA22024","SAIA FEM. MIDICURTA",2],
+["07891","SA22029","SAIA FEM. MIDI",2],
+["07891","SA22032","SAIA FEM. LONGA",2],
+["00018","B30942","BERMUDA MASC. SPORT FINO MEDIA",1],
+["00018","S22065","SHORTS FEM. CICLISTA",1],
+["00032","B30921","BERMUDA MASC. TRADICIONAL",1],
+["00018","CM30948","CALCA MASC. RETA CARPINTEIRO COUNTRY",1],
+["00018","CF22136","CALCA FEM. RETA CARGO",1],
+["00032","B30931","BERMUDA MASC. SPORT FINO",1],
+["00032","CM30901","CALCA MASC. RETA",1],
+["00032","CM30909","CALCA MASC. SPORT FINO",1],
+["00032","CM30883","CALCA MASC. SKINNY",1],
+["00037","B30930","BERMUDA MASC. SPORT FINO",1],
+["00032","CM30910","CALCA MASC. SPORT FINO",1],
+["00032","CM30911","CALCA MASC. SPORT FINO",1],
+["00037","T22073","TOP FEM.",1],
+["00052","BL22077","BLUSA FEM. CROPPED",1],
+["06693","B30923","BERMUDA MASC. TRADICIONAL",1],
+["06693","CF21999","CALCA FEM. WIDECROPPED PLUS SIZE",1],
+["06693","B30943","BERMUDA MASC. SPORT FINO MEDIA",1],
+["00040","SA22031","SAIA FEM. EVASE",1],
+["00052","S22055","SHORTS FEM. SPORT FINO MEIA COXA",1],
+["00052","S22057","SHORTS FEM. SPORT FINO MEIA COXA",1],
+["06693","CF21987","CALCA FEM. CIGARRETE PLUS SIZE",1],
+["06693","B30939","BERMUDA MASC. SPORT FINO MEDIA",1],
+["07606","T22073","TOP FEM.",1],
+["07606","T22074","TOP FEM. CROPPED",1],
+["07606","T22075","TOP FEM. CROPPED",1],
+["07606","BL22077","BLUSA FEM. CROPPED",1],
+["07606","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",1],
+["06693","S22050","SHORTS FEM. MEIACOXA ALFAIATARIA",1],
+["07606","S22053","SHORTS FEM. MEIACOXA",1],
+["07606","S22049","SHORTS FEM. SPORT FINO MEIA COXA",1],
+["06693","SA22021","SAIA FEM. LAPIS",1],
+["06693","S22064","SHORTS FEM. MOMMEIA COXA",1],
+["07606","S22052","SHORTS FEM. MEIACOXA ALFAIATARIA",1],
+["06693","S22004","SHORTS FEM. MOMMEIA COXA PLUS SIZE",1],
+["07606","BL22076","BLUSA FEM.",1],
+["07606","SA22013","SAIA FEM. MINI",1],
+["07606","SA22015","SAIA FEM. MINICARGO",1],
+["07606","SA22014","SAIA FEM. MINI",1],
+["06693","CM30908","CALCA MASC. SPORT FINO",1],
+["07606","SA22012","SAIA FEM. MINI",1],
+["06693","CM30882","CALCA MASC. SKINNY",1],
+["06693","SA22019","SAIA FEM. LAPIS",1],
+["06693","CF22134","CALCA FEM. RETA",1],
+["06693","SA22032","SAIA FEM. LONGA",1],
+["06693","V22079","VESTIDO FEM. LONGO",1],
+["06693","CM30910","CALCA MASC. SPORT FINO",1],
+["06693","CM30911","CALCA MASC. SPORT FINO",1],
+["07607","SA22016","SAIA FEM. MEDIA",1],
+["07891","CF22110","CALCA FEM. BOOTCUT",1],
+["07607","SA22020","SAIA FEM. LAPIS",1],
+["07891","S22055","SHORTS FEM. SPORT FINO MEIA COXA",1],
+["07891","S22057","SHORTS FEM. SPORT FINO MEIA COXA",1],
+["07608","SA22019","SAIA FEM. LAPIS",1],
+["07608","CF21996","CALCA FEM. RETA PLUS SIZE",1],
+["07891","CF22165","CALCA FEM. RETA COUNTRY",1]
+];
+
+// ============================================================
+// FUNÇÕES REFERÊNCIAS
+// ============================================================
+function getTipo(cod) {
+  if(cod.startsWith('CF')) return {key:'cf',label:'Calça Fem.',badge:'cf'};
+  if(cod.startsWith('CM')) return {key:'cm',label:'Calça Masc.',badge:'cm'};
+  if(cod.startsWith('SS')) return {key:'ss',label:'Short Saia',badge:'ss'};
+  if(cod.startsWith('SA')) return {key:'sa2',label:'Saia',badge:'sa2'};
+  if(cod.startsWith('S2')) return {key:'sh',label:'Shorts',badge:'sh'};
+  if(cod.startsWith('B22')) return {key:'bf',label:'Bermuda Fem.',badge:'bf'};
+  if(cod.startsWith('B2')) return {key:'bf',label:'Bermuda Fem.',badge:'bf'};
+  if(cod.startsWith('B3')) return {key:'bm',label:'Bermuda Masc.',badge:'bm'};
+  if(cod.startsWith('BL')) return {key:'bl',label:'Blusa',badge:'bl'};
+  if(cod.startsWith('T2')) return {key:'tp',label:'Top',badge:'tp'};
+  if(cod.startsWith('V2')) return {key:'vt',label:'Vestido',badge:'vt'};
+  return {key:'outros',label:'Outros',badge:'nn'};
+}
+
+function getModelagem(desc) {
+  var d = desc.toUpperCase();
+  // Ordem importa: mais específicos primeiro
+  if(d.includes('RETA CROPPED LIPO')) return 'Reta Cropped Lipo';
+  if(d.includes('RETA CROPPED')) return 'Reta Cropped';
+  if(d.includes('RETA LIPO')) return 'Reta Lipo';
+  if(d.includes('RETA ALFAIATARIA')) return 'Reta Alfaiataria';
+  if(d.includes('RETA CARGO')) return 'Reta Cargo';
+  if(d.includes('RETACOUNTRY')||d.includes('RETA COUNTRY')) return 'Reta Country';
+  if(d.includes('RETACARPINTEIRO')||d.includes('RETA CARPINTEIRO')) return 'Reta Carpinteiro';
+  if(d.includes('RETABAGGY')||d.includes('RETA BAGGY')) return 'Reta Baggy';
+  if(d.includes('RETA PLUS SIZE')) return 'Reta Plus Size';
+  if(d.includes('WIDECROPPED LIPO')) return 'Wide Cropped Lipo';
+  if(d.includes('WIDECROPPED PLUS SIZE')) return 'Wide Cropped Plus Size';
+  if(d.includes('WIDECROPPED')) return 'Wide Cropped';
+  if(d.includes('WIDELEG CROPPED')) return 'Wideleg Cropped';
+  if(d.includes('WIDELEG ALFAIATARIA')) return 'Wideleg Alfaiataria';
+  if(d.includes('WIDELEG LIPO')) return 'Wideleg Lipo';
+  if(d.includes('WIDELEG CINTURA')) return 'Wideleg Cint. Interm.';
+  if(d.includes('WIDELEG CARGO')) return 'Wideleg Cargo';
+  if(d.includes('WIDELEG PLUS SIZE')) return 'Wideleg Plus Size';
+  if(d.includes('WIDELEG')) return 'Wideleg';
+  if(d.includes('SUPERWIDE')) return 'Superwide';
+  if(d.includes('CIGARRETE LIPO')) return 'Cigarrete Lipo';
+  if(d.includes('CIGARRETE SPORT FINO')) return 'Cigarrete Sport Fino';
+  if(d.includes('CIGARRETE PLUS SIZE')) return 'Cigarrete Plus Size';
+  if(d.includes('CIGARRETE')) return 'Cigarrete';
+  if(d.includes('SKINNY LIPO')) return 'Skinny Lipo';
+  if(d.includes('SKINNY PLUS SIZE')) return 'Skinny Plus Size';
+  if(d.includes('SKINNY')) return 'Skinny';
+  if(d.includes('MOMMEIA COXA')) return 'Mom Meia Coxa';
+  if(d.includes('MOM')) return 'Mom';
+  if(d.includes('MEIACOXA ALFAIATARIA')||d.includes('MEIA COXA ALFAIATARIA')) return 'Meia Coxa Alfaiataria';
+  if(d.includes('MEIACOXA SPORT FINO')||d.includes('MEIA COXA SPORT FINO')||d.includes('SPORTFINO MEIA COXA')||d.includes('SPORT FINO MEIA COXA')) return 'Meia Coxa Sport Fino';
+  if(d.includes('MEIACOXA MAIS CURTO')||d.includes('MEIA COXA MAIS CURTO')) return 'Meia Coxa Mais Curto';
+  if(d.includes('MEIACOXA PLUS SIZE')||d.includes('MEIA COXA PLUS SIZE')) return 'Meia Coxa Plus Size';
+  if(d.includes('MEIACOXA')||d.includes('MEIA COXA')) return 'Meia Coxa';
+  if(d.includes('LITTLEBOOT COUNTRY')) return 'Littleboot Country';
+  if(d.includes('LITTLEBOOT PLUS SIZE')) return 'Littleboot Plus Size';
+  if(d.includes('LITTLEBOOT')||d.includes('LITLLEBOOT')) return 'Littleboot';
+  if(d.includes('BOOTCUT COUNTRY')) return 'Bootcut Country';
+  if(d.includes('BOOTCUT')) return 'Bootcut';
+  if(d.includes('CAPRI PLUS SIZE')) return 'Capri Plus Size';
+  if(d.includes('CAPRI')) return 'Capri';
+  if(d.includes('BARREL')) return 'Barrel';
+  if(d.includes('SLOUCHY')) return 'Slouchy';
+  if(d.includes('SLIM')) return 'Slim';
+  if(d.includes('MEDIA')) return 'Media';
+  if(d.includes('TRADICIONAL')) return 'Tradicional';
+  if(d.includes('SPORT FINO CROPPED')) return 'Sport Fino Cropped';
+  if(d.includes('SPORT FINO')) return 'Sport Fino';
+  if(d.includes('CICLISTA PLUS SIZE')) return 'Ciclista Plus Size';
+  if(d.includes('CICLISTA')) return 'Ciclista';
+  if(d.includes('CURTO')) return 'Curto';
+  if(d.includes('MIDI PLUS SIZE')) return 'Midi Plus Size';
+  if(d.includes('MIDICARGO')||d.includes('MIDI CARGO')) return 'Midi Cargo';
+  if(d.includes('MIDICURTA')||d.includes('MIDI CURTA')) return 'Midi Curta';
+  if(d.includes('MIDI')) return 'Midi';
+  if(d.includes('MINICARGO')||d.includes('MINI CARGO')) return 'Mini Cargo';
+  if(d.includes('MINI')) return 'Mini';
+  if(d.includes('LAPIS')) return 'Lapis';
+  if(d.includes('EVASE')) return 'Evase';
+  if(d.includes('LONGA')) return 'Longa';
+  if(d.includes('ALFAIATARIA')) return 'Alfaiataria';
+  if(d.includes('LIPO')) return 'Lipo';
+  if(d.includes('PLUS SIZE')) return 'Plus Size';
+  if(d.includes('CROPPED')) return 'Cropped';
+  if(d.includes('RETA')) return 'Reta';
+  if(d.includes('GODE')) return 'Gode';
+  if(d.includes('LONGO')) return 'Longo';
+  return desc.replace(/FEM\.|MASC\.|CALCA|SHORTS|SAIA|BERMUDA|BLUSA|TOP|VESTIDO/gi,'').trim().split(' ').slice(0,3).join(' ');
+}
+
+function getRefDados(codRep) {
+  var m={};
+  for(var i=0;i<RAW_REF.length;i++){
+    var row=RAW_REF[i];
+    var rep=row[0],cod=row[1],desc=row[2],qtde=row[3];
+    if(codRep!=='TODOS'&&rep!==codRep) continue;
+    if(!m[cod]) m[cod]={cod:cod,desc:desc,qtde:0,tipo:getTipo(cod),mod:getModelagem(desc)};
+    m[cod].qtde+=qtde;
+  }
+  var arr=[];
+  var keys=Object.keys(m);
+  for(var i=0;i<keys.length;i++) arr.push(m[keys[i]]);
+  arr.sort(function(a,b){return b.qtde-a.qtde;});
+  return arr;
+}
+
+var TIPO_CORES={
+  'cf':'#6090d0','cm':'#9060c0','sh':'#3ecf72','sa2':'#c07060',
+  'bf':'#e09060','bm':'#7090e0','bl':'#60d0c0','tp':'#d0a040',
+  'ss':'#d06090','vt':'#a060d0','outros':'#888'
+};
+var TIPO_LABELS={
+  'cf':'Calça Fem.','cm':'Calça Masc.','sh':'Shorts','sa2':'Saia',
+  'bf':'Bermuda Fem.','bm':'Bermuda Masc.','bl':'Blusa','tp':'Top',
+  'ss':'Short Saia','vt':'Vestido','outros':'Outros'
+};
+
+function renderReferencias() {
+  var codRep = document.getElementById('ref-rep-select').value;
+  var dados = getRefDados(codRep);
+  var totalQtde = dados.reduce(function(s,d){return s+d.qtde;},0);
+
+  // KPIs
+  var topRef = dados.length>0?dados[0]:null;
+  var tiposDistintos = {};
+  dados.forEach(function(d){tiposDistintos[d.tipo.key]=1;});
+  document.getElementById('ref-kpis').innerHTML =
+    '<div class="ref-kpi gold"><div class="lbl">Total de Peças</div><div class="val">'+fmtInt(totalQtde)+'</div><div class="sub">na seleção</div></div>'+
+    '<div class="ref-kpi"><div class="lbl">Referências Distintas</div><div class="val">'+dados.length+'</div><div class="sub">modelos vendidos</div></div>'+
+    '<div class="ref-kpi"><div class="lbl">Tipos Ativos</div><div class="val">'+Object.keys(tiposDistintos).length+'</div><div class="sub">categorias</div></div>'+
+    (topRef?'<div class="ref-kpi gold"><div class="lbl">Top Referência</div><div class="val" style="font-size:1rem">'+topRef.cod+'</div><div class="sub">'+fmtInt(topRef.qtde)+' peças</div></div>':'');
+
+  // Tipos
+  var tiposAgrup={};
+  dados.forEach(function(d){
+    var k=d.tipo.key;
+    if(!tiposAgrup[k])tiposAgrup[k]={qtde:0,label:d.tipo.label};
+    tiposAgrup[k].qtde+=d.qtde;
+  });
+  var tiposArr=Object.keys(tiposAgrup).map(function(k){return{key:k,label:tiposAgrup[k].label,qtde:tiposAgrup[k].qtde};});
+  tiposArr.sort(function(a,b){return b.qtde-a.qtde;});
+  var maxTipo=tiposArr.length>0?tiposArr[0].qtde:1;
+  var tipoHtml='';
+  tiposArr.forEach(function(t){
+    var pct=totalQtde>0?(t.qtde/totalQtde*100):0;
+    var w=maxTipo>0?(t.qtde/maxTipo*100):0;
+    var cor=TIPO_CORES[t.key]||'#888';
+    tipoHtml+='<div class="ref-tipo-card"><div class="tn"><span style="width:8px;height:8px;border-radius:50%;background:'+cor+';display:inline-block"></span>'+t.label+'</div><div class="tv">'+fmtInt(t.qtde)+'</div><div class="tp">'+pct.toFixed(1)+'%</div><div class="tbar-bg"><div class="tbar-fill" style="width:'+w.toFixed(1)+'%;background:'+cor+'"></div></div></div>';
+  });
+  document.getElementById('ref-tipo-cards').innerHTML=tipoHtml;
+
+  // Gráfico Rosca
+  var ctxR=document.getElementById('c-ref-rosca').getContext('2d');
+  if(chartRefRosca)chartRefRosca.destroy();
+  chartRefRosca=new Chart(ctxR,{type:'doughnut',data:{labels:tiposArr.map(function(t){return t.label;}),datasets:[{data:tiposArr.map(function(t){return t.qtde;}),backgroundColor:tiposArr.map(function(t){return TIPO_CORES[t.key]||'#888';}),borderWidth:2,borderColor:'#1a1a1a'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#aaa',font:{size:9},boxWidth:10,padding:8}},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/totalQtde*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}},cutout:'60%'});
+
+  // Gráfico Barras Horizontais Top 15 Modelagens
+  var modelMap={};
+  dados.forEach(function(d){
+    var m=d.mod;
+    if(!modelMap[m])modelMap[m]=0;
+    modelMap[m]+=d.qtde;
+  });
+  var modelArr=Object.keys(modelMap).map(function(k){return{mod:k,qtde:modelMap[k]};});
+  modelArr.sort(function(a,b){return b.qtde-a.qtde;});
+  var top15=modelArr.slice(0,15);
+  var ctxB=document.getElementById('c-ref-barras').getContext('2d');
+  if(chartRefBarras)chartRefBarras.destroy();
+  chartRefBarras=new Chart(ctxB,{type:'bar',data:{labels:top15.map(function(m){return m.mod;}),datasets:[{data:top15.map(function(m){return m.qtde;}),backgroundColor:CORES.slice(0,top15.length),borderRadius:4,borderWidth:0}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtInt(c.raw)+' pc';}}}},scales:{x:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'#222'}}}}});
+
+  // Botões tipo filtro
+  var btnsHtml='<button class="ref-tipo-btn'+(refFiltroTipo==='TODOS'?' active':'')+'" onclick="filtrarRefTipo(\'TODOS\')">Todos</button>';
+  tiposArr.forEach(function(t){
+    btnsHtml+='<button class="ref-tipo-btn'+(refFiltroTipo===t.key?' active':'')+'" onclick="filtrarRefTipo(\''+t.key+'\')">'+t.label+'</button>';
+  });
+  document.getElementById('ref-tipo-btns').innerHTML=btnsHtml;
+
+  // Tabela
+  renderRefTabela(dados, totalQtde);
+}
+
+function filtrarRefTipo(tipo){
+  refFiltroTipo=tipo;
+  var codRep=document.getElementById('ref-rep-select').value;
+  var dados=getRefDados(codRep);
+  var totalQtde=dados.reduce(function(s,d){return s+d.qtde;},0);
+  // atualiza botões
+  document.querySelectorAll('.ref-tipo-btn').forEach(function(b){
+    b.classList.toggle('active',b.textContent===(tipo==='TODOS'?'Todos':TIPO_LABELS[tipo])||b.textContent==='Todos'&&tipo==='TODOS');
+  });
+  renderRefTabela(dados,totalQtde);
+}
+
+function renderRefTabela(dados, totalQtde){
+  var filtrados = refFiltroTipo==='TODOS' ? dados : dados.filter(function(d){return d.tipo.key===refFiltroTipo;});
+  var maxQ = filtrados.length>0?filtrados[0].qtde:1;
+  var html='';
+  for(var i=0;i<filtrados.length;i++){
+    var d=filtrados[i],rank=i+1;
+    var bdg=rank===1?'<span class="pos g">1</span>':rank===2?'<span class="pos s">2</span>':rank===3?'<span class="pos b">3</span>':'<span class="pos nn">'+rank+'</span>';
+    var pct=totalQtde>0?(d.qtde/totalQtde*100):0;
+    var wPct=maxQ>0?(d.qtde/maxQ*100):0;
+    var cor=TIPO_CORES[d.tipo.key]||'#888';
+    html+='<tr><td>'+bdg+'</td><td><span class="ref-cod">'+d.cod+'</span></td><td style="font-size:.8rem;max-width:220px">'+d.desc+'</td><td><span class="ref-badge '+d.tipo.badge+'">'+d.tipo.label+'</span></td><td><span class="ref-mod">'+d.mod+'</span></td><td style="text-align:right;font-weight:700;font-size:.95rem">'+fmtInt(d.qtde)+'</td><td style="text-align:right;color:var(--gold);font-size:.82rem">'+pct.toFixed(1)+'%</td><td class="ref-bar-cell"><div class="pw"><div class="pb" style="width:'+wPct.toFixed(1)+'%;background:'+cor+'"></div></div></td></tr>';
+  }
+  document.getElementById('ref-tbody').innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
+}
+
+function initRefSelect(){
+  var sel=document.getElementById('ref-rep-select');
+  var reps=[{cod:'TODOS',nome:'Todos os Representantes'}];
+  Object.keys(REPS).forEach(function(cod){
+    // só inclui os que aparecem nos dados
+    var tem=RAW_REF.some(function(r){return r[0]===cod;});
+    if(tem) reps.push({cod:cod,nome:cod+' - '+REPS[cod].n});
+  });
+  sel.innerHTML=reps.map(function(r){return '<option value="'+r.cod+'">'+r.nome+'</option>';}).join('');
+}
+
+// ============================================================
+// FUNÇÕES GERENCIAL / GRUPO (originais mantidas)
+// ============================================================
+function fmtBR(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtInt(n){return n.toLocaleString('pt-BR',{maximumFractionDigits:0});}
+function setText(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+function corBarra(p){return p>=100?'#3ecf72':p>=75?'#c9a84c':p>=50?'#e8c97a':p>0?'#e8c97a':'#444';}
+
+function buildLista(dados){
+  var m={};for(var i=0;i<dados.length;i++)m[dados[i].cod]=dados[i];
+  var lista=[],chaves=Object.keys(REPS);
+  for(var i=0;i<chaves.length;i++){
+    var cod=chaves[i],info=REPS[cod],v=m[cod]||{};
+    var qtde=v.qtde||0,vlr=v.vlr||0;
+    lista.push({cod:cod,nome:info.n,uf:info.uf,regiao:info.r,reg:info.reg,cota:info.c,
+      qtde:qtde,vlr:vlr,cliNov:v.cliNov||0,pedidos:v.pedidos||0,cliCompra:v.cliCompra||0,
+      ticket:qtde>0?vlr/qtde:0,pct:qtde>0?(qtde/info.c*100):0,ativo:qtde>0});
+  }
+  lista.sort(function(a,b){return b.pct-a.pct;});
+  return lista;
+}
+
+function calcProjecao(qtde){var ini=new Date('2026-04-15'),h=new Date();var dias=Math.max((h-ini)/864e5,1);var total=(new Date('2026-09-30')-ini)/864e5;return Math.round((qtde/dias)*total);}
+function calcRitmo(qtde,cota){if(qtde===0)return'aguard';var ini=new Date('2026-04-15'),h=new Date();var dias=Math.max((h-ini)/864e5,1);var total=(new Date('2026-09-30')-ini)/864e5;var nec=cota/total,atu=qtde/dias;if(atu>=nec*0.9)return'verde';if(atu>=nec*0.6)return'amarelo';return'vermelho';}
+function initPeriodo(){var ini=new Date('2026-04-15'),fim=new Date('2026-09-30'),h=new Date();var tot=(fim-ini)/864e5,pas=Math.min(Math.max((h-ini)/864e5,0),tot);var pct=pas/tot*100,sem=Math.max(1,Math.ceil(pas/7));document.getElementById('pfill').style.width=pct.toFixed(1)+'%';setText('psem','Sem. '+sem);setText('ppct',pct.toFixed(0)+'% concluido');}
+function calcSem(){var ini=new Date('2026-04-15'),h=new Date();return Math.max(1,Math.ceil(Math.max((h-ini)/864e5,0)/7));}
+
+function atualizarKPIs(dados,laAcum){
+  var tV=0,tQ=0,tC=0;
+  for(var i=0;i<dados.length;i++){tV+=dados[i].vlr;tQ+=dados[i].qtde;tC+=dados[i].cliNov;}
+  var tCota=0,rks=Object.keys(REPS);for(var i=0;i<rks.length;i++)tCota+=REPS[rks[i]].c;
+  var pct=tCota>0?(tQ/tCota*100):0;
+  var atv=laAcum.filter(function(l){return l.ativo;}).length;
+  var tk=tQ>0?(tV/tQ):0;
+  var subs={acumulado:'colecao',semana:'esta semana',mes:'este mes',dia:'hoje'};
+  var s=subs[filtroAtual];
+  setText('m-vlr',tV>0?'R$ '+fmtBR(tV):'--');setText('m-vlrsub',s);
+  setText('m-qtde',tQ>0?fmtInt(tQ)+' pc':'--');setText('m-qtdesub',s);
+  setText('m-pct',pct>0?pct.toFixed(1)+'%':'--');
+  setText('m-atv',atv+' / 23');
+  setText('m-tk',tk>0?'R$ '+tk.toFixed(2):'--');setText('m-tksub',s);
+  setText('m-cn',tC>0?tC:'--');setText('m-cnsub',s);
+}
+
+function renderTabelaSimples(tbodyId,lista){
+  var ativos=lista.filter(function(r){return r.ativo;});
+  ativos.sort(function(a,b){return b.qtde-a.qtde;});
+  var html='';
+  for(var i=0;i<ativos.length;i++){
+    var r=ativos[i],rank=i+1;
+    var bdg=rank===1?'<span class="pos g">1</span>':rank===2?'<span class="pos s">2</span>':rank===3?'<span class="pos b">3</span>':'<span class="pos nn">'+rank+'</span>';
+    html+='<tr><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+r.cliCompra+'</td><td><span class="tag ta">Ativo</span></td></tr>';
+  }
+  document.getElementById(tbodyId).innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
+}
+
+function renderTabelaDia(lista){
+  var ativos=lista.filter(function(r){return r.ativo;});
+  ativos.sort(function(a,b){return b.qtde-a.qtde;});
+  var html='';
+  for(var i=0;i<ativos.length;i++){
+    var r=ativos[i],rank=i+1;
+    var bdg=rank===1?'<span class="pos g">1</span>':rank===2?'<span class="pos s">2</span>':rank===3?'<span class="pos b">3</span>':'<span class="pos nn">'+rank+'</span>';
+    html+='<tr><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td style="font-weight:700;font-size:1rem">'+fmtInt(r.qtde)+'</td><td><span class="tag ta">Ativo</span></td></tr>';
+  }
+  document.getElementById('tbody-dia').innerHTML=html||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
+}
+
+function renderBarrasSimples(canvasId,chartRef,lista){
+  var ctx=document.getElementById(canvasId).getContext('2d');
+  if(chartRef)chartRef.destroy();
+  var atv=lista.filter(function(r){return r.ativo;}).sort(function(a,b){return b.qtde-a.qtde;});
+  return new Chart(ctx,{type:'bar',data:{labels:atv.map(function(r){return r.nome;}),datasets:[{label:'Pecas',data:atv.map(function(r){return r.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderRadius:5,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtInt(c.raw)+' pecas';}}}},scales:{x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}}}}});
+}
+
+function renderGerDestaques(listaAcum){
+  var ativos=listaAcum.filter(function(r){return r.ativo;});
+  var cards=[];
+  var topQ=[].concat(ativos).sort(function(a,b){return b.qtde-a.qtde;});
+  if(topQ.length>0)cards.push({icon:'📊',label:'Top Quantidade',name:topQ[0].nome,desc:fmtInt(topQ[0].qtde)+' pecas na colecao'});
+  var topC=[].concat(ativos).sort(function(a,b){return b.pct-a.pct;});
+  if(topC.length>0)cards.push({icon:'🏆',label:'Lider Cota',name:topC[0].nome,desc:topC[0].pct.toFixed(1)+'% da cota atingida'});
+  var topA=[].concat(ativos).filter(function(r){return r.cliNov>0;}).sort(function(a,b){return b.cliNov-a.cliNov;});
+  if(topA.length>0)cards.push({icon:'🌿',label:'Top Aberturas',name:topA[0].nome,desc:topA[0].cliNov+' cliente'+(topA[0].cliNov>1?'s':'')+' novo'+(topA[0].cliNov>1?'s':'')});
+  var topT=[].concat(ativos).filter(function(r){return r.ticket>0;}).sort(function(a,b){return b.ticket-a.ticket;});
+  if(topT.length>0)cards.push({icon:'💰',label:'Melhor Ticket',name:topT[0].nome,desc:'R$ '+topT[0].ticket.toFixed(2)+' por peca'});
+  var html='';
+  for(var i=0;i<cards.length;i++)html+='<div class="ger-dest-card"><div class="dicon">'+cards[i].icon+'</div><div class="dinfo"><div class="dlabel">'+cards[i].label+'</div><div class="dname">'+cards[i].name+'</div><div class="ddesc">'+cards[i].desc+'</div></div></div>';
+  document.getElementById('ger-destaques-grid').innerHTML=html;
+}
+
+function renderResumoSemana(){
+  var tQ=0,tV=0,tCN=0,tPed=0;
+  for(var i=0;i<dSem.length;i++){tQ+=dSem[i].qtde;tV+=dSem[i].vlr;tCN+=dSem[i].cliNov;tPed+=dSem[i].pedidos;}
+  var atv=dSem.filter(function(d){return d.qtde>0;}).length;
+  var tk=tQ>0?(tV/tQ):0;
+  var html='';
+  html+='<div class="rsem-item"><div class="rsem-lbl">Pecas</div><div class="rsem-val">'+fmtInt(tQ)+'</div><div class="rsem-sub">esta semana</div></div>';
+  html+='<div class="rsem-item"><div class="rsem-lbl">Vlr Liquido</div><div class="rsem-val">R$ '+fmtBR(tV)+'</div><div class="rsem-sub">esta semana</div></div>';
+  html+='<div class="rsem-item"><div class="rsem-lbl">Ticket Medio</div><div class="rsem-val">R$ '+tk.toFixed(2)+'</div><div class="rsem-sub">por peca</div></div>';
+  html+='<div class="rsem-item"><div class="rsem-lbl">Clientes Novos</div><div class="rsem-val">'+tCN+'</div><div class="rsem-sub">aberturas</div></div>';
+  html+='<div class="rsem-item"><div class="rsem-lbl">Pedidos</div><div class="rsem-val">'+tPed+'</div><div class="rsem-sub">incluidos</div></div>';
+  html+='<div class="rsem-item"><div class="rsem-lbl">Reps Ativos</div><div class="rsem-val">'+atv+'</div><div class="rsem-sub">com vendas</div></div>';
+  document.getElementById('rsem-grid').innerHTML=html;
+}
+
+function renderColecao(){
+  var laAcum=buildLista(dAcum);
+  atualizarKPIs(dAcum,laAcum);
+  renderGerDestaques(laAcum);
+  renderResumoSemana();
+  var rank=0,html='';
+  for(var i=0;i<laAcum.length;i++){
+    var r=laAcum[i];if(r.ativo)rank++;
+    var pos=r.ativo?rank:'--';
+    var bdg=pos===1?'<span class="pos g">1</span>':pos===2?'<span class="pos s">2</span>':pos===3?'<span class="pos b">3</span>':'<span class="pos nn">'+pos+'</span>';
+    var cor=corBarra(r.pct),w=Math.min(r.pct,100).toFixed(1);
+    var ritmo=r.ativo?calcRitmo(r.qtde,r.cota):'aguard';
+    var rHtml=ritmo==='verde'?'<span class="semaforo verde">No ritmo</span>':ritmo==='amarelo'?'<span class="semaforo amarelo">Atencao</span>':ritmo==='vermelho'?'<span class="semaforo vermelho">Risco</span>':'<span style="color:var(--muted);font-size:.7rem">Aguard.</span>';
+    var proj=r.ativo?calcProjecao(r.qtde):0;
+    var pCor=proj>=r.cota?'#3ecf72':proj>=r.cota*0.8?'#e8c97a':'#e05c5c';
+    var pHtml=r.ativo?'<span style="font-size:.8rem;color:'+pCor+'">'+fmtInt(proj)+' / '+fmtInt(r.cota)+'</span>':'--';
+    html+='<tr class="'+(r.ativo?'':'ns')+'"><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td style="font-weight:700;color:'+cor+'">'+r.pct.toFixed(1)+'%</td><td><div class="pw"><div class="pb" style="width:'+w+'%;background:'+cor+'"></div></div></td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+r.cliCompra+'</td><td>'+pHtml+'</td><td>'+rHtml+'</td><td><span class="tag '+(r.ativo?'ta':'tw2')+'">'+(r.ativo?'Ativo':'Aguard.')+'</span></td></tr>';
+  }
+  document.getElementById('tbody-acum').innerHTML=html;
+  renderEvolucao();
+  renderRegioes(laAcum);
+  renderBarChart(laAcum.filter(function(l){return l.ativo;}));
+  renderPieGerencial(laAcum.filter(function(l){return l.ativo;}));
+  renderComparativo(laAcum);
+}
+
+function renderRegioes(lista){
+  var regioes={},html='',rgs=['Sul','Sudeste','Nordeste','Norte','Centro-Oeste'];
+  for(var i=0;i<lista.length;i++){var r=lista[i];if(!regioes[r.reg])regioes[r.reg]={qtde:0,vlr:0,cota:0,ativos:0};regioes[r.reg].qtde+=r.qtde;regioes[r.reg].vlr+=r.vlr;regioes[r.reg].cota+=r.cota;if(r.ativo)regioes[r.reg].ativos++;}
+  for(var i=0;i<rgs.length;i++){var rg=rgs[i],d=regioes[rg]||{qtde:0,vlr:0,cota:0,ativos:0};var pct=d.cota>0?(d.qtde/d.cota*100):0,cor=corBarra(pct);html+='<div class="region-card"><div class="rn">'+rg+'</div><div class="rv" style="color:'+cor+'">'+pct.toFixed(1)+'%</div><div class="rs">'+fmtInt(d.qtde)+' pc - '+d.ativos+' ativos</div><div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:6px;"><div style="height:4px;border-radius:20px;width:'+Math.min(pct,100).toFixed(1)+'%;background:'+cor+'"></div></div></div>';}
+  document.getElementById('region-grid').innerHTML=html;
+}
+
+function renderEvolucao(){
+  var ctx=document.getElementById('c-evolucao').getContext('2d');
+  if(chartEvolucao)chartEvolucao.destroy();
+  if(!dHist||dHist.length===0)return;
+  var semanas={};
+  for(var i=0;i<dHist.length;i++){var s=dHist[i].semana;if(!semanas[s])semanas[s]=0;semanas[s]+=dHist[i].qtde;}
+  var sks=Object.keys(semanas).map(Number).sort(function(a,b){return a-b;});
+  var labels=[],valores=[];
+  for(var i=0;i<sks.length;i++){labels.push(String(sks[i]));valores.push(semanas[sks[i]]);}
+  chartEvolucao=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Pecas',data:valores,backgroundColor:valores.map(function(v,i){return i===valores.length-1?'#c9a84c':'#c9a84c55';}),borderRadius:5,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtInt(c.raw)+' pecas';}}}},scales:{x:{title:{display:true,text:'Semana',color:'#888',font:{size:10}},ticks:{color:'#888',font:{size:10}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}}}}});
+}
+
+function renderBarChart(atv){
+  var ctx=document.getElementById('c-cota').getContext('2d');
+  if(chartCota)chartCota.destroy();
+  chartCota=new Chart(ctx,{type:'bar',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.pct;}),backgroundColor:atv.map(function(l){return corBarra(l.pct);}),borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw.toFixed(1)+'%';}}}},scales:{x:{ticks:{color:'#888',font:{size:8}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return v+'%';}},grid:{color:'#2e2e2e'}}}}});
+}
+
+function renderPieGerencial(atv){
+  var ctx=document.getElementById('c-pizza').getContext('2d');
+  if(chartPizza)chartPizza.destroy();
+  var total=atv.reduce(function(s,l){return s+l.qtde;},0);
+  chartPizza=new Chart(ctx,{type:'pie',data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:1,borderColor:'#222'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#aaa',font:{size:9},boxWidth:9,padding:6}},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'%';}}}}}});
+}
+
+function renderComparativo(listaAtual){
+  var ctx=document.getElementById('c-comp').getContext('2d');
+  if(chartComp)chartComp.destroy();
+  var repsComp=listaAtual.filter(function(r){return r.ativo&&(HIST_INV26[r.cod]||HIST_V26[r.cod]);}).slice(0,10);
+  chartComp=new Chart(ctx,{type:'bar',data:{labels:repsComp.map(function(r){return r.nome;}),datasets:[{label:'Verao 2027',data:repsComp.map(function(r){return r.qtde;}),backgroundColor:'#c9a84c',borderRadius:3},{label:'Inv 2026',data:repsComp.map(function(r){return HIST_INV26[r.cod]||0;}),backgroundColor:'#60c9e888',borderRadius:3},{label:'Verao 2026',data:repsComp.map(function(r){return HIST_V26[r.cod]||0;}),backgroundColor:'#3ecf7244',borderRadius:3}]},options:{responsive:true,plugins:{legend:{labels:{color:'#aaa',font:{size:9}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmtInt(c.raw)+' pc';}}}},scales:{x:{ticks:{color:'#888',font:{size:8}},grid:{color:'#222'}},y:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}}}}});
+}
+
+function renderGerencial(){
+  document.getElementById('bloco-colecao').style.display='none';
+  document.getElementById('bloco-mes').style.display='none';
+  document.getElementById('bloco-semana').style.display='none';
+  document.getElementById('bloco-dia').style.display='none';
+  var laAcum=buildLista(dAcum);
+  if(filtroAtual==='acumulado'){
+    document.getElementById('bloco-colecao').style.display='block';
+    renderColecao();
+  } else if(filtroAtual==='mes'){
+    document.getElementById('bloco-mes').style.display='block';
+    mudarMes(mesAtual);
+  } else if(filtroAtual==='semana'){
+    document.getElementById('bloco-semana').style.display='block';
+    mudarSemana(semanaAtual);
+  } else if(filtroAtual==='dia'){
+    document.getElementById('bloco-dia').style.display='block';
+    var listaDia=buildLista(dDia);
+    atualizarKPIs(dDia,laAcum);
+    renderTabelaDia(listaDia);
+    chartDia=renderBarrasSimples('c-dia',chartDia,listaDia);
+  }
+}
+
+function renderTop5(listaAcum){
+  var medalhas=['🥇','🥈','🥉','4°','5°'];
+  var ativos=listaAcum.filter(function(r){return r.ativo;});
+  var topQ=[].concat(ativos).sort(function(a,b){return b.qtde-a.qtde;}).slice(0,5);
+  var h1='';
+  for(var i=0;i<topQ.length;i++)h1+='<div class="g-top-row"><span class="g-top-medal">'+medalhas[i]+'</span><span class="g-top-name">'+topQ[i].nome+'</span></div>';
+  document.getElementById('top5-qtde').innerHTML=h1;
+  var mapaRegioes={Sul:'top5-sul',Sudeste:'top5-sudeste','Centro-Oeste':'top5-co',Nordeste:'top5-nordeste',Norte:'top5-norte'};
+  Object.keys(mapaRegioes).forEach(function(rg){
+    var reps=ativos.filter(function(r){return r.reg===rg;}).sort(function(a,b){return b.qtde-a.qtde;}).slice(0,5);
+    var h='';
+    for(var i=0;i<reps.length;i++)h+='<div class="g-top-row"><span class="g-top-medal">'+medalhas[i]+'</span><span class="g-top-name">'+reps[i].nome+'</span></div>';
+    if(!h)h='<div style="color:var(--muted);font-size:.78rem;padding:8px 0;">Sem ativos</div>';
+    document.getElementById(mapaRegioes[rg]).innerHTML=h;
+  });
+  var topA=[].concat(ativos).filter(function(r){return r.cliNov>0;}).sort(function(a,b){return b.cliNov-a.cliNov;}).slice(0,5);
+  var h3='';
+  for(var i=0;i<topA.length;i++)h3+='<div class="g-top-row"><span class="g-top-medal">'+medalhas[i]+'</span><span class="g-top-name">'+topA[i].nome+'</span><span class="g-top-val">'+topA[i].cliNov+'</span></div>';
+  if(!h3)h3='<div style="color:var(--muted);font-size:.78rem;padding:8px 0;">Sem aberturas registradas</div>';
+  document.getElementById('top5-aberturas').innerHTML=h3;
+}
+
+function renderGrupo(){
+  var sn=calcSem(),sp='04/05 a 10/05',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
+  setText('g-semn',sn);setText('g-per',sp);setText('g-falt',falt);
+  var listaAcum=buildLista(dAcum),listaSem=buildLista(dSem);
+  var dest=calcDestaques(listaSem);
+  var codsDest=[];dest.forEach(function(d){d.cods.forEach(function(c){codsDest.push(c);});});
+  var dh='';
+  for(var i=0;i<dest.length;i++)dh+='<div class="dest-card"><div class="dest-icon">'+dest[i].icon+'</div><div class="dest-info"><div class="dn">'+dest[i].nome+'</div><div class="ds">'+dest[i].desc+'</div></div></div>';
+  document.getElementById('g-dest').innerHTML=dh;
+  var rank=0,gh='';
+  for(var i=0;i<listaAcum.length;i++){
+    var r=listaAcum[i];if(r.ativo)rank++;
+    var pos=r.ativo?rank:'--';
+    var numHtml=pos===1?'<span style="font-size:1.1rem">🥇</span>':pos===2?'<span style="font-size:1.1rem">🥈</span>':pos===3?'<span style="font-size:1.1rem">🥉</span>':'<span class="g-num">'+pos+'</span>';
+    var cor=corBarra(r.pct),isd=codsDest.indexOf(r.cod)>=0,cls=pos===1?' t1':pos===2?' t2':pos===3?' t3':'';
+    gh+='<div class="gi'+cls+(!r.ativo?' gns':'')+'"><span style="text-align:center">'+numHtml+'</span><span class="gnm">'+r.nome+(isd?' <span style="color:var(--gold)">*</span>':'')+'<small>'+r.regiao+'</small></span><span class="guf" style="color:'+cor+'">'+r.uf+'</span><span class="gpct" style="color:'+cor+'">'+r.pct.toFixed(1)+'%</span><span class="gtk">'+(r.ticket>0?'R$'+r.ticket.toFixed(0):'0')+'</span><span class="gop">'+r.cliNov+'</span></div>';
+  }
+  document.getElementById('g-list').innerHTML=gh;
+  var atv=listaAcum.filter(function(l){return l.ativo&&l.qtde>0;});atv.sort(function(a,b){return b.qtde-a.qtde;});
+  renderPizzaGrupo(atv);
+  renderTop5(listaAcum);
+  setText('g-msgt',msg);
+}
+
+function renderPizzaGrupo(atv){
+  var canvasEl=document.getElementById('c-gpizza');canvasEl.height=320;
+  var ctx=canvasEl.getContext('2d');
+  if(chartGPizza)chartGPizza.destroy();
+  var total=atv.reduce(function(s,l){return s+l.qtde;},0);
+  var labelPlugin={id:'labelPlugin',afterDatasetsDraw:function(chart){var meta=chart.getDatasetMeta(0);var ds=chart.data.datasets[0];var labels=chart.data.labels;meta.data.forEach(function(arc,i){var ctx2=chart.ctx;var pct=ds.data[i]/total*100;var angle=(arc.startAngle+arc.endAngle)/2;var cosA=Math.cos(angle);var sinA=Math.sin(angle);var outerR=arc.outerRadius;var cx=arc.x;var cy=arc.y;var px1=cx+cosA*outerR;var py1=cy+sinA*outerR;var px2=cx+cosA*(outerR+80);var py2=cy+sinA*(outerR+80);ctx2.save();ctx2.strokeStyle=CORES[i%CORES.length];ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(px1,py1);ctx2.lineTo(px2,py2);ctx2.stroke();ctx2.fillStyle=CORES[i%CORES.length];ctx2.beginPath();ctx2.arc(px2,py2,2,0,Math.PI*2);ctx2.fill();ctx2.fillStyle='#f0ede8';ctx2.font='bold 13px Segoe UI';ctx2.textAlign=cosA>=0?'left':'right';ctx2.textBaseline='middle';var txtX=px2+cosA*8;ctx2.fillText(labels[i],txtX,py2-9);ctx2.fillStyle=CORES[i%CORES.length];ctx2.font='bold 12px Segoe UI';ctx2.fillText(pct.toFixed(1)+'%',txtX,py2+9);ctx2.restore();});}};
+  chartGPizza=new Chart(ctx,{type:'pie',plugins:[labelPlugin],data:{labels:atv.map(function(l){return l.nome;}),datasets:[{data:atv.map(function(l){return l.qtde;}),backgroundColor:CORES.slice(0,atv.length),borderWidth:2,borderColor:'#222'}]},options:{responsive:true,layout:{padding:{top:90,bottom:90,left:160,right:160}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/total*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}}});
+}
+
+function calcDestaques(listaSem){
+  var dest=[],usados=[];
+  var evol=listaSem.filter(function(r){return r.ativo;}).sort(function(a,b){return b.pct-a.pct;});
+  if(evol.length>0){var mx=evol[0].pct,emp=evol.filter(function(r){return Math.abs(r.pct-mx)<0.01;});dest.push({cods:emp.map(function(r){return r.cod;}),nome:emp.map(function(r){return r.nome;}).join(' e '),icon:'⚡',desc:'Maior evolucao na cota esta semana - '+mx.toFixed(1)+'% atingido'});emp.forEach(function(r){usados.push(r.cod);});}
+  var ab=listaSem.filter(function(r){return r.cliNov>0&&usados.indexOf(r.cod)<0;}).sort(function(a,b){return b.cliNov-a.cliNov;});
+  if(ab.length>0){var mx2=ab[0].cliNov,emp2=ab.filter(function(r){return r.cliNov===mx2;});dest.push({cods:emp2.map(function(r){return r.cod;}),nome:emp2.map(function(r){return r.nome;}).join(' e '),icon:'🌿',desc:'Mais aberturas na semana - '+mx2+' cliente'+(mx2>1?'s':'')+' novo'+(mx2>1?'s':'')});emp2.forEach(function(r){usados.push(r.cod);});}
+  var pd=listaSem.filter(function(r){return r.pedidos>0&&usados.indexOf(r.cod)<0;}).sort(function(a,b){return b.pedidos-a.pedidos;});
+  if(pd.length>0){var mx3=pd[0].pedidos,emp3=pd.filter(function(r){return r.pedidos===mx3;});dest.push({cods:emp3.map(function(r){return r.cod;}),nome:emp3.map(function(r){return r.nome;}).join(' e '),icon:'📋',desc:'Mais pedidos incluidos na semana - '+mx3+' pedido'+(mx3>1?'s':'')});}
+  if(dest.length===0){dest.push({cods:[],nome:'--',icon:'⏳',desc:'Sem dados de semana disponiveis'});dest.push({cods:[],nome:'--',icon:'⏳',desc:'Os destaques serao calculados automaticamente'});dest.push({cods:[],nome:'--',icon:'⏳',desc:'Criterios: evolucao, aberturas e pedidos'});}
+  return dest;
+}
+
+function carregarHtml2Canvas(cb){if(typeof html2canvas!=='undefined'){cb();return;}var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=cb;document.head.appendChild(s);}
+function exportarRanking(){carregarHtml2Canvas(function(){var pizza=document.querySelector('.g-pizza-bottom'),old=pizza.style.display;pizza.style.display='none';html2canvas(document.querySelector('.g-wrap'),{backgroundColor:'#1a1a1a',scale:2,useCORS:true,logging:false}).then(function(canvas){pizza.style.display=old;var link=document.createElement('a');link.download='RDG_Ranking_Semana'+calcSem()+'.png';link.href=canvas.toDataURL('image/png');link.click();});});}
+function exportarPizza(){carregarHtml2Canvas(function(){html2canvas(document.querySelector('.g-pizza-bottom'),{backgroundColor:'#222222',scale:2,useCORS:true,logging:false}).then(function(canvas){var link=document.createElement('a');link.download='RDG_Pizza_Semana'+calcSem()+'.png';link.href=canvas.toDataURL('image/png');link.click();});});}
+
+// ============================================================
+// OPERACIONAL
+// ============================================================
+
+// Semanas da coleção: seg 30/06 até dom 30/11/2026
 var OP_SEMANAS = (function(){
   var semanas = [];
   // gera semanas seg-dom de 29/06 até 29/11
