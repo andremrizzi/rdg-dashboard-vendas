@@ -190,6 +190,67 @@ tbody tr.ns{opacity:.35;}
 .ref-mod{font-size:.72rem;color:var(--muted);}
 .ref-bar-cell{min-width:80px;}
 @media(max-width:900px){.ref-charts-grid{grid-template-columns:1fr;}.ger-dest-grid{grid-template-columns:1fr 1fr;}.cg{grid-template-columns:1fr;}.g-tops{grid-template-columns:1fr;}.dest-grid{grid-template-columns:1fr;}.g-footer{grid-template-columns:1fr;}}
+
+/* ===== OPERACIONAL ===== */
+.op-section{margin-bottom:28px;}
+.op-section-title{font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.op-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+.op-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.op-kpi .lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.op-kpi .val{font-size:1.3rem;font-weight:700;}
+.op-kpi .sub{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.op-kpi.verde{border-color:#3ecf7244;}
+.op-kpi.amarelo{border-color:#e8c97a44;}
+.op-kpi.vermelho{border-color:#e05c5c44;}
+.op-kpi.verde .val{color:#3ecf72;}
+.op-kpi.amarelo .val{color:#e8c97a;}
+.op-kpi.vermelho .val{color:#e05c5c;}
+.op-weeks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;}
+.op-month-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.op-month-hdr{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.op-month-name{font-size:.8rem;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;}
+.op-month-total{display:flex;gap:16px;align-items:center;}
+.op-month-val{font-size:.85rem;font-weight:700;}
+.op-week-row{display:grid;grid-template-columns:140px 1fr 110px 110px 80px;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid #1a1a1a;}
+.op-week-row:last-child{border-bottom:none;}
+.op-week-row.quinz-sep{border-top:1px solid #c9a84c22;}
+.op-week-lbl{font-size:.72rem;color:var(--muted);}
+.op-week-lbl strong{color:var(--white);display:block;font-size:.78rem;}
+.op-input{background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:6px;font-size:.85rem;font-family:'Segoe UI',sans-serif;width:100%;text-align:right;}
+.op-input:focus{outline:none;border-color:var(--gold);}
+.op-sem{font-size:.75rem;font-weight:700;padding:3px 8px;border-radius:6px;text-align:center;white-space:nowrap;}
+.op-sem.verde{background:#3ecf7218;color:#3ecf72;border:1px solid #3ecf7233;}
+.op-sem.amarelo{background:#e8c97a18;color:#e8c97a;border:1px solid #e8c97a33;}
+.op-sem.vermelho{background:#e05c5c18;color:#e05c5c;border:1px solid #e05c5c33;}
+.op-sem.neutro{background:var(--bg3);color:var(--muted);border:1px solid var(--border);}
+.op-col-hdrs{display:grid;grid-template-columns:140px 1fr 110px 110px 80px;gap:8px;padding:6px 16px;background:var(--bg3);}
+.op-col-hdrs span{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.op-col-hdrs span:nth-child(n+3){text-align:center;}
+.op-corte-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+.op-corte-month{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.op-corte-month-hdr{padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.op-corte-month-hdr span{font-size:.75rem;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:1px;}
+.op-corte-week{padding:8px 16px;border-bottom:1px solid #1a1a1a;}
+.op-corte-week:last-child{border-bottom:none;}
+.op-corte-week-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.op-corte-week-lbl{font-size:.7rem;color:var(--muted);}
+.op-corte-week-total{font-size:.78rem;font-weight:700;}
+.op-corte-days{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+.op-day-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;}
+.op-day-lbl{font-size:.58rem;color:var(--muted);text-align:center;}
+.op-day-input{background:transparent;border:none;color:var(--white);font-size:.78rem;font-weight:700;text-align:center;width:100%;font-family:'Segoe UI',sans-serif;padding:0;}
+.op-day-input:focus{outline:none;color:var(--gold);}
+.op-comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;}
+.op-comp-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;}
+.op-comp-card .sem-lbl{font-size:.68rem;color:var(--muted);margin-bottom:8px;}
+.op-comp-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;}
+.op-comp-row span{font-size:.78rem;color:var(--muted);}
+.op-comp-row strong{font-size:.85rem;font-weight:700;}
+.op-comp-bar-wrap{background:var(--border);border-radius:20px;height:5px;margin-top:6px;overflow:hidden;position:relative;}
+.op-comp-bar{height:5px;border-radius:20px;position:absolute;top:0;left:0;}
+.op-save-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#111;border:none;padding:8px 20px;border-radius:7px;font-weight:700;font-size:.78rem;cursor:pointer;margin-top:16px;}
+.op-save-btn:hover{opacity:.9;}
+
 </style>
 </head>
 <body>
@@ -201,6 +262,7 @@ tbody tr.ns{opacity:.35;}
   <div class="nt active" onclick="mudarAba('gerencial')">Gerencial</div>
   <div class="nt" onclick="mudarAba('grupo')">Grupo</div>
   <div class="nt" onclick="mudarAba('referencias')">Referências</div>
+  <div class="nt" onclick="mudarAba('operacional')">Operacional</div>
 </div>
 
 <!-- ===== GERENCIAL ===== -->
@@ -333,11 +395,31 @@ tbody tr.ns{opacity:.35;}
         <div class="g-msg"><p id="g-msgt">--</p><small>RDG JEANS - VERAO 2027</small></div>
         <div class="g-leg">Ativo | Aguardando inicio<br><span style="color:var(--gold);font-size:.65rem">* Destaque da semana</span></div>
       </div>
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
-        <button class="btn" onclick="exportarRanking()">Salvar Ranking</button>
-        <button class="btn" onclick="exportarPizza()">Salvar Representatividade</button>
-      </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== OPERACIONAL ===== -->
+<div class="view" id="view-operacional">
+  <!-- KPIs resumo -->
+  <div class="op-kpi-grid" id="op-kpis"></div>
+
+  <!-- Programação de Faturamento -->
+  <div class="op-section">
+    <div class="op-section-title">📦 Programação de Faturamento</div>
+    <div id="op-fat-blocks"></div>
+  </div>
+
+  <!-- Corte -->
+  <div class="op-section">
+    <div class="op-section-title">✂️ Corte por Dia</div>
+    <div id="op-corte-blocks"></div>
+  </div>
+
+  <!-- Comparativo -->
+  <div class="op-section">
+    <div class="op-section-title">📊 Comparativo Corte x Faturamento por Semana</div>
+    <div id="op-comp-blocks"></div>
   </div>
 </div>
 
@@ -2110,13 +2192,333 @@ function carregarHtml2Canvas(cb){if(typeof html2canvas!=='undefined'){cb();retur
 function exportarRanking(){carregarHtml2Canvas(function(){var pizza=document.querySelector('.g-pizza-bottom'),old=pizza.style.display;pizza.style.display='none';html2canvas(document.querySelector('.g-wrap'),{backgroundColor:'#1a1a1a',scale:2,useCORS:true,logging:false}).then(function(canvas){pizza.style.display=old;var link=document.createElement('a');link.download='RDG_Ranking_Semana'+calcSem()+'.png';link.href=canvas.toDataURL('image/png');link.click();});});}
 function exportarPizza(){carregarHtml2Canvas(function(){html2canvas(document.querySelector('.g-pizza-bottom'),{backgroundColor:'#222222',scale:2,useCORS:true,logging:false}).then(function(canvas){var link=document.createElement('a');link.download='RDG_Pizza_Semana'+calcSem()+'.png';link.href=canvas.toDataURL('image/png');link.click();});});}
 
+// ============================================================
+// OPERACIONAL
+// ============================================================
+
+// Semanas da coleção: seg 30/06 até dom 30/11/2026
+var OP_SEMANAS = (function(){
+  var semanas = [];
+  // gera semanas seg-dom de 29/06 até 29/11
+  var cur = new Date('2026-06-29'); // seg da semana 30/06
+  var fim = new Date('2026-11-29');
+  while(cur <= fim){
+    var seg = new Date(cur);
+    var dom = new Date(cur); dom.setDate(dom.getDate()+6);
+    var fmt = function(d){return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);};
+    var mes = dom.getMonth(); // mês da semana pelo domingo
+    var mesNome = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes];
+    var mesNum = mes; // 0-indexed
+    semanas.push({id:'s'+semanas.length, lbl: fmt(seg)+' a '+fmt(dom), mes: mesNum, mesNome: mesNome, seg: new Date(seg), dom: new Date(dom)});
+    cur.setDate(cur.getDate()+7);
+  }
+  return semanas;
+})();
+
+// Dias úteis de corte pré-carregados
+var OP_CORTE_DIAS = {
+  '26/03/2026': 980,
+  '27/03/2026': 860,
+  '30/03/2026': 321,
+  '31/03/2026': 640,
+  '01/04/2026': 690,
+  '06/04/2026': 105,
+  '17/04/2026': 340,
+  '20/04/2026': 315,
+  '21/04/2026': 1230,
+  '22/04/2026': 2920,
+  '24/04/2026': 255,
+  '27/04/2026': 1090,
+  '28/04/2026': 971,
+  '29/04/2026': 1770,
+  '30/04/2026': 825,
+  '04/05/2026': 1595,
+  '05/05/2026': 1910,
+  '06/05/2026': 2242
+};
+
+// Faturamento previsto por semana (id -> valor)
+var OP_FAT = {};
+
+// Storage em memória (persiste enquanto página aberta)
+// Carrega do localStorage se disponível
+function opLoad(){
+  try {
+    var f = localStorage.getItem('rdg_op_fat');
+    if(f) OP_FAT = JSON.parse(f);
+    var c = localStorage.getItem('rdg_op_corte');
+    if(c) OP_CORTE_DIAS = Object.assign(OP_CORTE_DIAS, JSON.parse(c));
+  } catch(e){}
+}
+function opSave(){
+  try {
+    localStorage.setItem('rdg_op_fat', JSON.stringify(OP_FAT));
+    localStorage.setItem('rdg_op_corte', JSON.stringify(OP_CORTE_DIAS));
+  } catch(e){}
+}
+
+function opSemCor(val, meta, limAma){
+  if(!val || val===0) return 'neutro';
+  if(val <= meta) return 'verde';
+  if(val <= limAma) return 'amarelo';
+  return 'vermelho';
+}
+function opCorteCor(val, meta){
+  if(!val || val===0) return 'neutro';
+  if(val >= meta) return 'verde';
+  if(val >= meta*0.8) return 'amarelo';
+  return 'vermelho';
+}
+function opCorteCorDia(val){
+  if(!val || val===0) return 'var(--muted)';
+  if(val >= 1200) return '#3ecf72';
+  if(val >= 960) return '#e8c97a';
+  return '#e05c5c';
+}
+
+function opFmtDtKey(d){
+  // d = Date → dd/mm/yyyy
+  return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function opDiasUteis(seg, dom){
+  // retorna array de Dates seg-sex dentro da semana
+  var dias = [];
+  var d = new Date(seg);
+  for(var i=0;i<5;i++){
+    dias.push(new Date(d));
+    d.setDate(d.getDate()+1);
+  }
+  return dias;
+}
+
+function opGetCorteTotal(dias){
+  return dias.reduce(function(s,d){return s+(OP_CORTE_DIAS[opFmtDtKey(d)]||0);},0);
+}
+
+function opGetFatSem(semId){
+  return OP_FAT[semId]||0;
+}
+
+// Agrupa semanas por mês
+function opSemanasPorMes(){
+  var meses = {};
+  OP_SEMANAS.forEach(function(s){
+    if(!meses[s.mes]) meses[s.mes] = {nome:s.mesNome, semanas:[]};
+    meses[s.mes].semanas.push(s);
+  });
+  return meses;
+}
+
+function renderOperacional(){
+  opLoad();
+  renderOpKPIs();
+  renderOpFaturamento();
+  renderOpCorte();
+  renderOpComparativo();
+}
+
+function renderOpKPIs(){
+  // KPIs: total cortado, total previsto faturar (jul-nov), semana atual corte, semana atual fat
+  var hoje = new Date();
+  var totalCortado = Object.values(OP_CORTE_DIAS).reduce(function(s,v){return s+v;},0);
+  var totalFat = Object.values(OP_FAT).reduce(function(s,v){return s+v;},0);
+
+  // semana atual
+  var semAtual = null;
+  OP_SEMANAS.forEach(function(s){
+    if(hoje >= s.seg && hoje <= s.dom) semAtual = s;
+  });
+  var corteAtual = semAtual ? opGetCorteTotal(opDiasUteis(semAtual.seg, semAtual.dom)) : 0;
+  var fatAtual = semAtual ? opGetFatSem(semAtual.id) : 0;
+
+  var corSemCorte = opCorteCor(corteAtual, 6000);
+  var corSemFat = opSemCor(fatAtual, 5500, 6500);
+
+  document.getElementById('op-kpis').innerHTML =
+    '<div class="op-kpi"><div class="lbl">Total Cortado</div><div class="val" style="color:var(--gold)">'+fmtInt(totalCortado)+'</div><div class="sub">peças na coleção</div></div>'+
+    '<div class="op-kpi"><div class="lbl">Fat. Programado</div><div class="val" style="color:var(--gold)">'+fmtInt(totalFat)+'</div><div class="sub">jul–nov previsto</div></div>'+
+    '<div class="op-kpi '+corSemCorte+'"><div class="lbl">Corte Esta Semana</div><div class="val">'+fmtInt(corteAtual)+'</div><div class="sub">meta 6.000</div></div>'+
+    '<div class="op-kpi '+corSemFat+'"><div class="lbl">Fat. Esta Semana</div><div class="val">'+fmtInt(fatAtual)+'</div><div class="sub">cap. 5.500</div></div>'+
+    '<div class="op-kpi"><div class="lbl">Capacidade Mensal</div><div class="val" style="color:var(--muted)">22.000</div><div class="sub">sem hora extra</div></div>'+
+    '<div class="op-kpi"><div class="lbl">Meta Corte/Dia</div><div class="val" style="color:var(--muted)">1.200</div><div class="sub">5 dias úteis</div></div>';
+}
+
+function renderOpFaturamento(){
+  var meses = opSemanasPorMes();
+  var html = '';
+  Object.keys(meses).sort().forEach(function(mesNum){
+    var m = meses[mesNum];
+    var semanas = m.semanas;
+    var totalMes = semanas.reduce(function(s,sem){return s+opGetFatSem(sem.id);},0);
+    var corMes = opSemCor(totalMes, 22000, 26000);
+    var corMesStyle = corMes==='verde'?'#3ecf72':corMes==='amarelo'?'#e8c97a':corMes==='vermelho'?'#e05c5c':'var(--muted)';
+
+    html += '<div class="op-month-block">';
+    html += '<div class="op-month-hdr">';
+    html += '<span class="op-month-name">'+m.nome+'</span>';
+    html += '<div class="op-month-total">';
+    // quinzenas
+    var q1 = semanas.slice(0,2).reduce(function(s,sem){return s+opGetFatSem(sem.id);},0);
+    var q2 = semanas.slice(2).reduce(function(s,sem){return s+opGetFatSem(sem.id);},0);
+    var corQ1 = opSemCor(q1,11000,13000), corQ2 = opSemCor(q2,11000,13000);
+    var cQ1 = corQ1==='verde'?'#3ecf72':corQ1==='amarelo'?'#e8c97a':corQ1==='vermelho'?'#e05c5c':'var(--muted)';
+    var cQ2 = corQ2==='verde'?'#3ecf72':corQ2==='amarelo'?'#e8c97a':corQ2==='vermelho'?'#e05c5c':'var(--muted)';
+    html += '<span style="font-size:.72rem;color:var(--muted)">Q1: <strong style="color:'+cQ1+'">'+fmtInt(q1)+'</strong></span>';
+    html += '<span style="font-size:.72rem;color:var(--muted)">Q2: <strong style="color:'+cQ2+'">'+fmtInt(q2)+'</strong></span>';
+    html += '<span style="font-size:.82rem;font-weight:700;color:'+corMesStyle+'">Total: '+fmtInt(totalMes)+'</span>';
+    html += '</div></div>';
+
+    html += '<div class="op-col-hdrs"><span>Semana</span><span>Qtde Prevista</span><span>Semáforo</span><span></span><span></span></div>';
+
+    semanas.forEach(function(sem, idx){
+      var val = opGetFatSem(sem.id);
+      var cor = opSemCor(val, 5500, 6500);
+      var sep = idx===2?' quinz-sep':'';
+      html += '<div class="op-week-row'+sep+'">';
+      html += '<div class="op-week-lbl"><strong>'+sem.lbl+'</strong></div>';
+      html += '<input class="op-input" type="number" min="0" id="fat_'+sem.id+'" value="'+(val||'')+'" placeholder="0" onchange="opSetFat(\''+sem.id+'\',this.value)">';
+      html += '<div class="op-sem '+cor+'" id="fat_sem_'+sem.id+'">'+(cor==='verde'?'✓ OK':cor==='amarelo'?'⚠ Atenção':cor==='vermelho'?'✗ Acima':'—')+'</div>';
+      html += '<div></div><div></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('op-fat-blocks').innerHTML = html;
+}
+
+function opSetFat(semId, val){
+  OP_FAT[semId] = parseInt(val)||0;
+  opSave();
+  // atualiza semáforo da linha
+  var v = OP_FAT[semId];
+  var cor = opSemCor(v, 5500, 6500);
+  var el = document.getElementById('fat_sem_'+semId);
+  if(el){el.className='op-sem '+cor;el.textContent=cor==='verde'?'✓ OK':cor==='amarelo'?'⚠ Atenção':cor==='vermelho'?'✗ Acima':'—';}
+  renderOpKPIs();
+  renderOpComparativo();
+  // atualiza totais do mês sem re-render completo
+  renderOpFaturamento();
+}
+
+function renderOpCorte(){
+  // Agrupa dias por semana e mês
+  var meses = {};
+  // Usa as semanas de março a novembro para cobrir histórico
+  var todasSemanas = [];
+  // semanas históricas: mar/abr/mai (antes das semanas da coleção)
+  var histSems = [];
+  var cur = new Date('2026-03-23'); // seg da semana que contém 26/03
+  var inicioColecao = new Date('2026-06-29');
+  while(cur < inicioColecao){
+    var seg = new Date(cur);
+    var dom = new Date(cur); dom.setDate(dom.getDate()+6);
+    var mes = dom.getMonth();
+    var mesNome = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes];
+    var fmt = function(d){return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);};
+    histSems.push({id:'ch'+histSems.length, lbl:fmt(seg)+' a '+fmt(dom), mes:mes, mesNome:mesNome, seg:new Date(seg), dom:new Date(dom)});
+    cur.setDate(cur.getDate()+7);
+  }
+  todasSemanas = histSems.concat(OP_SEMANAS);
+
+  // agrupa por mês
+  var mesesMap = {};
+  todasSemanas.forEach(function(s){
+    var dias = opDiasUteis(s.seg, s.dom);
+    var temDados = dias.some(function(d){return OP_CORTE_DIAS[opFmtDtKey(d)]>0;});
+    // só mostra meses com dados ou futuros da coleção (jul+)
+    if(!temDados && s.mes < 6) return;
+    if(!mesesMap[s.mes]) mesesMap[s.mes]={nome:s.mesNome, semanas:[]};
+    mesesMap[s.mes].semanas.push(s);
+  });
+
+  var html = '<div class="op-corte-grid">';
+  Object.keys(mesesMap).sort(function(a,b){return a-b;}).forEach(function(mesNum){
+    var m = mesesMap[mesNum];
+    var totalMes = 0;
+    m.semanas.forEach(function(s){totalMes+=opGetCorteTotal(opDiasUteis(s.seg,s.dom));});
+    var corMes = opCorteCor(totalMes, 24000);
+    var corMesStyle = corMes==='verde'?'#3ecf72':corMes==='amarelo'?'#e8c97a':corMes==='vermelho'?'#e05c5c':'var(--muted)';
+
+    html += '<div class="op-corte-month">';
+    html += '<div class="op-corte-month-hdr"><span>'+m.nome+'</span><span style="color:'+corMesStyle+';font-size:.82rem;font-weight:700;">'+fmtInt(totalMes)+' pc</span></div>';
+
+    m.semanas.forEach(function(s){
+      var dias = opDiasUteis(s.seg, s.dom);
+      var totalSem = opGetCorteTotal(dias);
+      var corSem = opCorteCor(totalSem, 6000);
+      var corSemStyle = corSem==='verde'?'#3ecf72':corSem==='amarelo'?'#e8c97a':corSem==='vermelho'?'#e05c5c':'var(--muted)';
+
+      html += '<div class="op-corte-week">';
+      html += '<div class="op-corte-week-hdr">';
+      html += '<span class="op-corte-week-lbl">'+s.lbl+'</span>';
+      html += '<span class="op-corte-week-total" style="color:'+corSemStyle+'">'+fmtInt(totalSem)+' pc</span>';
+      html += '</div>';
+      html += '<div class="op-corte-days">';
+      var diasNomes = ['Seg','Ter','Qua','Qui','Sex'];
+      dias.forEach(function(d, idx){
+        var key = opFmtDtKey(d);
+        var val = OP_CORTE_DIAS[key]||0;
+        var cor = opCorteCorDia(val);
+        html += '<div class="op-day-box" style="border-color:'+(val>=1200?'#3ecf7244':val>=960?'#e8c97a44':val>0?'#e05c5c44':'var(--border)')+';">';
+        html += '<div class="op-day-lbl" style="color:'+cor+'">'+diasNomes[idx]+' '+(d.getDate()<10?'0':'')+d.getDate()+'/'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'</div>';
+        html += '<input class="op-day-input" type="number" min="0" id="corte_'+key.replace(/\//g,'_')+'" value="'+(val||'')+'" placeholder="—" style="color:'+cor+'" onchange="opSetCorte(\''+key+'\',this.value)" onfocus="this.select()">';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('op-corte-blocks').innerHTML = html;
+}
+
+function opSetCorte(key, val){
+  OP_CORTE_DIAS[key] = parseInt(val)||0;
+  opSave();
+  renderOpKPIs();
+  renderOpCorte();
+  renderOpComparativo();
+}
+
+function renderOpComparativo(){
+  // Só semanas de julho em diante
+  var semsFat = OP_SEMANAS;
+  var html = '<div class="op-comp-grid">';
+  semsFat.forEach(function(s){
+    var dias = opDiasUteis(s.seg, s.dom);
+    var cortado = opGetCorteTotal(dias);
+    var previsto = opGetFatSem(s.id);
+    if(cortado===0 && previsto===0) return;
+    var saldo = cortado - previsto;
+    var maxBar = Math.max(cortado, previsto, 1);
+    var wC = (cortado/maxBar*100).toFixed(1);
+    var wP = (previsto/maxBar*100).toFixed(1);
+    var corSaldo = saldo>=0?'#3ecf72':'#e05c5c';
+
+    html += '<div class="op-comp-card">';
+    html += '<div class="sem-lbl" style="color:var(--gold);font-weight:700;">'+s.lbl+' <span style="color:var(--muted);font-weight:400;">'+s.mesNome+'</span></div>';
+    html += '<div class="op-comp-row"><span>✂️ Cortado</span><strong style="color:#3ecf72">'+fmtInt(cortado)+'</strong></div>';
+    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wC+'%;background:#3ecf7266;"></div></div>';
+    html += '<div class="op-comp-row" style="margin-top:4px"><span>📦 Previsto Fat.</span><strong style="color:#c9a84c">'+fmtInt(previsto)+'</strong></div>';
+    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wP+'%;background:#c9a84c66;"></div></div>';
+    html += '<div class="op-comp-row" style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;"><span>Saldo</span><strong style="color:'+corSaldo+'">'+(saldo>=0?'+':'')+fmtInt(saldo)+'</strong></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  if(html === '<div class="op-comp-grid"></div>'){
+    html = '<div class="op-comp-grid"><div style="color:var(--muted);font-size:.82rem;padding:12px;">Preencha o faturamento previsto para ver o comparativo.</div></div>';
+  }
+  document.getElementById('op-comp-blocks').innerHTML = html;
+}
+
 function mudarAba(tab){
-  var abas=['gerencial','grupo','referencias'];
+  var abas=['gerencial','grupo','referencias','operacional'];
   document.querySelectorAll('.nt').forEach(function(t,i){t.classList.toggle('active',abas[i]===tab);});
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
   document.getElementById('view-'+tab).classList.add('active');
   if(tab==='grupo') renderGrupo();
   if(tab==='referencias') renderReferencias();
+  if(tab==='operacional') renderOperacional();
 }
 function mudarFiltro(f){
   filtroAtual=f;
