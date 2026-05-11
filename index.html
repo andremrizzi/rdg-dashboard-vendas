@@ -2374,7 +2374,8 @@ var OP_CORTE_DIAS = {
   '04/05/2026': 1595,
   '05/05/2026': 1910,
   '06/05/2026': 2242,
-  '07/05/2026': 1548
+  '07/05/2026': 1548,
+  '08/05/2026': 1655
 };
 
 // Faturamento previsto por período (id -> valor) - pré-carregado
@@ -2767,9 +2768,8 @@ function mudarSemana(s){
 // DADOS VENDAS
 // ============================================================
 dDia=[
-  {cod:'07607',vlr:28717.7,qtde:223,pedidos:1,cliNov:0,cliCompra:1,ticket:128.78},
-  {cod:'00035',vlr:12136.5,qtde:85,pedidos:1,cliNov:0,cliCompra:1,ticket:142.78},
-  {cod:'00052',vlr:8305.9,qtde:61,pedidos:1,cliNov:1,cliCompra:1,ticket:136.16}
+  {cod:'00018',vlr:151998.1,qtde:1219,pedidos:1,cliNov:0,cliCompra:1,ticket:124.69},
+  {cod:'00052',vlr:41198.6,qtde:344,pedidos:1,cliNov:1,cliCompra:1,ticket:119.76}
 ];
 
 dSemDados={
@@ -2801,15 +2801,15 @@ dSemDados={
     {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,cliCompra:1,ticket:121.14}
   ],
   4:[
+    {cod:'00018',vlr:199316.6,qtde:1584,pedidos:5,cliNov:1,cliCompra:5,ticket:125.83},
     {cod:'00032',vlr:111566.1,qtde:869,pedidos:6,cliNov:0,cliCompra:6,ticket:128.38},
     {cod:'00020',vlr:82242.5,qtde:695,pedidos:1,cliNov:0,cliCompra:1,ticket:118.33},
     {cod:'07607',vlr:52968,qtde:410,pedidos:4,cliNov:2,cliCompra:4,ticket:129.19},
     {cod:'07890',vlr:49792.6,qtde:384,pedidos:4,cliNov:1,cliCompra:4,ticket:129.67},
-    {cod:'00018',vlr:47318.5,qtde:365,pedidos:4,cliNov:1,cliCompra:4,ticket:129.64},
+    {cod:'00052',vlr:49504.5,qtde:405,pedidos:2,cliNov:2,cliCompra:2,ticket:122.23},
     {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
     {cod:'00035',vlr:12136.5,qtde:85,pedidos:1,cliNov:0,cliCompra:1,ticket:142.78},
     {cod:'07608',vlr:11498.9,qtde:91,pedidos:1,cliNov:0,cliCompra:1,ticket:126.36},
-    {cod:'00052',vlr:8305.9,qtde:61,pedidos:1,cliNov:1,cliCompra:1,ticket:136.16},
     {cod:'00040',vlr:3016.7,qtde:23,pedidos:1,cliNov:0,cliCompra:1,ticket:131.16}
   ]
 };
@@ -2830,15 +2830,15 @@ dMesDados={
     {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,cliCompra:1,ticket:121.14}
   ],
   5:[
+    {cod:'00018',vlr:237680.5,qtde:1905,pedidos:6,cliNov:1,cliCompra:6,ticket:124.77},
     {cod:'00032',vlr:191177.5,qtde:1505,pedidos:9,cliNov:0,cliCompra:9,ticket:127.03},
-    {cod:'00018',vlr:85682.4,qtde:686,pedidos:5,cliNov:1,cliCompra:5,ticket:124.90},
     {cod:'00020',vlr:82242.5,qtde:695,pedidos:1,cliNov:0,cliCompra:1,ticket:118.33},
     {cod:'07607',vlr:52968,qtde:410,pedidos:4,cliNov:2,cliCompra:4,ticket:129.19},
     {cod:'07890',vlr:49792.6,qtde:384,pedidos:4,cliNov:1,cliCompra:4,ticket:129.67},
+    {cod:'00052',vlr:49504.5,qtde:405,pedidos:2,cliNov:2,cliCompra:2,ticket:122.23},
     {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
     {cod:'00035',vlr:12136.5,qtde:85,pedidos:1,cliNov:0,cliCompra:1,ticket:142.78},
     {cod:'07608',vlr:11498.9,qtde:91,pedidos:1,cliNov:0,cliCompra:1,ticket:126.36},
-    {cod:'00052',vlr:8305.9,qtde:61,pedidos:1,cliNov:1,cliCompra:1,ticket:136.16},
     {cod:'00040',vlr:3016.7,qtde:23,pedidos:1,cliNov:0,cliCompra:1,ticket:131.16}
   ]
 };
@@ -2847,14 +2847,14 @@ dMes=dMesDados[5];
 dSem=dSemDados[4];
 
 dAcum=[
+  {cod:'00018',vlr:603605.315,qtde:4789,pedidos:18,cliNov:2,cliCompra:18,ticket:126.04},
   {cod:'00032',vlr:597747.319,qtde:4816,pedidos:25,cliNov:1,cliCompra:25,ticket:124.12},
-  {cod:'00018',vlr:451607.215,qtde:3570,pedidos:17,cliNov:2,cliCompra:17,ticket:126.50},
   {cod:'00037',vlr:281408.9,qtde:2201,pedidos:14,cliNov:1,cliCompra:14,ticket:127.86},
   {cod:'07607',vlr:131153.613,qtde:1035,pedidos:8,cliNov:2,cliCompra:8,ticket:126.72},
   {cod:'06693',vlr:126868.3,qtde:1017,pedidos:6,cliNov:0,cliCompra:6,ticket:124.75},
+  {cod:'00052',vlr:111300.8,qtde:902,pedidos:4,cliNov:2,cliCompra:4,ticket:123.39},
   {cod:'00020',vlr:82242.5,qtde:695,pedidos:1,cliNov:0,cliCompra:1,ticket:118.33},
   {cod:'07608',vlr:74097.1,qtde:559,pedidos:3,cliNov:1,cliCompra:3,ticket:132.55},
-  {cod:'00052',vlr:70102.2,qtde:558,pedidos:3,cliNov:1,cliCompra:3,ticket:125.63},
   {cod:'07890',vlr:69856,qtde:550,pedidos:5,cliNov:1,cliCompra:5,ticket:127.01},
   {cod:'07606',vlr:45196.2,qtde:338,pedidos:3,cliNov:0,cliCompra:3,ticket:133.72},
   {cod:'06672',vlr:44879.3,qtde:327,pedidos:2,cliNov:0,cliCompra:2,ticket:137.25},
