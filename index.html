@@ -276,7 +276,7 @@ tbody tr.ns{opacity:.35;}
     <div class="p-right"><strong id="psem">--</strong><small id="ppct">de 24 semanas</small></div>
   </div>
   <div class="mets">
-    <div class="mc gold"><div class="lbl">Vlr Liquido</div><div class="val" id="m-vlr">--</div><div class="sub" id="m-vlrsub">--</div></div>
+    
     <div class="mc"><div class="lbl">Qtde Pecas</div><div class="val" id="m-qtde">--</div><div class="sub" id="m-qtdesub">--</div></div>
     <div class="mc"><div class="lbl">% Cota</div><div class="val" id="m-pct">--</div><div class="sub">media ponderada</div></div>
     <div class="mc green"><div class="lbl">Ativos</div><div class="val" id="m-atv">-- / 23</div><div class="sub">ja iniciaram</div></div>
@@ -303,7 +303,7 @@ tbody tr.ns{opacity:.35;}
       <thead><tr>
         <th>#</th><th>Representante</th><th>Regiao</th><th>% Cota</th>
         <th style="min-width:80px">Progresso</th><th>Qtde</th>
-        <th>Vlr Liquido</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th>
+        <th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th>
         <th>Projecao Final</th><th>Ritmo</th><th>Status</th>
       </tr></thead>
       <tbody id="tbody-acum"></tbody>
@@ -327,7 +327,7 @@ tbody tr.ns{opacity:.35;}
       <button class="fb active" id="fm-5" onclick="mudarMes(5)">Mês 05 (Maio)</button>
     </div>
     <div class="tw"><table>
-      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Vlr Liquido</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
+      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
       <tbody id="tbody-mes"></tbody>
     </table></div>
     <div class="simple-chart-wrap"><h3 id="titulo-mes">Quantidade de Pecas - Mes 5 (Maio)</h3><canvas id="c-mes" height="180"></canvas></div>
@@ -341,7 +341,7 @@ tbody tr.ns{opacity:.35;}
       <button class="fb active" id="fs-4" onclick="mudarSemana(4)">Semana 4</button>
     </div>
     <div class="tw"><table>
-      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Vlr Liquido</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
+      <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
       <tbody id="tbody-sem"></tbody>
     </table></div>
     <div class="simple-chart-wrap"><h3 id="titulo-sem">Quantidade de Pecas - Semana Atual</h3><canvas id="c-sem" height="180"></canvas></div>
@@ -439,6 +439,12 @@ tbody tr.ns{opacity:.35;}
     <div class="ref-chart-box"><h3>Top 20 Modelagens</h3><canvas id="c-ref-barras" height="260"></canvas></div>
   </div>
   <div class="sec">Ranking de Referências</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;">
+    <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Segmento:</span>
+    <button class="ref-tipo-btn active" id="seg-btn-TODOS" onclick="filtrarRefSeg('TODOS')">Todos</button>
+    <button class="ref-tipo-btn" id="seg-btn-COUNTRY" onclick="filtrarRefSeg('COUNTRY')" style="border-color:#c9a84c55;color:#c9a84c;">🤠 Country</button>
+    <button class="ref-tipo-btn" id="seg-btn-PLUS" onclick="filtrarRefSeg('PLUS')" style="border-color:#3ecf7255;color:#3ecf72;">➕ Plus Size</button>
+  </div>
   <div class="ref-tipo-btns" id="ref-tipo-btns"></div>
   <div class="ref-table-wrap">
     <table>
@@ -492,6 +498,7 @@ var dMesDados={}, dSemDados={};
 var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null,chartMes=null,chartSem=null,chartDia=null;
 var chartRefRosca=null,chartRefBarras=null;
 var refFiltroTipo='TODOS';
+var refFiltroSeg='TODOS'; // TODOS | COUNTRY | PLUS
 
 // ============================================================
 // DADOS DE REFERÊNCIAS (1209 linhas parseadas)
@@ -2098,20 +2105,48 @@ function renderReferencias() {
   renderRefTabela(dados, totalQtde);
 }
 
+function filtrarRefSeg(seg){
+  refFiltroSeg=seg;
+  refFiltroTipo='TODOS'; // reset tipo ao mudar segmento
+  ['TODOS','COUNTRY','PLUS'].forEach(function(s){
+    var b=document.getElementById('seg-btn-'+s);
+    if(b) b.classList.toggle('active',s===seg);
+  });
+  var codRep=document.getElementById('ref-rep-select').value;
+  var dados=getRefDados(codRep);
+  var totalQtde=dados.reduce(function(s,d){return s+d.qtde;},0);
+  // reset botões de tipo
+  document.querySelectorAll('.ref-tipo-btn').forEach(function(b){
+    if(!b.id||!b.id.startsWith('seg-btn-')) b.classList.toggle('active',b.textContent==='Todos');
+  });
+  renderRefTabela(dados,totalQtde);
+}
+
 function filtrarRefTipo(tipo){
   refFiltroTipo=tipo;
   var codRep=document.getElementById('ref-rep-select').value;
   var dados=getRefDados(codRep);
   var totalQtde=dados.reduce(function(s,d){return s+d.qtde;},0);
-  // atualiza botões
   document.querySelectorAll('.ref-tipo-btn').forEach(function(b){
-    b.classList.toggle('active',b.textContent===(tipo==='TODOS'?'Todos':TIPO_LABELS[tipo])||b.textContent==='Todos'&&tipo==='TODOS');
+    if(!b.id||!b.id.startsWith('seg-btn-'))
+      b.classList.toggle('active',b.textContent===(tipo==='TODOS'?'Todos':TIPO_LABELS[tipo])||b.textContent==='Todos'&&tipo==='TODOS');
   });
   renderRefTabela(dados,totalQtde);
 }
 
 function renderRefTabela(dados, totalQtde){
-  var filtrados = refFiltroTipo==='TODOS' ? dados : dados.filter(function(d){return d.tipo.key===refFiltroTipo;});
+  // filtro de segmento
+  var filtrados=dados;
+  if(refFiltroSeg==='COUNTRY'){
+    filtrados=dados.filter(function(d){return d.desc.toUpperCase().indexOf('COUNTRY')>=0;});
+  } else if(refFiltroSeg==='PLUS'){
+    filtrados=dados.filter(function(d){
+      var u=d.desc.toUpperCase();
+      return u.indexOf('PLUS SIZE')>=0||u.indexOf('PLUSSIZE')>=0;
+    });
+  }
+  // filtro de tipo
+  if(refFiltroTipo!=='TODOS') filtrados=filtrados.filter(function(d){return d.tipo.key===refFiltroTipo;});
   var maxQ = filtrados.length>0?filtrados[0].qtde:1;
   var html='';
   for(var i=0;i<filtrados.length;i++){
@@ -2173,7 +2208,7 @@ function atualizarKPIs(dados,laAcum){
   var tk=tQ>0?(tV/tQ):0;
   var subs={acumulado:'colecao',semana:'esta semana',mes:'este mes',dia:'hoje'};
   var s=subs[filtroAtual];
-  setText('m-vlr',tV>0?'R$ '+fmtBR(tV):'--');setText('m-vlrsub',s);
+  setText('m-vlrsub','');
   setText('m-qtde',tQ>0?fmtInt(tQ)+' pc':'--');setText('m-qtdesub',s);
   setText('m-pct',pct>0?pct.toFixed(1)+'%':'--');
   setText('m-atv',atv+' / 23');
@@ -2188,7 +2223,7 @@ function renderTabelaSimples(tbodyId,lista){
   for(var i=0;i<ativos.length;i++){
     var r=ativos[i],rank=i+1;
     var bdg=rank===1?'<span class="pos g">1</span>':rank===2?'<span class="pos s">2</span>':rank===3?'<span class="pos b">3</span>':'<span class="pos nn">'+rank+'</span>';
-    html+='<tr><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+r.cliCompra+'</td><td><span class="tag ta">Ativo</span></td></tr>';
+    html+='<tr><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+r.cliCompra+'</td><td><span class="tag ta">Ativo</span></td></tr>';
   }
   document.getElementById(tbodyId).innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
 }
@@ -2235,7 +2270,7 @@ function renderResumoSemana(){
   var tk=tQ>0?(tV/tQ):0;
   var html='';
   html+='<div class="rsem-item"><div class="rsem-lbl">Pecas</div><div class="rsem-val">'+fmtInt(tQ)+'</div><div class="rsem-sub">esta semana</div></div>';
-  html+='<div class="rsem-item"><div class="rsem-lbl">Vlr Liquido</div><div class="rsem-val">R$ '+fmtBR(tV)+'</div><div class="rsem-sub">esta semana</div></div>';
+  
   html+='<div class="rsem-item"><div class="rsem-lbl">Ticket Medio</div><div class="rsem-val">R$ '+tk.toFixed(2)+'</div><div class="rsem-sub">por peca</div></div>';
   html+='<div class="rsem-item"><div class="rsem-lbl">Clientes Novos</div><div class="rsem-val">'+tCN+'</div><div class="rsem-sub">aberturas</div></div>';
   html+='<div class="rsem-item"><div class="rsem-lbl">Pedidos</div><div class="rsem-val">'+tPed+'</div><div class="rsem-sub">incluidos</div></div>';
@@ -2259,7 +2294,7 @@ function renderColecao(){
     var proj=r.ativo?calcProjecao(r.qtde):0;
     var pCor=proj>=r.cota?'#3ecf72':proj>=r.cota*0.8?'#e8c97a':'#e05c5c';
     var pHtml=r.ativo?'<span style="font-size:.8rem;color:'+pCor+'">'+fmtInt(proj)+' / '+fmtInt(r.cota)+'</span>':'--';
-    html+='<tr class="'+(r.ativo?'':'ns')+'"><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td style="font-weight:700;color:'+cor+'">'+r.pct.toFixed(1)+'%</td><td><div class="pw"><div class="pb" style="width:'+w+'%;background:'+cor+'"></div></div></td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.vlr>0?'R$ '+fmtBR(r.vlr):'0')+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+r.cliCompra+'</td><td>'+pHtml+'</td><td>'+rHtml+'</td><td><span class="tag '+(r.ativo?'ta':'tw2')+'">'+(r.ativo?'Ativo':'Aguard.')+'</span></td></tr>';
+    html+='<tr class="'+(r.ativo?'':'ns')+'"><td>'+bdg+'</td><td style="font-weight:600">'+r.nome+'</td><td style="color:var(--muted);font-size:.78rem">'+r.regiao+'</td><td style="font-weight:700;color:'+cor+'">'+r.pct.toFixed(1)+'%</td><td><div class="pw"><div class="pb" style="width:'+w+'%;background:'+cor+'"></div></div></td><td>'+fmtInt(r.qtde)+'</td><td>'+(r.ticket>0?'R$ '+r.ticket.toFixed(2):'0')+'</td><td>'+r.cliNov+'</td><td>'+r.cliCompra+'</td><td>'+pHtml+'</td><td>'+rHtml+'</td><td><span class="tag '+(r.ativo?'ta':'tw2')+'">'+(r.ativo?'Ativo':'Aguard.')+'</span></td></tr>';
   }
   document.getElementById('tbody-acum').innerHTML=html;
   renderEvolucao();
@@ -2328,7 +2363,7 @@ function renderGerencial(){
     var listaDia=buildLista(dDia);
     atualizarKPIs(dDia,laAcum);
     renderTabelaDia(listaDia);
-    chartDia=renderBarrasSimples('c-dia',chartDia,listaDia);
+    // gráfico do dia removido
   }
 }
 
