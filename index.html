@@ -2391,7 +2391,7 @@ function renderTop5(listaAcum){
 }
 
 function renderGrupo(){
-  var sn=calcSem(),sp='04/05 a 10/05',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
+  var sn=5,sp='11/05 a 17/05',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
   setText('g-semn',sn);setText('g-per',sp);setText('g-falt',falt);
   var listaAcum=buildLista(dAcum),listaSem=buildLista(dSem);
   var dest=calcDestaques(listaSem);
@@ -2425,13 +2425,42 @@ function renderPizzaGrupo(atv){
 
 function calcDestaques(listaSem){
   var dest=[],usados=[];
-  var evol=listaSem.filter(function(r){return r.ativo;}).sort(function(a,b){return b.pct-a.pct;});
-  if(evol.length>0){var mx=evol[0].pct,emp=evol.filter(function(r){return Math.abs(r.pct-mx)<0.01;});dest.push({cods:emp.map(function(r){return r.cod;}),nome:emp.map(function(r){return r.nome;}).join(' e '),icon:'⚡',desc:'Maior evolucao na cota esta semana - '+mx.toFixed(1)+'% atingido'});emp.forEach(function(r){usados.push(r.cod);});}
-  var ab=listaSem.filter(function(r){return r.cliNov>0&&usados.indexOf(r.cod)<0;}).sort(function(a,b){return b.cliNov-a.cliNov;});
-  if(ab.length>0){var mx2=ab[0].cliNov,emp2=ab.filter(function(r){return r.cliNov===mx2;});dest.push({cods:emp2.map(function(r){return r.cod;}),nome:emp2.map(function(r){return r.nome;}).join(' e '),icon:'🌿',desc:'Mais aberturas na semana - '+mx2+' cliente'+(mx2>1?'s':'')+' novo'+(mx2>1?'s':'')});emp2.forEach(function(r){usados.push(r.cod);});}
-  var pd=listaSem.filter(function(r){return r.pedidos>0&&usados.indexOf(r.cod)<0;}).sort(function(a,b){return b.pedidos-a.pedidos;});
-  if(pd.length>0){var mx3=pd[0].pedidos,emp3=pd.filter(function(r){return r.pedidos===mx3;});dest.push({cods:emp3.map(function(r){return r.cod;}),nome:emp3.map(function(r){return r.nome;}).join(' e '),icon:'📋',desc:'Mais pedidos incluidos na semana - '+mx3+' pedido'+(mx3>1?'s':'')});}
-  if(dest.length===0){dest.push({cods:[],nome:'--',icon:'⏳',desc:'Sem dados de semana disponiveis'});dest.push({cods:[],nome:'--',icon:'⏳',desc:'Os destaques serao calculados automaticamente'});dest.push({cods:[],nome:'--',icon:'⏳',desc:'Criterios: evolucao, aberturas e pedidos'});}
+  var ativos=listaSem.filter(function(r){return r.ativo;});
+
+  // 1. Maior % de cota atingido na semana
+  var evol=[].concat(ativos).sort(function(a,b){return b.pct-a.pct;});
+  if(evol.length>0){
+    var mx=evol[0].pct;
+    var emp=evol.filter(function(r){return Math.abs(r.pct-mx)<0.01;});
+    dest.push({cods:emp.map(function(r){return r.cod;}),nome:emp.map(function(r){return r.nome;}).join(' e '),icon:'⚡',desc:'Maior evolucao na cota esta semana - '+mx.toFixed(1)+'% atingido'});
+    emp.forEach(function(r){usados.push(r.cod);});
+  }
+
+  // 2. Mais clientes novos (aberturas)
+  var ab=ativos.filter(function(r){return r.cliNov>0&&usados.indexOf(r.cod)<0;}).sort(function(a,b){return b.cliNov-a.cliNov;});
+  if(ab.length>0){
+    var mx2=ab[0].cliNov;
+    var emp2=ab.filter(function(r){return r.cliNov===mx2;});
+    dest.push({cods:emp2.map(function(r){return r.cod;}),nome:emp2.map(function(r){return r.nome;}).join(' e '),icon:'🌿',desc:'Mais aberturas na semana - '+mx2+' cliente'+(mx2>1?'s':'')+' novo'+(mx2>1?'s':'')});
+    emp2.forEach(function(r){usados.push(r.cod);});
+  } else if(ativos.length>0) {
+    // sem aberturas: destaca 2º colocado em cota
+    var seg=ativos.filter(function(r){return usados.indexOf(r.cod)<0;}).sort(function(a,b){return b.pct-a.pct;});
+    if(seg.length>0){
+      dest.push({cods:[seg[0].cod],nome:seg[0].nome,icon:'📈',desc:'2° maior evolucao na semana - '+seg[0].pct.toFixed(1)+'% atingido'});
+      usados.push(seg[0].cod);
+    }
+  }
+
+  // 3. Mais pedidos incluídos na semana (independente dos outros destaques)
+  var pd=[].concat(ativos).sort(function(a,b){return b.pedidos-a.pedidos;});
+  if(pd.length>0){
+    var mx3=pd[0].pedidos;
+    var emp3=pd.filter(function(r){return r.pedidos===mx3;});
+    dest.push({cods:emp3.map(function(r){return r.cod;}),nome:emp3.map(function(r){return r.nome;}).join(' e '),icon:'📋',desc:'Mais pedidos incluidos na semana - '+mx3+' pedido'+(mx3>1?'s':'')});
+  }
+
+  if(dest.length===0){dest.push({cods:[],nome:'--',icon:'⏳',desc:'Sem dados de semana disponiveis'});dest.push({cods:[],nome:'--',icon:'⏳',desc:'Os destaques serao calculados automaticamente'});dest.push({cods:[],nome:'--',icon:'⏳',desc:'Criterios: evolucao, aberturas e volume de pecas'});}
   return dest;
 }
 
@@ -2574,25 +2603,36 @@ function opSemanasPorMes(){
 
 function renderOperacional(){
   opLoad();
-  renderOpKPIs();
+  renderOpCorte();      // popula todasSemanas primeiro
   renderOpFaturamento();
-  renderOpCorte();
+  renderOpKPIs();       // agora pode usar todasSemanas
   renderOpComparativo();
 }
 
 function renderOpKPIs(){
   // KPIs: total cortado, total previsto faturar (jul-nov), semana atual corte, semana atual fat
   var hoje = new Date();
+  hoje.setHours(0,0,0,0);
   var totalCortado = Object.values(OP_CORTE_DIAS).reduce(function(s,v){return s+v;},0);
   var totalFat = Object.values(OP_FAT).reduce(function(s,v){return s+v;},0);
 
-  // semana atual
-  var semAtual = null;
-  OP_SEMANAS.forEach(function(s){
-    if(hoje >= s.seg && hoje <= s.dom) semAtual = s;
+  // semana atual de corte — busca em todasSemanas (inclui histórico mar-mai)
+  var semAtualCorte = null;
+  todasSemanas.forEach(function(s){
+    var seg = new Date(s.seg); seg.setHours(0,0,0,0);
+    var dom = new Date(s.dom); dom.setHours(0,0,0,0);
+    if(hoje >= seg && hoje <= dom) semAtualCorte = s;
   });
-  var corteAtual = semAtual ? opGetCorteTotal(opDiasUteis(semAtual.seg, semAtual.dom)) : 0;
-  var fatAtual = semAtual ? opGetFatSem(semAtual.id) : 0;
+  // semana atual de faturamento — busca em OP_SEMANAS (jul-nov)
+  var semAtualFat = null;
+  OP_SEMANAS.forEach(function(s){
+    var seg = opMkDate(2026, s.mesNum, s.ini);
+    var dom = opMkDate(2026, s.mesNum, s.fim);
+    if(hoje >= seg && hoje <= dom) semAtualFat = s;
+  });
+
+  var corteAtual = semAtualCorte ? opGetCorteTotal(opDiasUteis(semAtualCorte.seg, semAtualCorte.dom)) : 0;
+  var fatAtual = semAtualFat ? opGetFatSem(semAtualFat.id) : 0;
 
   var corSemCorte = opCorteCor(corteAtual, 6000);
   var corSemFat = opSemCor(fatAtual, 5500, 6500);
@@ -2690,11 +2730,12 @@ function opSetFat(semId, val){
   renderOpFaturamento();
 }
 
+var todasSemanas = []; // global — populado por renderOpCorte
+
 function renderOpCorte(){
   // Agrupa dias por semana e mês
   var meses = {};
   // Usa as semanas de março a novembro para cobrir histórico
-  var todasSemanas = [];
   // semanas históricas: mar/abr/mai (antes das semanas da coleção)
   var histSems = [];
   var cur = opMkDate(2026,3,23); // seg 23/03/2026
