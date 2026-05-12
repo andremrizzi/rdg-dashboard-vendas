@@ -175,17 +175,17 @@ tbody tr.ns{opacity:.35;}
 .ref-tipo-btn:hover{color:var(--white);}
 .ref-table-wrap{border-radius:10px;border:1px solid var(--border);overflow-x:auto;}
 .ref-badge{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;}
-.ref-badge.cf{background:#6090d018;color:#6090d0;border:1px solid #6090d033;}
-.ref-badge.cm{background:#9060c018;color:#9060c0;border:1px solid #9060c033;}
-.ref-badge.sh{background:#3ecf7218;color:#3ecf72;border:1px solid #3ecf7233;}
-.ref-badge.sa{background:#e07090 18;color:#e07090;border:1px solid #e0709033;}
-.ref-badge.bf{background:#e0906018;color:#e09060;border:1px solid #e0906033;}
-.ref-badge.bm{background:#7090e018;color:#7090e0;border:1px solid #7090e033;}
-.ref-badge.bl{background:#60d0c018;color:#60d0c0;border:1px solid #60d0c033;}
-.ref-badge.tp{background:#d0a04018;color:#d0a040;border:1px solid #d0a04033;}
-.ref-badge.ss{background:#d0609018;color:#d06090;border:1px solid #d0609033;}
-.ref-badge.vt{background:#a060d018;color:#a060d0;border:1px solid #a060d033;}
-.ref-badge.sa2{background:#c0706018;color:#c07060;border:1px solid #c0706033;}
+.ref-badge.cf{background:#e0608a18;color:#e0608a;border:1px solid #e0608a33;}
+.ref-badge.cm{background:#4a8fd418;color:#4a8fd4;border:1px solid #4a8fd433;}
+.ref-badge.sh{background:#e05c5c18;color:#e05c5c;border:1px solid #e05c5c33;}
+.ref-badge.sa{background:#9b59b618;color:#9b59b6;border:1px solid #9b59b633;}
+.ref-badge.bf{background:#e8724a18;color:#e8724a;border:1px solid #e8724a33;}
+.ref-badge.bm{background:#2e86c118;color:#2e86c1;border:1px solid #2e86c133;}
+.ref-badge.bl{background:#1abc9c18;color:#1abc9c;border:1px solid #1abc9c33;}
+.ref-badge.tp{background:#f0a50018;color:#f0a500;border:1px solid #f0a50033;}
+.ref-badge.ss{background:#c0392b18;color:#c0392b;border:1px solid #c0392b33;}
+.ref-badge.vt{background:#8e44ad18;color:#8e44ad;border:1px solid #8e44ad33;}
+.ref-badge.sa2{background:#9b59b618;color:#9b59b6;border:1px solid #9b59b633;}
 .ref-cod{font-size:.78rem;color:var(--gold);font-weight:700;font-family:monospace;}
 .ref-mod{font-size:.72rem;color:var(--muted);}
 .ref-bar-cell{min-width:80px;}
@@ -271,14 +271,14 @@ tbody tr.ns{opacity:.35;}
     <div class="p-info">
       <div class="p-lbl">Progresso da Colecao - Verao 2027</div>
       <div class="p-track"><div class="p-fill" id="pfill" style="width:0%"></div></div>
-      <div class="p-dates"><span>15/04/2026</span><span>30/09/2026</span></div>
+      <div class="p-dates"><span>13/04/2026</span><span>30/09/2026</span></div>
     </div>
     <div class="p-right"><strong id="psem">--</strong><small id="ppct">de 24 semanas</small></div>
   </div>
   <div class="mets">
     
     <div class="mc"><div class="lbl">Qtde Pecas</div><div class="val" id="m-qtde">--</div><div class="sub" id="m-qtdesub">--</div></div>
-    <div class="mc"><div class="lbl">% Cota</div><div class="val" id="m-pct">--</div><div class="sub">media ponderada</div></div>
+    <div class="mc"><div class="lbl">% Cota</div><div class="val" id="m-pct">--</div><div class="sub">acumulado colecao</div></div>
     <div class="mc green"><div class="lbl">Ativos</div><div class="val" id="m-atv">-- / 23</div><div class="sub">ja iniciaram</div></div>
     <div class="mc"><div class="lbl">Ticket Medio</div><div class="val" id="m-tk">--</div><div class="sub" id="m-tksub">--</div></div>
     <div class="mc"><div class="lbl">Cli. Novos</div><div class="val" id="m-cn">--</div><div class="sub" id="m-cnsub">--</div></div>
@@ -435,10 +435,19 @@ tbody tr.ns{opacity:.35;}
   <div class="sec">Distribuição por Tipo de Produto</div>
   <div id="ref-seg-kpis"></div>
   <div class="ref-tipo-grid" id="ref-tipo-cards"></div>
-  <div class="ref-charts-grid">
-    <div class="ref-chart-box"><h3>% por Tipo de Produto</h3><canvas id="c-ref-rosca" height="260"></canvas></div>
-    <div class="ref-chart-box"><h3>Top 20 Modelagens</h3><canvas id="c-ref-barras" height="260"></canvas></div>
+  <div class="ref-charts-grid" style="grid-template-columns:1.4fr 1fr;">
+    <div class="ref-chart-box"><h3>Top 20 Modelagens Feminino</h3><canvas id="c-ref-barras" height="320"></canvas></div>
+    <div class="ref-chart-box"><h3>Top 10 Modelagens Masculino</h3><canvas id="c-ref-barras-masc" height="320"></canvas></div>
   </div>
+  <div class="sec">Composicao da Colecao por Modelagem</div>
+  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+    <button class="ref-tipo-btn active" id="comp-btn-fem" onclick="mudarCompSeg('fem')">👗 Feminino</button>
+    <button class="ref-tipo-btn" id="comp-btn-masc" onclick="mudarCompSeg('masc')">👕 Masculino</button>
+    <button class="ref-tipo-btn" id="comp-btn-country" onclick="mudarCompSeg('country')" style="border-color:#c9a84c55;color:#c9a84c;">🤠 Country</button>
+    <button class="ref-tipo-btn" id="comp-btn-plus" onclick="mudarCompSeg('plus')" style="border-color:#3ecf7255;color:#3ecf72;">➕ Plus Size</button>
+  </div>
+  <div id="comp-grid" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:24px;"></div>
+
   <div class="sec">Ranking de Referências</div>
   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;">
     <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Segmento:</span>
@@ -497,9 +506,190 @@ var filtroAtual='acumulado';
 var mesAtual=5, semanaAtual=5;
 var dMesDados={}, dSemDados={};
 var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null,chartMes=null,chartSem=null,chartDia=null;
-var chartRefRosca=null,chartRefBarras=null;
+var chartRefBarras=null;
 var refFiltroTipo='TODOS';
 var refFiltroSeg='TODOS'; // TODOS | COUNTRY | PLUS
+var compSegAtivo='fem';
+
+// Mapa de renomeação de modelagens
+var MOD_RENAME={
+  'WIDELEG':'Wide Leg','WIDELEG CROPPED':'Wide Leg Cropped','WIDELEG LIPO':'Wide Leg Lipo',
+  'WIDELEG ALFAIATARIA':'Wide Leg Alfaiataria','WIDECROPPED':'Wide Cropped',
+  'WIDECROPPED LIPO':'Wide Cropped Lipo','WIDEFIG':'Wide Leg',
+  'RETAALFAIATARIA':'Reta Alfaiataria','RETA ALFAIATARIA':'Reta Alfaiataria',
+  'RETACROPPED':'Reta Cropped','RETACROPPED LIPO':'Reta Cropped Lipo',
+  'RETALIPO':'Reta Lipo','RETACARGO':'Reta Cargo','RETACOUNTRY':'Reta Country',
+  'RETABAGGY':'Reta Baggy','RETAPLUS SIZE':'Reta Plus Size',
+  'CIGARRETE LIPO':'Cigarrete Lipo','CIGARRETE SPORT FINO':'Cigarrete Sport Fino',
+  'SPORTFINO MEIA COXA':'Meiacoxa Sport Fino','SPORT FINO MEIA COXA':'Meiacoxa Sport Fino',
+  'MEIACOXA SPORT FINO':'Meiacoxa Sport Fino','MEIACOXA ALFAIATARIA':'Meiacoxa Alfaiataria',
+  'MEIACOXA MAIS CURTO':'Meiacoxa Mais Curto','MOMMEIA COXA':'Mom Meia Coxa',
+  'MOMMEIA COXA PLUS SIZE':'Mom Meia Coxa Plus Size',
+  'LITTLEBOOT':'Little Boot','LITLLEBOOT':'Little Boot','LITTLEBOOT COUNTRY':'Little Boot Country',
+  'LITLLEBOOT COUNTRY':'Little Boot Country','LITTLEBOOT PLUS SIZE':'Little Boot Plus Size',
+  'SKINNYPLUS SIZE':'Skinny Plus Size','SKINNYLIPO':'Skinny Lipo',
+  'PLUSSIZE CAPRI':'Capri Plus Size','CAPRIPLUS SIZE':'Capri Plus Size',
+  'CICLISTA PLUS SIZE':'Ciclista Plus Size','MEIACOXA PLUS SIZE':'Meiacoxa Plus Size',
+  'CIGARRETE PLUS SIZE':'Cigarrete Plus Size','WIDELEG PLUS SIZE':'Wide Leg Plus Size',
+  'RETACROPPED PLUS SIZE':'Reta Cropped Plus Size','WIDECROPPED PLUS SIZE':'Wide Cropped Plus Size',
+  'MIDI PLUSSIZE':'Midi Plus Size','WIDELEG CINTURA INTERMEDIARIA':'Wide Leg Cintura Intermediária',
+  'SPORT FINO':'Sport Fino','SPORT FINO CROPPED':'Sport Fino Cropped',
+  'SPORT FINO MEDIA':'Sport Fino Média','RETACARPINTEIRO COUNTRY':'Reta Carpinteiro Country',
+  'BOOTCUT COUNTRY':'Bootcut Country','RETA COUNTRY':'Reta Country',
+  'MEDIA':'Média','BERMUDAMASC.TRADICIONAL':'Tradicional',
+  'WIDE ALFAIATARIA':'Wide Alfaiataria',
+  'MINICARGO':'Mini Cargo','MIDICURTA':'Midi Curta','MEDIAALFAIATARIA':'Média Alfaiataria',
+  'EVASE':'Evase','LAPIS':'Lápis',
+};
+
+function renMod(s){
+  var u=s.toUpperCase().trim();
+  if(MOD_RENAME[u]) return MOD_RENAME[u];
+  // capitalizar normal
+  return s.trim().toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();});
+}
+
+function getCompSeg(seg){
+  // tipo principal por prefixo
+  var tipoMap={
+    'CF':'Calça Fem.','CM':'Calça Masc.',
+    'S2':'Shorts','SS':'Shorts',       // Short Saia junto com Shorts
+    'SA':'Saia','BF':'Bermuda Fem.',
+    'BM':'Bermuda Masc.','B3':'Bermuda Masc.',
+    'BL':'Outros','T2':'Outros','V2':'Outros'
+  };
+  var grupos={};
+  var refsVistas={};
+
+  RAW_REF.forEach(function(r){
+    var ref=r[1],desc=r[2];
+    var u=desc.toUpperCase();
+    // segmento
+    var s;
+    if(u.indexOf('PLUS SIZE')>=0||u.indexOf('PLUSSIZE')>=0) s='plus';
+    else if(u.indexOf('COUNTRY')>=0) s='country';
+    else if(ref.startsWith('CF')||ref.startsWith('SA')||ref.startsWith('BF')||ref.startsWith('SS')||ref.startsWith('BL')||ref.startsWith('T2')||ref.startsWith('V2')||ref.startsWith('S2')) s='fem';
+    else if(ref.startsWith('CM')||ref.startsWith('BM')||ref.startsWith('B3')) s='masc';
+    else s='fem';
+    if(s!==seg) return;
+
+    var prefix2=ref.substring(0,2);
+    var tipo=tipoMap[prefix2]||'Outros';
+
+    // para Outros: usar descrição completa bonita
+    var modRaw;
+    if(tipo==='Outros'){
+      // desc completa renomeada
+      modRaw=u
+        .replace('BLUSA FEM.CROPPED','Blusa Cropped').replace('BLUSA FEM. CROPPED','Blusa Cropped')
+        .replace('BLUSA FEM.','Blusa').replace('BLUSA FEM. ','Blusa ')
+        .replace('TOP FEM. CROPPED','Top Cropped').replace('TOP FEM.CROPPED','Top Cropped')
+        .replace('TOP FEM.','Top').replace('TOP FEM. ','Top ')
+        .replace('VESTIDO FEM. LONGO','Vestido Longo').replace('VESTIDO FEM.LONGO','Vestido Longo')
+        .replace('VESTIDO FEM.','Vestido').replace('VESTIDO FEM. ','Vestido ');
+      modRaw=modRaw.trim().toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();});
+    } else {
+      // extrair modelagem removendo prefixo
+      modRaw=u;
+      ['CALCA FEM. ','CALCA MASC. ','CALCA FEM.','CALCA MASC.',
+       'SHORTS FEM. ','SHORTS FEM.','BERMUDA FEM. ','BERMUDA MASC. ',
+       'BERMUDA FEM.','BERMUDA MASC.','SAIA FEM. ','SAIA FEM.',
+       'SHORT SAIA FEM. ','SHORT SAIA FEM.','BLUSA FEM. ','BLUSA FEM.',
+       'TOP FEM. ','TOP FEM.','VESTIDO FEM. ','VESTIDO FEM.'].forEach(function(p){
+        if(modRaw.indexOf(p)===0) modRaw=modRaw.slice(p.length).trim();
+      });
+      modRaw=renMod(modRaw);
+      // caso a descrição seja só o tipo (ex: "SHORT SAIA FEM." sem modelagem)
+      if(!modRaw||modRaw.length<2) modRaw='Short Saia';
+    }
+    if(modRaw==='Sportfino Meia Coxa'||modRaw==='Sport Fino Meia Coxa') modRaw='Meiacoxa Sport Fino';
+
+    var key=tipo+'||'+modRaw;
+    if(!grupos[tipo]) grupos[tipo]={total:0,mods:{}};
+    if(!grupos[tipo].mods[modRaw]) grupos[tipo].mods[modRaw]={refs:{},nome:modRaw};
+    if(!refsVistas[tipo+ref]){
+      grupos[tipo].mods[modRaw].refs[ref]=true;
+      refsVistas[tipo+ref]=true;
+    }
+  });
+
+  // calcular totais por tipo e ordenar mods alfabeticamente
+  var tipoOrder=['Calça Fem.','Calça Masc.','Shorts','Saia','Bermuda Fem.','Bermuda Masc.','Outros'];
+  var result=[];
+  tipoOrder.forEach(function(t){
+    if(!grupos[t]) return;
+    var items=[];
+    Object.keys(grupos[t].mods).forEach(function(k){
+      var nRefs=Object.keys(grupos[t].mods[k].refs).length;
+      items.push({mod:k,nRefs:nRefs});
+      grupos[t].total+=nRefs;
+    });
+    items.sort(function(a,b){return a.mod.localeCompare(b.mod);});
+    result.push({tipo:t,total:grupos[t].total,items:items});
+  });
+  return result;
+}
+
+function mudarCompSeg(seg){
+  compSegAtivo=seg;
+  ['fem','masc','country','plus'].forEach(function(s){
+    var b=document.getElementById('comp-btn-'+s);
+    if(b) b.classList.toggle('active',s===seg);
+  });
+  renderCompGrid(seg);
+}
+
+function renderCompGrid(seg){
+  var grupos=getCompSeg(seg);
+  var cores={fem:'#e0608a',masc:'#4a8fd4',country:'#c9a84c',plus:'#3ecf72'};
+  var cor=cores[seg]||'#c9a84c';
+  var totalGeral=0;
+  grupos.forEach(function(g){totalGeral+=g.total;});
+  var maxRefs=0;
+  grupos.forEach(function(g){g.items.forEach(function(d){if(d.nRefs>maxRefs)maxRefs=d.nRefs;});});
+
+  // dividir grupos em duas colunas equilibradas
+  var totalItems=0; grupos.forEach(function(g){totalItems+=g.items.length+1;}); // +1 header
+  var meio=totalItems/2, acc=0, splitIdx=0;
+  for(var i=0;i<grupos.length;i++){
+    acc+=grupos[i].items.length+1;
+    if(acc>=meio){splitIdx=i+1;break;}
+  }
+
+  function renderGrupo(g){
+    var pctTipo=totalGeral>0?(g.total/totalGeral*100):0;
+    var html='<div style="margin-bottom:12px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid '+cor+'33;padding-bottom:3px;margin-bottom:5px;">'+
+        '<span style="font-size:.65rem;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.8px;">'+g.tipo+'</span>'+
+        '<span style="font-size:.65rem;color:'+cor+';">'+g.total+' refs · '+pctTipo.toFixed(0)+'%</span>'+
+      '</div>';
+    g.items.forEach(function(d){
+      var pct=maxRefs>0?(d.nRefs/maxRefs*100):0;
+      html+='<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">'+
+        '<span style="font-size:.74rem;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+d.mod+'</span>'+
+        '<span style="font-size:.74rem;font-weight:700;color:'+cor+';min-width:16px;text-align:right;">'+d.nRefs+'</span>'+
+        '<div style="width:44px;background:var(--border);border-radius:20px;height:3px;flex-shrink:0;">'+
+          '<div style="height:3px;border-radius:20px;width:'+pct.toFixed(0)+'%;background:'+cor+';"></div>'+
+        '</div>'+
+      '</div>';
+    });
+    return html+'</div>';
+  }
+
+  var col1='',col2='';
+  grupos.forEach(function(g,i){
+    if(i<splitIdx) col1+=renderGrupo(g); else col2+=renderGrupo(g);
+  });
+
+  var html='<div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;">'+
+    '<strong style="color:'+cor+'">'+totalGeral+'</strong> referências na coleção</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;">'+
+      '<div>'+col1+'</div><div>'+col2+'</div>'+
+    '</div>';
+
+  var el=document.getElementById('comp-grid');
+  if(el) el.innerHTML=html;
+}
 
 // ============================================================
 // DADOS DE REFERÊNCIAS (1209 linhas parseadas)
@@ -1993,9 +2183,9 @@ function getRefDados(codRep) {
 }
 
 var TIPO_CORES={
-  'cf':'#6090d0','cm':'#a060d0','sh':'#3ecf72','sa2':'#c07060',
-  'bf':'#e09060','bm':'#7090e0','bl':'#60d0c0','tp':'#d0a040',
-  'ss':'#d06090','vt':'#9060c0','outros':'#888'
+  'cf':'#e0608a','cm':'#4a8fd4','sh':'#e05c5c','sa2':'#9b59b6',
+  'bf':'#e8724a','bm':'#2e86c1','bl':'#1abc9c','tp':'#f0a500',
+  'ss':'#c0392b','vt':'#8e44ad','outros':'#888'
 };
 var TIPO_LABELS={
   'cf':'Calça Fem.','cm':'Calça Masc.','sh':'Shorts','sa2':'Saia',
@@ -2007,6 +2197,9 @@ function renderReferencias() {
   var codRep = document.getElementById('ref-rep-select').value;
   var dados = getRefDados(codRep);
   var totalQtde = dados.reduce(function(s,d){return s+d.qtde;},0);
+
+  // Composição da coleção
+  renderCompGrid(compSegAtivo);
 
   // KPIs
   var topRef = dados.length>0?dados[0]:null;
@@ -2055,13 +2248,13 @@ function renderReferencias() {
   var segTotal=segFem+segMasc+segCountry+segPlus||1;
   var segHtml=
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">'+
-    '<div style="background:var(--bg2);border:1px solid #6090d044;border-radius:10px;padding:11px 14px;">'+
-      '<div style="font-size:.62rem;color:#6090d0;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Feminino</div>'+
-      '<div style="font-size:1.2rem;font-weight:700;color:#6090d0">'+fmtInt(segFem)+'</div>'+
+    '<div style="background:var(--bg2);border:1px solid #e0608a44;border-radius:10px;padding:11px 14px;">'+
+      '<div style="font-size:.62rem;color:#e0608a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Feminino</div>'+
+      '<div style="font-size:1.2rem;font-weight:700;color:#e0608a">'+fmtInt(segFem)+'</div>'+
       '<div style="font-size:.65rem;color:var(--muted)">'+(segFem/segTotal*100).toFixed(1)+'% do total</div></div>'+
-    '<div style="background:var(--bg2);border:1px solid #a060d044;border-radius:10px;padding:11px 14px;">'+
-      '<div style="font-size:.62rem;color:#a060d0;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Masculino</div>'+
-      '<div style="font-size:1.2rem;font-weight:700;color:#a060d0">'+fmtInt(segMasc)+'</div>'+
+    '<div style="background:var(--bg2);border:1px solid #4a8fd444;border-radius:10px;padding:11px 14px;">'+
+      '<div style="font-size:.62rem;color:#4a8fd4;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Masculino</div>'+
+      '<div style="font-size:1.2rem;font-weight:700;color:#4a8fd4">'+fmtInt(segMasc)+'</div>'+
       '<div style="font-size:.65rem;color:var(--muted)">'+(segMasc/segTotal*100).toFixed(1)+'% do total</div></div>'+
     '<div style="background:var(--bg2);border:1px solid #c9a84c44;border-radius:10px;padding:11px 14px;">'+
       '<div style="font-size:.62rem;color:#c9a84c;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Country</div>'+
@@ -2076,24 +2269,34 @@ function renderReferencias() {
   var elSeg=document.getElementById('ref-seg-kpis');
   if(elSeg)elSeg.innerHTML=segHtml;
 
-  // Gráfico Rosca
-  var ctxR=document.getElementById('c-ref-rosca').getContext('2d');
-  if(chartRefRosca)chartRefRosca.destroy();
-  chartRefRosca=new Chart(ctxR,{type:'doughnut',data:{labels:tiposArr.map(function(t){return t.label;}),datasets:[{data:tiposArr.map(function(t){return t.qtde;}),backgroundColor:tiposArr.map(function(t){return TIPO_CORES[t.key]||'#888';}),borderWidth:2,borderColor:'#1a1a1a'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#aaa',font:{size:9},boxWidth:10,padding:8}},tooltip:{callbacks:{label:function(c){return c.label+': '+(c.raw/totalQtde*100).toFixed(1)+'% ('+fmtInt(c.raw)+' pc)';}}}}},cutout:'60%'});
-
-  // Gráfico Barras Horizontais Top 15 Modelagens
-  var modelMap={};
-  dados.forEach(function(d){
-    var m=d.mod;
-    if(!modelMap[m])modelMap[m]=0;
-    modelMap[m]+=d.qtde;
-  });
-  var modelArr=Object.keys(modelMap).map(function(k){return{mod:k,qtde:modelMap[k]};});
-  modelArr.sort(function(a,b){return b.qtde-a.qtde;});
-  var top15=modelArr.slice(0,20);
+  // Gráfico Top 20 Modelagens Feminino
+  var modelMapFem={};
+  dados.filter(function(d){
+    var u=d.desc?d.desc.toUpperCase():'';
+    return d.cod.startsWith('CF')||d.cod.startsWith('SA')||d.cod.startsWith('BF')||
+           d.cod.startsWith('SS')||d.cod.startsWith('S2');
+  }).forEach(function(d){if(!modelMapFem[d.mod])modelMapFem[d.mod]=0;modelMapFem[d.mod]+=d.qtde;});
+  var modelArrFem=Object.keys(modelMapFem).map(function(k){return{mod:k,qtde:modelMapFem[k]};});
+  modelArrFem.sort(function(a,b){return b.qtde-a.qtde;});
+  var topFem=modelArrFem.slice(0,20);
   var ctxB=document.getElementById('c-ref-barras').getContext('2d');
   if(chartRefBarras)chartRefBarras.destroy();
-  chartRefBarras=new Chart(ctxB,{type:'bar',data:{labels:top15.map(function(m){return m.mod;}),datasets:[{data:top15.map(function(m){return m.qtde;}),backgroundColor:CORES.slice(0,top15.length),borderRadius:4,borderWidth:0}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtInt(c.raw)+' pc';}}}},scales:{x:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'#222'}}}}});
+  chartRefBarras=new Chart(ctxB,{type:'bar',data:{labels:topFem.map(function(m){return m.mod;}),datasets:[{data:topFem.map(function(m){return m.qtde;}),backgroundColor:'#e0608a99',borderColor:'#e0608a',borderRadius:4,borderWidth:1}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtInt(c.raw)+' pc';}}}},scales:{x:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'#222'}}}}});
+
+  // Gráfico Top 10 Modelagens Masculino
+  var modelMapMasc={};
+  dados.filter(function(d){
+    return d.cod.startsWith('CM')||d.cod.startsWith('BM')||d.cod.startsWith('B3');
+  }).forEach(function(d){if(!modelMapMasc[d.mod])modelMapMasc[d.mod]=0;modelMapMasc[d.mod]+=d.qtde;});
+  var modelArrMasc=Object.keys(modelMapMasc).map(function(k){return{mod:k,qtde:modelMapMasc[k]};});
+  modelArrMasc.sort(function(a,b){return b.qtde-a.qtde;});
+  var topMasc=modelArrMasc.slice(0,10);
+  var elMasc=document.getElementById('c-ref-barras-masc');
+  if(elMasc){
+    if(!window.chartRefBarrasMasc)window.chartRefBarrasMasc=null;
+    if(window.chartRefBarrasMasc)window.chartRefBarrasMasc.destroy();
+    window.chartRefBarrasMasc=new Chart(elMasc.getContext('2d'),{type:'bar',data:{labels:topMasc.map(function(m){return m.mod;}),datasets:[{data:topMasc.map(function(m){return m.qtde;}),backgroundColor:'#4a8fd499',borderColor:'#4a8fd4',borderRadius:4,borderWidth:1}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtInt(c.raw)+' pc';}}}},scales:{x:{ticks:{color:'#888',callback:function(v){return fmtInt(v);}},grid:{color:'#2e2e2e'}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'#222'}}}}});
+  }
 
   // Botões tipo filtro
   var btnsHtml='<button class="ref-tipo-btn'+(refFiltroTipo==='TODOS'?' active':'')+'" onclick="filtrarRefTipo(\'TODOS\')">Todos</button>';
@@ -2195,16 +2398,18 @@ function buildLista(dados){
   return lista;
 }
 
-function calcProjecao(qtde){var ini=new Date('2026-04-15'),h=new Date();var dias=Math.max((h-ini)/864e5,1);var total=(new Date('2026-09-30')-ini)/864e5;return Math.round((qtde/dias)*total);}
-function calcRitmo(qtde,cota){if(qtde===0)return'aguard';var ini=new Date('2026-04-15'),h=new Date();var dias=Math.max((h-ini)/864e5,1);var total=(new Date('2026-09-30')-ini)/864e5;var nec=cota/total,atu=qtde/dias;if(atu>=nec*0.9)return'verde';if(atu>=nec*0.6)return'amarelo';return'vermelho';}
-function initPeriodo(){var ini=new Date('2026-04-15'),fim=new Date('2026-09-30'),h=new Date();var tot=(fim-ini)/864e5,pas=Math.min(Math.max((h-ini)/864e5,0),tot);var pct=pas/tot*100,sem=Math.max(1,Math.ceil(pas/7));document.getElementById('pfill').style.width=pct.toFixed(1)+'%';setText('psem','Sem. '+sem);setText('ppct',pct.toFixed(0)+'% concluido');}
-function calcSem(){var ini=new Date('2026-04-15'),h=new Date();return Math.max(1,Math.ceil(Math.max((h-ini)/864e5,0)/7));}
+function calcProjecao(qtde){var ini=new Date('2026-04-13'),h=new Date();var dias=Math.max((h-ini)/864e5,1);var total=(new Date('2026-09-30')-ini)/864e5;return Math.round((qtde/dias)*total);}
+function calcRitmo(qtde,cota){if(qtde===0)return'aguard';var ini=new Date('2026-04-13'),h=new Date();var dias=Math.max((h-ini)/864e5,1);var total=(new Date('2026-09-30')-ini)/864e5;var nec=cota/total,atu=qtde/dias;if(atu>=nec*0.9)return'verde';if(atu>=nec*0.6)return'amarelo';return'vermelho';}
+function initPeriodo(){var ini=new Date('2026-04-13'),fim=new Date('2026-09-30'),h=new Date();var tot=(fim-ini)/864e5,pas=Math.min(Math.max((h-ini)/864e5,0),tot);var pct=pas/tot*100,sem=Math.max(1,Math.ceil(pas/7));document.getElementById('pfill').style.width=pct.toFixed(1)+'%';setText('psem','Sem. '+sem);setText('ppct',pct.toFixed(0)+'% concluido');}
+function calcSem(){var ini=new Date('2026-04-13'),h=new Date();return Math.max(1,Math.ceil(Math.max((h-ini)/864e5,0)/7));}
 
 function atualizarKPIs(dados,laAcum){
   var tV=0,tQ=0,tC=0;
   for(var i=0;i<dados.length;i++){tV+=dados[i].vlr;tQ+=dados[i].qtde;tC+=dados[i].cliNov;}
+  // % Cota sempre sobre o acumulado da coleção
+  var tQAcum=0;for(var i=0;i<dAcum.length;i++)tQAcum+=dAcum[i].qtde;
   var tCota=0,rks=Object.keys(REPS);for(var i=0;i<rks.length;i++)tCota+=REPS[rks[i]].c;
-  var pct=tCota>0?(tQ/tCota*100):0;
+  var pct=tCota>0?(tQAcum/tCota*100):0;
   var atv=laAcum.filter(function(l){return l.ativo;}).length;
   var tk=tQ>0?(tV/tQ):0;
   var subs={acumulado:'colecao',semana:'esta semana',mes:'este mes',dia:'hoje'};
