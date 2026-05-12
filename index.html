@@ -439,6 +439,7 @@ tbody tr.ns{opacity:.35;}
     <div class="ref-chart-box"><h3>Top 20 Modelagens Feminino</h3><canvas id="c-ref-barras" height="320"></canvas></div>
     <div class="ref-chart-box"><h3>Top 10 Modelagens Masculino</h3><canvas id="c-ref-barras-masc" height="320"></canvas></div>
   </div>
+  <div id="comp-section">
   <div class="sec">Composicao da Colecao por Modelagem</div>
   <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
     <button class="ref-tipo-btn active" id="comp-btn-fem" onclick="mudarCompSeg('fem')">👗 Feminino</button>
@@ -447,6 +448,7 @@ tbody tr.ns{opacity:.35;}
     <button class="ref-tipo-btn" id="comp-btn-plus" onclick="mudarCompSeg('plus')" style="border-color:#3ecf7255;color:#3ecf72;">➕ Plus Size</button>
   </div>
   <div id="comp-grid" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:24px;"></div>
+  </div>
 
   <div class="sec">Ranking de Referências</div>
   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;">
@@ -491,7 +493,7 @@ var REPS={
   '00032':{n:'EMANUEL E CONRADO',uf:'RS',r:'Rio Grande do Sul',c:18000,reg:'Sul'},
   '00037':{n:'MARCIO',uf:'RS',r:'Rio Grande do Sul',c:12500,reg:'Sul'},
   '00052':{n:'MANO',uf:'RO',r:'Rondonia/Acre',c:7000,reg:'Norte'},
-  '00045':{n:'SILVIO E VANESSA',uf:'SC',r:'Santa Catarina',c:13500,reg:'Sul'},
+  '00045':{n:'SILVIO E VANESSA',uf:'SC',r:'Santa Catarina',c:13000,reg:'Sul'},
   '06693':{n:'JOSE PEDRO',uf:'SC',r:'Santa Catarina',c:6500,reg:'Sul'},
   '00040':{n:'LUIZ',uf:'SC',r:'Santa Catarina',c:4000,reg:'Sul'},
   '07894':{n:'BRUNO VINICIUS',uf:'SP',r:'Sao Paulo',c:3000,reg:'Sudeste'},
@@ -513,58 +515,81 @@ var compSegAtivo='fem';
 
 // Mapa de renomeação de modelagens
 var MOD_RENAME={
-  'WIDELEG':'Wide Leg','WIDELEG CROPPED':'Wide Leg Cropped','WIDELEG LIPO':'Wide Leg Lipo',
-  'WIDELEG ALFAIATARIA':'Wide Leg Alfaiataria','WIDECROPPED':'Wide Cropped',
-  'WIDECROPPED LIPO':'Wide Cropped Lipo','WIDEFIG':'Wide Leg',
-  'RETAALFAIATARIA':'Reta Alfaiataria','RETA ALFAIATARIA':'Reta Alfaiataria',
-  'RETACROPPED':'Reta Cropped','RETACROPPED LIPO':'Reta Cropped Lipo',
-  'RETALIPO':'Reta Lipo','RETACARGO':'Reta Cargo','RETACOUNTRY':'Reta Country',
-  'RETABAGGY':'Reta Baggy','RETAPLUS SIZE':'Reta Plus Size',
-  'CIGARRETE LIPO':'Cigarrete Lipo','CIGARRETE SPORT FINO':'Cigarrete Sport Fino',
-  'SPORTFINO MEIA COXA':'Meiacoxa Sport Fino','SPORT FINO MEIA COXA':'Meiacoxa Sport Fino',
-  'MEIACOXA SPORT FINO':'Meiacoxa Sport Fino','MEIACOXA ALFAIATARIA':'Meiacoxa Alfaiataria',
-  'MEIACOXA MAIS CURTO':'Meiacoxa Mais Curto','MOMMEIA COXA':'Mom Meia Coxa',
+  'WIDELEG':'Wide Leg','WIDE LEG':'Wide Leg',
+  'WIDELEG CROPPED':'Wide Leg Cropped','WIDE LEG CROPPED':'Wide Leg Cropped',
+  'WIDELEG LIPO':'Wide Leg Lipo',
+  'WIDELEG ALFAIATARIA':'Wide Leg Alfaiataria',
+  'WIDELEG CINTURA INTERMEDIARIA':'Wide Leg Cintura Intermediária',
+  'WIDELEG CARGO':'Wide Leg Cargo','WIDE LEG CARGO':'Wide Leg Cargo',
+  'WIDELEG PLUS SIZE':'Wide Leg Plus Size',
+  'WIDECROPPED':'Wide Cropped','WIDE CROPPED':'Wide Cropped',
+  'WIDECROPPED LIPO':'Wide Cropped Lipo',
+  'WIDECROPPED PLUS SIZE':'Wide Cropped Plus Size',
+  'SUPERWIDE':'Super Wide','SUPER WIDE':'Super Wide',
+  'BOOTCUT':'Boot Cut','BOOT CUT':'Boot Cut',
+  'BOOTCUT COUNTRY':'Boot Cut Country',
+  'LITTLEBOOT':'Little Boot','LITLLEBOOT':'Little Boot',
+  'LITTLEBOOT COUNTRY':'Little Boot Country','LITLLEBOOT COUNTRY':'Little Boot Country',
+  'LITTLEBOOT PLUS SIZE':'Little Boot Plus Size',
+  'RETAALFAIATARIA':'Reta Alfaiataria',
+  'RETACROPPED':'Reta Cropped',
+  'RETACROPPED LIPO':'Reta Cropped Lipo',
+  'RETALIPO':'Reta Lipo',
+  'RETACARGO':'Reta Cargo',
+  'RETACOUNTRY':'Reta Country',
+  'RETABAGGY':'Reta Baggy',
+  'RETAPLUS SIZE':'Reta Plus Size',
+  'RETACROPPED PLUS SIZE':'Reta Cropped Plus Size',
+  'RETACARPINTEIRO COUNTRY':'Reta Carpinteiro Country',
+  'CIGARRETE LIPO':'Cigarrete Lipo',
+  'CIGARRETE SPORT FINO':'Cigarrete Sport Fino',
+  'CIGARRETE PLUS SIZE':'Cigarrete Plus Size',
+  'CALCAFEM.CIGARRETE':'Cigarrete','CALCAFEM. CIGARRETE':'Cigarrete',
+  'MEIACOXA':'Meia Coxa',
+  'MEIACOXA ALFAIATARIA':'Meia Coxa Alfaiataria',
+  'MEIACOXA MAIS CURTO':'Meia Coxa Mais Curto',
+  'MEIACOXA PLUS SIZE':'Meia Coxa Plus Size',
+  'SPORTFINO MEIA COXA':'Meia Coxa Sport Fino',
+  'SPORT FINO MEIA COXA':'Meia Coxa Sport Fino',
+  'MEIACOXA SPORT FINO':'Meia Coxa Sport Fino',
+  'MOMMEIA COXA':'Mom Meia Coxa',
   'MOMMEIA COXA PLUS SIZE':'Mom Meia Coxa Plus Size',
-  'LITTLEBOOT':'Little Boot','LITLLEBOOT':'Little Boot','LITTLEBOOT COUNTRY':'Little Boot Country',
-  'LITLLEBOOT COUNTRY':'Little Boot Country','LITTLEBOOT PLUS SIZE':'Little Boot Plus Size',
-  'SKINNYPLUS SIZE':'Skinny Plus Size','SKINNYLIPO':'Skinny Lipo',
+  'SKINNYPLUS SIZE':'Skinny Plus Size',
+  'SKINNYLIPO':'Skinny Lipo',
   'PLUSSIZE CAPRI':'Capri Plus Size','CAPRIPLUS SIZE':'Capri Plus Size',
-  'CICLISTA PLUS SIZE':'Ciclista Plus Size','MEIACOXA PLUS SIZE':'Meiacoxa Plus Size',
-  'CIGARRETE PLUS SIZE':'Cigarrete Plus Size','WIDELEG PLUS SIZE':'Wide Leg Plus Size',
-  'RETACROPPED PLUS SIZE':'Reta Cropped Plus Size','WIDECROPPED PLUS SIZE':'Wide Cropped Plus Size',
-  'MIDI PLUSSIZE':'Midi Plus Size','WIDELEG CINTURA INTERMEDIARIA':'Wide Leg Cintura Intermediária',
-  'SPORT FINO':'Sport Fino','SPORT FINO CROPPED':'Sport Fino Cropped',
-  'SPORT FINO MEDIA':'Sport Fino Média','RETACARPINTEIRO COUNTRY':'Reta Carpinteiro Country',
-  'BOOTCUT COUNTRY':'Bootcut Country','RETA COUNTRY':'Reta Country',
-  'MEDIA':'Média','BERMUDAMASC.TRADICIONAL':'Tradicional',
-  'WIDE ALFAIATARIA':'Wide Alfaiataria',
-  'MINICARGO':'Mini Cargo','MIDICURTA':'Midi Curta','MEDIAALFAIATARIA':'Média Alfaiataria',
-  'EVASE':'Evase','LAPIS':'Lápis',
+  'CICLISTA PLUS SIZE':'Ciclista Plus Size',
+  'SLOUCHY':'Slouchy',
+  'MINICARGO':'Midi Cargo','MIDI CARGO':'Midi Cargo',
+  'MIDICURTA':'Midi Curta',
+  'MEDIAALFAIATARIA':'Média Alfaiataria',
+  'MEDIA':'Média',
+  'EVASE':'Évase',
+  'LAPIS':'Lápis',
+  'MIDI PLUSSIZE':'Midi Plus Size',
+  'SPORT FINO':'Sport Fino',
+  'SPORT FINO CROPPED':'Sport Fino Cropped',
+  'SPORT FINO MEDIA':'Sport Fino Média',
 };
 
 function renMod(s){
   var u=s.toUpperCase().trim();
   if(MOD_RENAME[u]) return MOD_RENAME[u];
-  // capitalizar normal
   return s.trim().toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();});
 }
 
 function getCompSeg(seg){
-  // tipo principal por prefixo
   var tipoMap={
     'CF':'Calça Fem.','CM':'Calça Masc.',
-    'S2':'Shorts','SS':'Shorts',       // Short Saia junto com Shorts
+    'S2':'Shorts','SS':'Shorts',
     'SA':'Saia','BF':'Bermuda Fem.',
     'BM':'Bermuda Masc.','B3':'Bermuda Masc.',
     'BL':'Outros','T2':'Outros','V2':'Outros'
   };
   var grupos={};
   var refsVistas={};
-
   RAW_REF.forEach(function(r){
     var ref=r[1],desc=r[2];
     var u=desc.toUpperCase();
-    // segmento
     var s;
     if(u.indexOf('PLUS SIZE')>=0||u.indexOf('PLUSSIZE')>=0) s='plus';
     else if(u.indexOf('COUNTRY')>=0) s='country';
@@ -572,14 +597,10 @@ function getCompSeg(seg){
     else if(ref.startsWith('CM')||ref.startsWith('BM')||ref.startsWith('B3')) s='masc';
     else s='fem';
     if(s!==seg) return;
-
     var prefix2=ref.substring(0,2);
     var tipo=tipoMap[prefix2]||'Outros';
-
-    // para Outros: usar descrição completa bonita
     var modRaw;
     if(tipo==='Outros'){
-      // desc completa renomeada
       modRaw=u
         .replace('BLUSA FEM.CROPPED','Blusa Cropped').replace('BLUSA FEM. CROPPED','Blusa Cropped')
         .replace('BLUSA FEM.','Blusa').replace('BLUSA FEM. ','Blusa ')
@@ -589,31 +610,27 @@ function getCompSeg(seg){
         .replace('VESTIDO FEM.','Vestido').replace('VESTIDO FEM. ','Vestido ');
       modRaw=modRaw.trim().toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();});
     } else {
-      // extrair modelagem removendo prefixo
       modRaw=u;
       ['CALCA FEM. ','CALCA MASC. ','CALCA FEM.','CALCA MASC.',
        'SHORTS FEM. ','SHORTS FEM.','BERMUDA FEM. ','BERMUDA MASC. ',
        'BERMUDA FEM.','BERMUDA MASC.','SAIA FEM. ','SAIA FEM.',
-       'SHORT SAIA FEM. ','SHORT SAIA FEM.','BLUSA FEM. ','BLUSA FEM.',
-       'TOP FEM. ','TOP FEM.','VESTIDO FEM. ','VESTIDO FEM.'].forEach(function(p){
+       'SHORT SAIA FEM. ','SHORT SAIA FEM.'].forEach(function(p){
         if(modRaw.indexOf(p)===0) modRaw=modRaw.slice(p.length).trim();
       });
+      // tratar CALCAFEM.CIGARRETE que não tem espaço
+      if(modRaw.indexOf('CALCAFEM.')===0) modRaw=modRaw.slice(9).trim();
+      // tratar SAIA FEM . MEDIA (com espaço antes do ponto)
+      if(modRaw==='SAIA FEM . MEDIA'||modRaw==='FEM . MEDIA'||modRaw==='. MEDIA'||modRaw==='MEDIA') modRaw='MÉDIA';
       modRaw=renMod(modRaw);
-      // caso a descrição seja só o tipo (ex: "SHORT SAIA FEM." sem modelagem)
       if(!modRaw||modRaw.length<2) modRaw='Short Saia';
     }
-    if(modRaw==='Sportfino Meia Coxa'||modRaw==='Sport Fino Meia Coxa') modRaw='Meiacoxa Sport Fino';
-
-    var key=tipo+'||'+modRaw;
     if(!grupos[tipo]) grupos[tipo]={total:0,mods:{}};
-    if(!grupos[tipo].mods[modRaw]) grupos[tipo].mods[modRaw]={refs:{},nome:modRaw};
-    if(!refsVistas[tipo+ref]){
+    if(!grupos[tipo].mods[modRaw]) grupos[tipo].mods[modRaw]={refs:{}};
+    if(!refsVistas[ref]){
       grupos[tipo].mods[modRaw].refs[ref]=true;
-      refsVistas[tipo+ref]=true;
+      refsVistas[ref]=true;
     }
   });
-
-  // calcular totais por tipo e ordenar mods alfabeticamente
   var tipoOrder=['Calça Fem.','Calça Masc.','Shorts','Saia','Bermuda Fem.','Bermuda Masc.','Outros'];
   var result=[];
   tipoOrder.forEach(function(t){
@@ -648,44 +665,64 @@ function renderCompGrid(seg){
   var maxRefs=0;
   grupos.forEach(function(g){g.items.forEach(function(d){if(d.nRefs>maxRefs)maxRefs=d.nRefs;});});
 
-  // dividir grupos em duas colunas equilibradas
-  var totalItems=0; grupos.forEach(function(g){totalItems+=g.items.length+1;}); // +1 header
-  var meio=totalItems/2, acc=0, splitIdx=0;
-  for(var i=0;i<grupos.length;i++){
-    acc+=grupos[i].items.length+1;
-    if(acc>=meio){splitIdx=i+1;break;}
-  }
+  // feminino: 3 colunas (Calça, Shorts, Saia+Outros); outros: 2 colunas
+  var isFem=(seg==='fem');
+  var nCols=isFem?3:2;
 
   function renderGrupo(g){
     var pctTipo=totalGeral>0?(g.total/totalGeral*100):0;
-    var html='<div style="margin-bottom:12px;">'+
+    var h='<div style="margin-bottom:12px;">'+
       '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid '+cor+'33;padding-bottom:3px;margin-bottom:5px;">'+
         '<span style="font-size:.65rem;font-weight:800;color:'+cor+';text-transform:uppercase;letter-spacing:.8px;">'+g.tipo+'</span>'+
-        '<span style="font-size:.65rem;color:'+cor+';">'+g.total+' refs · '+pctTipo.toFixed(0)+'%</span>'+
+        '<span style="font-size:.65rem;color:'+cor+';">'+g.total+' refs · '+pctTipo.toFixed(1)+'%</span>'+
       '</div>';
     g.items.forEach(function(d){
       var pct=maxRefs>0?(d.nRefs/maxRefs*100):0;
-      html+='<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">'+
+      var pctInd=g.total>0?(d.nRefs/g.total*100):0;
+      h+='<div style="display:flex;align-items:center;gap:5px;padding:2px 0;">'+
         '<span style="font-size:.74rem;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+d.mod+'</span>'+
-        '<span style="font-size:.74rem;font-weight:700;color:'+cor+';min-width:16px;text-align:right;">'+d.nRefs+'</span>'+
-        '<div style="width:44px;background:var(--border);border-radius:20px;height:3px;flex-shrink:0;">'+
+        '<span style="font-size:.72rem;color:var(--muted);min-width:32px;text-align:right;">'+pctInd.toFixed(1)+'%</span>'+
+        '<span style="font-size:.74rem;font-weight:700;color:'+cor+';min-width:14px;text-align:right;">'+d.nRefs+'</span>'+
+        '<div style="width:36px;background:var(--border);border-radius:20px;height:3px;flex-shrink:0;">'+
           '<div style="height:3px;border-radius:20px;width:'+pct.toFixed(0)+'%;background:'+cor+';"></div>'+
         '</div>'+
       '</div>';
     });
-    return html+'</div>';
+    return h+'</div>';
   }
 
-  var col1='',col2='';
-  grupos.forEach(function(g,i){
-    if(i<splitIdx) col1+=renderGrupo(g); else col2+=renderGrupo(g);
-  });
+  var cols=[];
+  for(var i=0;i<nCols;i++) cols.push('');
+
+  if(isFem){
+    // col 0: Calça Fem. | col 1: Shorts | col 2: Saia + Bermuda Fem. + Outros
+    grupos.forEach(function(g){
+      if(g.tipo==='Calça Fem.') cols[0]+=renderGrupo(g);
+      else if(g.tipo==='Shorts') cols[1]+=renderGrupo(g);
+      else cols[2]+=renderGrupo(g);
+    });
+  } else {
+    // dividir grupos equilibradamente em 2 colunas
+    var totalItems=0;
+    grupos.forEach(function(g){totalItems+=g.items.length+1;});
+    var meio=totalItems/2,acc=0,splitIdx=0;
+    for(var i=0;i<grupos.length;i++){
+      acc+=grupos[i].items.length+1;
+      if(acc>=meio){splitIdx=i+1;break;}
+    }
+    grupos.forEach(function(g,i){
+      cols[i<splitIdx?0:1]+=renderGrupo(g);
+    });
+  }
+
+  var gridStyle='display:grid;grid-template-columns:'+
+    (isFem?'1.4fr 1fr 0.9fr':'1fr 1fr')+';gap:0 24px;';
 
   var html='<div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;">'+
     '<strong style="color:'+cor+'">'+totalGeral+'</strong> referências na coleção</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;">'+
-      '<div>'+col1+'</div><div>'+col2+'</div>'+
-    '</div>';
+    '<div style="'+gridStyle+'">';
+  cols.forEach(function(c){html+='<div>'+c+'</div>';});
+  html+='</div>';
 
   var el=document.getElementById('comp-grid');
   if(el) el.innerHTML=html;
@@ -2094,74 +2131,80 @@ function getTipo(cod) {
 
 function getModelagem(desc) {
   var d = desc.toUpperCase();
-  // Ordem importa: mais específicos primeiro
-  if(d.includes('RETA CROPPED LIPO')) return 'Reta Cropped Lipo';
-  if(d.includes('RETA CROPPED')) return 'Reta Cropped';
-  if(d.includes('RETA LIPO')) return 'Reta Lipo';
-  if(d.includes('RETA ALFAIATARIA')) return 'Reta Alfaiataria';
-  if(d.includes('RETA CARGO')) return 'Reta Cargo';
+  // Reta — mais específicos primeiro
+  if(d.includes('RETACROPPED LIPO')||d.includes('RETA CROPPED LIPO')) return 'Reta Cropped Lipo';
+  if(d.includes('RETACROPPED')||d.includes('RETA CROPPED')) return 'Reta Cropped';
+  if(d.includes('RETALIPO')||d.includes('RETA LIPO')) return 'Reta Lipo';
+  if(d.includes('RETAALFAIATARIA')||d.includes('RETA ALFAIATARIA')) return 'Reta Alfaiataria';
+  if(d.includes('RETACARGO')||d.includes('RETA CARGO')) return 'Reta Cargo';
   if(d.includes('RETACOUNTRY')||d.includes('RETA COUNTRY')) return 'Reta Country';
-  if(d.includes('RETACARPINTEIRO')||d.includes('RETA CARPINTEIRO')) return 'Reta Carpinteiro';
+  if(d.includes('RETACARPINTEIRO')||d.includes('RETA CARPINTEIRO')) return 'Reta Carpinteiro Country';
   if(d.includes('RETABAGGY')||d.includes('RETA BAGGY')) return 'Reta Baggy';
-  if(d.includes('RETA PLUS SIZE')) return 'Reta Plus Size';
+  if(d.includes('RETAPLUS SIZE')||d.includes('RETA PLUS SIZE')) return 'Reta Plus Size';
+  // Wide
   if(d.includes('WIDECROPPED LIPO')) return 'Wide Cropped Lipo';
   if(d.includes('WIDECROPPED PLUS SIZE')) return 'Wide Cropped Plus Size';
   if(d.includes('WIDECROPPED')) return 'Wide Cropped';
-  if(d.includes('WIDELEG CROPPED')) return 'Wideleg Cropped';
-  if(d.includes('WIDELEG ALFAIATARIA')) return 'Wideleg Alfaiataria';
-  if(d.includes('WIDELEG LIPO')) return 'Wideleg Lipo';
-  if(d.includes('WIDELEG CINTURA')) return 'Wideleg Cint. Interm.';
-  if(d.includes('WIDELEG CARGO')) return 'Wideleg Cargo';
-  if(d.includes('WIDELEG PLUS SIZE')) return 'Wideleg Plus Size';
-  if(d.includes('WIDELEG')) return 'Wideleg';
-  if(d.includes('SUPERWIDE')) return 'Superwide';
+  if(d.includes('WIDELEG CROPPED')) return 'Wide Leg Cropped';
+  if(d.includes('WIDELEG ALFAIATARIA')) return 'Wide Leg Alfaiataria';
+  if(d.includes('WIDELEG LIPO')) return 'Wide Leg Lipo';
+  if(d.includes('WIDELEG CINTURA')) return 'Wide Leg Cint. Interm.';
+  if(d.includes('WIDELEG CARGO')) return 'Wide Leg Cargo';
+  if(d.includes('WIDELEG PLUS SIZE')) return 'Wide Leg Plus Size';
+  if(d.includes('WIDELEG')) return 'Wide Leg';
+  if(d.includes('SUPERWIDE')) return 'Super Wide';
+  // Cigarrete
+  if(d.includes('CALCAFEM.CIGARRETE')||d.includes('CALCAFEM. CIGARRETE')) return 'Cigarrete';
   if(d.includes('CIGARRETE LIPO')) return 'Cigarrete Lipo';
   if(d.includes('CIGARRETE SPORT FINO')) return 'Cigarrete Sport Fino';
   if(d.includes('CIGARRETE PLUS SIZE')) return 'Cigarrete Plus Size';
   if(d.includes('CIGARRETE')) return 'Cigarrete';
-  if(d.includes('SKINNY LIPO')) return 'Skinny Lipo';
-  if(d.includes('SKINNY PLUS SIZE')) return 'Skinny Plus Size';
+  // Skinny
+  if(d.includes('SKINNYLIPO')||d.includes('SKINNY LIPO')) return 'Skinny Lipo';
+  if(d.includes('SKINNYPLUS SIZE')||d.includes('SKINNY PLUS SIZE')) return 'Skinny Plus Size';
   if(d.includes('SKINNY')) return 'Skinny';
+  // Meia Coxa
   if(d.includes('MOMMEIA COXA')) return 'Mom Meia Coxa';
-  if(d.includes('MOM')) return 'Mom';
   if(d.includes('MEIACOXA ALFAIATARIA')||d.includes('MEIA COXA ALFAIATARIA')) return 'Meia Coxa Alfaiataria';
-  if(d.includes('MEIACOXA SPORT FINO')||d.includes('MEIA COXA SPORT FINO')||d.includes('SPORTFINO MEIA COXA')||d.includes('SPORT FINO MEIA COXA')) return 'Meia Coxa Sport Fino';
+  if(d.includes('MEIACOXA SPORT FINO')||d.includes('SPORTFINO MEIA COXA')||d.includes('SPORT FINO MEIA COXA')) return 'Meia Coxa Sport Fino';
   if(d.includes('MEIACOXA MAIS CURTO')||d.includes('MEIA COXA MAIS CURTO')) return 'Meia Coxa Mais Curto';
   if(d.includes('MEIACOXA PLUS SIZE')||d.includes('MEIA COXA PLUS SIZE')) return 'Meia Coxa Plus Size';
   if(d.includes('MEIACOXA')||d.includes('MEIA COXA')) return 'Meia Coxa';
-  if(d.includes('LITTLEBOOT COUNTRY')) return 'Littleboot Country';
-  if(d.includes('LITTLEBOOT PLUS SIZE')) return 'Littleboot Plus Size';
-  if(d.includes('LITTLEBOOT')||d.includes('LITLLEBOOT')) return 'Littleboot';
-  if(d.includes('BOOTCUT COUNTRY')) return 'Bootcut Country';
-  if(d.includes('BOOTCUT')) return 'Bootcut';
-  if(d.includes('CAPRI PLUS SIZE')) return 'Capri Plus Size';
+  // Little Boot / Boot Cut
+  if(d.includes('LITTLEBOOT COUNTRY')||d.includes('LITLLEBOOT COUNTRY')) return 'Little Boot Country';
+  if(d.includes('LITTLEBOOT PLUS SIZE')) return 'Little Boot Plus Size';
+  if(d.includes('LITTLEBOOT')||d.includes('LITLLEBOOT')) return 'Little Boot';
+  if(d.includes('BOOTCUT COUNTRY')) return 'Boot Cut Country';
+  if(d.includes('BOOTCUT')) return 'Boot Cut';
+  // Outros
+  if(d.includes('CAPRIPLUS SIZE')||d.includes('PLUSSIZE CAPRI')||d.includes('CAPRI PLUS SIZE')) return 'Capri Plus Size';
   if(d.includes('CAPRI')) return 'Capri';
+  if(d.includes('MOM')) return 'Mom';
   if(d.includes('BARREL')) return 'Barrel';
   if(d.includes('SLOUCHY')) return 'Slouchy';
   if(d.includes('SLIM')) return 'Slim';
-  if(d.includes('MEDIA')) return 'Media';
   if(d.includes('TRADICIONAL')) return 'Tradicional';
   if(d.includes('SPORT FINO CROPPED')) return 'Sport Fino Cropped';
+  if(d.includes('SPORT FINO MEDIA')) return 'Sport Fino Média';
   if(d.includes('SPORT FINO')) return 'Sport Fino';
   if(d.includes('CICLISTA PLUS SIZE')) return 'Ciclista Plus Size';
   if(d.includes('CICLISTA')) return 'Ciclista';
+  if(d.includes('GODE')) return 'Godê';
   if(d.includes('CURTO')) return 'Curto';
   if(d.includes('MIDI PLUS SIZE')) return 'Midi Plus Size';
-  if(d.includes('MIDICARGO')||d.includes('MIDI CARGO')) return 'Midi Cargo';
+  if(d.includes('MIDICARGO')||d.includes('MIDI CARGO')||d.includes('MINICARGO')) return 'Midi Cargo';
   if(d.includes('MIDICURTA')||d.includes('MIDI CURTA')) return 'Midi Curta';
   if(d.includes('MIDI')) return 'Midi';
-  if(d.includes('MINICARGO')||d.includes('MINI CARGO')) return 'Mini Cargo';
   if(d.includes('MINI')) return 'Mini';
-  if(d.includes('LAPIS')) return 'Lapis';
-  if(d.includes('EVASE')) return 'Evase';
-  if(d.includes('LONGA')) return 'Longa';
+  if(d.includes('LAPIS')) return 'Lápis';
+  if(d.includes('EVASE')) return 'Évase';
   if(d.includes('ALFAIATARIA')) return 'Alfaiataria';
+  if(d.includes('LONGO')) return 'Longo';
+  if(d.includes('MEDIA')) return 'Média';
   if(d.includes('LIPO')) return 'Lipo';
-  if(d.includes('PLUS SIZE')) return 'Plus Size';
   if(d.includes('CROPPED')) return 'Cropped';
   if(d.includes('RETA')) return 'Reta';
-  if(d.includes('GODE')) return 'Gode';
-  if(d.includes('LONGO')) return 'Longo';
+  if(d.includes('PLUS SIZE')) return 'Plus Size';
   return desc.replace(/FEM\.|MASC\.|CALCA|SHORTS|SAIA|BERMUDA|BLUSA|TOP|VESTIDO/gi,'').trim().split(' ').slice(0,3).join(' ');
 }
 
@@ -2198,8 +2241,10 @@ function renderReferencias() {
   var dados = getRefDados(codRep);
   var totalQtde = dados.reduce(function(s,d){return s+d.qtde;},0);
 
-  // Composição da coleção
-  renderCompGrid(compSegAtivo);
+  // Composição só no "Todos"
+  var secComp=document.getElementById('comp-section');
+  if(secComp) secComp.style.display=codRep==='TODOS'?'':'none';
+  if(codRep==='TODOS') renderCompGrid(compSegAtivo);
 
   // KPIs
   var topRef = dados.length>0?dados[0]:null;
@@ -2269,13 +2314,27 @@ function renderReferencias() {
   var elSeg=document.getElementById('ref-seg-kpis');
   if(elSeg)elSeg.innerHTML=segHtml;
 
+  // helper: prefixo do tipo para o label do gráfico
+  function tipoPrefix(cod){
+    if(cod.startsWith('CF')) return 'Calça ';
+    if(cod.startsWith('CM')) return 'Calça ';
+    if(cod.startsWith('S2')||cod.startsWith('SS')) return 'Shorts ';
+    if(cod.startsWith('SA')) return 'Saia ';
+    if(cod.startsWith('BF')||cod.startsWith('B2')) return 'Bermuda ';
+    if(cod.startsWith('BM')||cod.startsWith('B3')) return 'Bermuda ';
+    return '';
+  }
+
   // Gráfico Top 20 Modelagens Feminino
   var modelMapFem={};
   dados.filter(function(d){
-    var u=d.desc?d.desc.toUpperCase():'';
     return d.cod.startsWith('CF')||d.cod.startsWith('SA')||d.cod.startsWith('BF')||
            d.cod.startsWith('SS')||d.cod.startsWith('S2');
-  }).forEach(function(d){if(!modelMapFem[d.mod])modelMapFem[d.mod]=0;modelMapFem[d.mod]+=d.qtde;});
+  }).forEach(function(d){
+    var lbl=tipoPrefix(d.cod)+d.mod;
+    if(!modelMapFem[lbl])modelMapFem[lbl]=0;
+    modelMapFem[lbl]+=d.qtde;
+  });
   var modelArrFem=Object.keys(modelMapFem).map(function(k){return{mod:k,qtde:modelMapFem[k]};});
   modelArrFem.sort(function(a,b){return b.qtde-a.qtde;});
   var topFem=modelArrFem.slice(0,20);
@@ -2287,7 +2346,11 @@ function renderReferencias() {
   var modelMapMasc={};
   dados.filter(function(d){
     return d.cod.startsWith('CM')||d.cod.startsWith('BM')||d.cod.startsWith('B3');
-  }).forEach(function(d){if(!modelMapMasc[d.mod])modelMapMasc[d.mod]=0;modelMapMasc[d.mod]+=d.qtde;});
+  }).forEach(function(d){
+    var lbl=tipoPrefix(d.cod)+d.mod;
+    if(!modelMapMasc[lbl])modelMapMasc[lbl]=0;
+    modelMapMasc[lbl]+=d.qtde;
+  });
   var modelArrMasc=Object.keys(modelMapMasc).map(function(k){return{mod:k,qtde:modelMapMasc[k]};});
   modelArrMasc.sort(function(a,b){return b.qtde-a.qtde;});
   var topMasc=modelArrMasc.slice(0,10);
