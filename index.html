@@ -324,7 +324,8 @@ tbody tr.ns{opacity:.35;}
     <div class="ftrs" style="margin-bottom:12px;">
       <span class="ftrs-lbl">Mês:</span>
       <button class="fb" id="fm-4" onclick="mudarMes(4)">Mês 04 (Abril)</button>
-      <button class="fb active" id="fm-5" onclick="mudarMes(5)">Mês 05 (Maio)</button>
+      <button class="fb" id="fm-5" onclick="mudarMes(5)">Mês 05 (Maio)</button>
+      <button class="fb active" id="fm-6" onclick="mudarMes(6)">Mês 06 (Junho)</button>
     </div>
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
@@ -341,7 +342,8 @@ tbody tr.ns{opacity:.35;}
       <button class="fb" id="fs-4" onclick="mudarSemana(4)">Semana 4</button>
       <button class="fb" id="fs-5" onclick="mudarSemana(5)">Semana 5</button>
       <button class="fb" id="fs-6" onclick="mudarSemana(6)">Semana 6</button>
-      <button class="fb active" id="fs-7" onclick="mudarSemana(7)">Semana 7</button>
+      <button class="fb" id="fs-7" onclick="mudarSemana(7)">Semana 7</button>
+      <button class="fb active" id="fs-8" onclick="mudarSemana(8)">Semana 8</button>
     </div>
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
@@ -507,7 +509,7 @@ var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060'
 
 var dDia=[],dSem=[],dMes=[],dAcum=[],dHist=[];
 var filtroAtual='acumulado';
-var mesAtual=5, semanaAtual=7;
+var mesAtual=6, semanaAtual=8;
 var dMesDados={}, dSemDados={};
 var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null,chartMes=null,chartSem=null,chartDia=null;
 var chartRefBarras=null;
@@ -4101,7 +4103,7 @@ function renderTop5(listaAcum){
 }
 
 function renderGrupo(){
-  var sn=7,sp='25/05 a 31/05',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
+  var sn=8,sp='01/06 a 07/06',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
   setText('g-semn',sn);setText('g-per',sp);setText('g-falt',falt);
   var listaAcum=buildLista(dAcum),listaSem=buildLista(dSem);
   var dest=calcDestaques(listaSem);
@@ -4608,7 +4610,7 @@ function mudarFiltro(f){
 }
 function mudarMes(m){
   mesAtual=m;
-  [4,5].forEach(function(n){var el=document.getElementById('fm-'+n);if(el)el.classList.toggle('active',n===m);});
+  [4,5,6].forEach(function(n){var el=document.getElementById('fm-'+n);if(el)el.classList.toggle('active',n===m);});
   var nomes={4:'Mês 04 (Abril)',5:'Mês 05 (Maio)'};
   var el=document.getElementById('titulo-mes');if(el)el.textContent='Peças por Mês - '+nomes[m];
   var listaMes=buildLista(dMesDados[m]||[]);
@@ -4628,7 +4630,7 @@ function mudarMes(m){
 }
 function mudarSemana(s){
   semanaAtual=s;
-  [1,2,3,4,5,6,7].forEach(function(n){var el=document.getElementById('fs-'+n);if(el)el.classList.toggle('active',n===s);});
+  [1,2,3,4,5,6,7,8].forEach(function(n){var el=document.getElementById('fs-'+n);if(el)el.classList.toggle('active',n===s);});
   var el=document.getElementById('titulo-sem');if(el)el.textContent='Peças por Semana - Semana '+s;
   var listaSem=buildLista(dSemDados[s]||[]);
   var laAcum=buildLista(dAcum);
@@ -4637,7 +4639,7 @@ function mudarSemana(s){
   // Gráfico evolução de peças por semana (sem 1 a 5)
   var ctx=document.getElementById('c-sem').getContext('2d');
   if(chartSem)chartSem.destroy();
-  var sems=[1,2,3,4,5,6,7];
+  var sems=[1,2,3,4,5,6,7,8];
   var totaisSem=sems.map(function(n){
     return (dSemDados[n]||[]).reduce(function(acc,r){return acc+r.qtde;},0);
   });
@@ -4649,11 +4651,9 @@ function mudarSemana(s){
 // DADOS VENDAS
 // ============================================================
 dDia=[
-  {cod:'00018',vlr:101613.27,qtde:775,pedidos:5,cliNov:3,cliCompra:4,ticket:131.11},
-  {cod:'00045',vlr:79042.1,qtde:589,pedidos:3,cliNov:1,cliCompra:4,ticket:134.20},
-  {cod:'07607',vlr:58470,qtde:450,pedidos:3,cliNov:1,cliCompra:3,ticket:129.93},
-  {cod:'00032',vlr:47557.791,qtde:388,pedidos:2,cliNov:0,cliCompra:2,ticket:122.57},
-  {cod:'00052',vlr:26966.5,qtde:205,pedidos:1,cliNov:1,cliCompra:1,ticket:131.54}
+  {cod:'00037',vlr:40498.6,qtde:314,pedidos:2,cliNov:0,cliCompra:2,ticket:128.98},
+  {cod:'00045',vlr:25309,qtde:210,pedidos:2,cliNov:0,cliCompra:2,ticket:120.52},
+  {cod:'06693',vlr:9305,qtde:70,pedidos:1,cliNov:0,cliCompra:1,ticket:132.93}
 ];
 
 dSemDados={
@@ -4747,6 +4747,11 @@ dSemDados={
     {cod:'07890',vlr:16612.8,qtde:132,pedidos:1,cliNov:0,cliCompra:1,ticket:125.85},
     {cod:'00020',vlr:15729.4,qtde:116,pedidos:1,cliNov:0,cliCompra:1,ticket:135.60},
     {cod:'07332',vlr:6750.8,qtde:52,pedidos:1,cliNov:0,cliCompra:1,ticket:129.82}
+  ],
+  8:[
+    {cod:'00037',vlr:40498.6,qtde:314,pedidos:2,cliNov:0,cliCompra:2,ticket:128.98},
+    {cod:'00045',vlr:25309,qtde:210,pedidos:2,cliNov:0,cliCompra:2,ticket:120.52},
+    {cod:'06693',vlr:9305,qtde:70,pedidos:1,cliNov:0,cliCompra:1,ticket:132.93}
   ]
 };
 
@@ -4766,7 +4771,7 @@ dMesDados={
     {cod:'07520',vlr:7632.015,qtde:63,pedidos:1,cliNov:1,cliCompra:1,ticket:121.14}
   ],
   5:[
-    {cod:'00032',vlr:749834.1,qtde:5979,pedidos:40,cliNov:4,cliCompra:42,ticket:124.39},
+    {cod:'00032',vlr:749834.1,qtde:5979,pedidos:39,cliNov:4,cliCompra:41,ticket:124.42},
     {cod:'00018',vlr:644935.59,qtde:5129,pedidos:25,cliNov:5,cliCompra:24,ticket:125.74},
     {cod:'00052',vlr:505148.6,qtde:3954,pedidos:17,cliNov:5,cliCompra:17,ticket:127.76},
     {cod:'07607',vlr:406716.2,qtde:3228,pedidos:17,cliNov:6,cliCompra:17,ticket:125.99},
@@ -4786,21 +4791,26 @@ dMesDados={
     {cod:'07892',vlr:36241.7,qtde:293,pedidos:1,cliNov:1,cliCompra:1,ticket:123.69},
     {cod:'07741',vlr:30002.3,qtde:237,pedidos:3,cliNov:3,cliCompra:3,ticket:126.59},
     {cod:'00035',vlr:12136.5,qtde:85,pedidos:1,cliNov:0,cliCompra:1,ticket:142.78}
+  ],
+  6:[
+    {cod:'00037',vlr:40498.6,qtde:314,pedidos:2,cliNov:0,cliCompra:2,ticket:128.98},
+    {cod:'00045',vlr:25309,qtde:210,pedidos:2,cliNov:0,cliCompra:2,ticket:120.52},
+    {cod:'06693',vlr:9305,qtde:70,pedidos:1,cliNov:0,cliCompra:1,ticket:132.93}
   ]
 };
 
-dMes=dMesDados[5];
-dSem=dSemDados[7];
+dMes=dMesDados[6];
+dSem=dSemDados[8];
 
 dAcum=[
   {cod:'00032',vlr:1150837.607,qtde:9298,pedidos:58,cliNov:5,cliCompra:58,ticket:123.77},
-  {cod:'00018',vlr:1010860.405,qtde:8013,pedidos:37,cliNov:6,cliCompra:36,ticket:126.15},
-  {cod:'00037',vlr:604523.2,qtde:4728,pedidos:28,cliNov:2,cliCompra:28,ticket:127.86},
+  {cod:'00018',vlr:1010860.405,qtde:8013,pedidos:37,cliNov:6,cliCompra:37,ticket:126.15},
+  {cod:'00037',vlr:645021.8,qtde:5042,pedidos:30,cliNov:2,cliCompra:30,ticket:127.93},
   {cod:'00052',vlr:566944.9,qtde:4451,pedidos:19,cliNov:5,cliCompra:19,ticket:127.37},
   {cod:'07607',vlr:484901.813,qtde:3853,pedidos:21,cliNov:6,cliCompra:21,ticket:125.85},
   {cod:'07606',vlr:340126,qtde:2660,pedidos:16,cliNov:4,cliCompra:16,ticket:127.87},
-  {cod:'06693',vlr:317649.77,qtde:2544,pedidos:14,cliNov:1,cliCompra:14,ticket:124.86},
-  {cod:'00045',vlr:287835.6,qtde:2194,pedidos:16,cliNov:4,cliCompra:16,ticket:131.19},
+  {cod:'06693',vlr:326954.77,qtde:2614,pedidos:15,cliNov:1,cliCompra:15,ticket:125.08},
+  {cod:'00045',vlr:313144.6,qtde:2404,pedidos:18,cliNov:4,cliCompra:18,ticket:130.26},
   {cod:'07608',vlr:171551.2,qtde:1318,pedidos:10,cliNov:5,cliCompra:10,ticket:130.00},
   {cod:'07891',vlr:158596.3,qtde:1297,pedidos:11,cliNov:10,cliCompra:11,ticket:122.28},
   {cod:'07332',vlr:152441.1,qtde:1179,pedidos:6,cliNov:0,cliCompra:6,ticket:129.30},
