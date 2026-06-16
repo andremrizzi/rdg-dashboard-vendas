@@ -443,7 +443,7 @@ tbody tr.ns{opacity:.35;}
   <div class="ref-tipo-grid" id="ref-tipo-cards"></div>
   <div class="ref-charts-grid" style="grid-template-columns:1.4fr 1fr;">
     <div class="ref-chart-box"><h3>Top 20 Modelagens Feminino</h3><canvas id="c-ref-barras" height="320"></canvas></div>
-    <div class="ref-chart-box"><h3>Top 10 Modelagens Masculino</h3><canvas id="c-ref-barras-masc" height="320"></canvas></div>
+    <div class="ref-chart-box"><h3>Top 15 Modelagens Masculino</h3><canvas id="c-ref-barras-masc" height="320"></canvas></div>
   </div>
   <div id="comp-section">
   <div class="sec">Composicao da Colecao por Modelagem</div>
@@ -460,6 +460,8 @@ tbody tr.ns{opacity:.35;}
   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;">
     <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Segmento:</span>
     <button class="ref-tipo-btn active" id="seg-btn-TODOS" onclick="filtrarRefSeg('TODOS')">Todos</button>
+    <button class="ref-tipo-btn" id="seg-btn-FEM" onclick="filtrarRefSeg('FEM')" style="border-color:#e0608a55;color:#e0608a;">♀ Feminino</button>
+    <button class="ref-tipo-btn" id="seg-btn-MASC" onclick="filtrarRefSeg('MASC')" style="border-color:#4a8fd455;color:#4a8fd4;">♂ Masculino</button>
     <button class="ref-tipo-btn" id="seg-btn-COUNTRY" onclick="filtrarRefSeg('COUNTRY')" style="border-color:#c9a84c55;color:#c9a84c;">🤠 Country</button>
     <button class="ref-tipo-btn" id="seg-btn-PLUS" onclick="filtrarRefSeg('PLUS')" style="border-color:#3ecf7255;color:#3ecf72;">➕ Plus Size</button>
   </div>
@@ -520,6 +522,8 @@ var refFiltroSeg='TODOS'; // TODOS | COUNTRY | PLUS
 var compSegAtivo='fem';
 
 // Mapa de renomeação de modelagens
+var FORA_LINHA={'B30942':true,'CF22149':true,'CF22174':true,'S22049':true,'T22073':true};
+
 var MOD_RENAME={
   'WIDELEG':'Wide Leg','WIDE LEG':'Wide Leg',
   'WIDELEG CROPPED':'Wide Leg Cropped','WIDE LEG CROPPED':'Wide Leg Cropped',
@@ -619,14 +623,14 @@ function getCompSeg(seg){
       modRaw=u;
       ['CALCA FEM. ','CALCA MASC. ','CALCA FEM.','CALCA MASC.',
        'SHORTS FEM. ','SHORTS FEM.','BERMUDA FEM. ','BERMUDA MASC. ',
-       'BERMUDA FEM.','BERMUDA MASC.','SAIA FEM. ','SAIA FEM.',
+       'BERMUDA FEM.','BERMUDA MASC.','BERMUDAMASC.','SAIA FEM. ','SAIA FEM.',
        'SHORT SAIA FEM. ','SHORT SAIA FEM.'].forEach(function(p){
         if(modRaw.indexOf(p)===0) modRaw=modRaw.slice(p.length).trim();
       });
       // tratar CALCAFEM.CIGARRETE que não tem espaço
       if(modRaw.indexOf('CALCAFEM.')===0) modRaw=modRaw.slice(9).trim();
       // tratar SAIA FEM . MEDIA (com espaço antes do ponto)
-      if(modRaw==='SAIA FEM . MEDIA'||modRaw==='FEM . MEDIA'||modRaw==='. MEDIA'||modRaw==='MEDIA') modRaw='MÉDIA';
+      if(modRaw==='SAIA FEM . MEDIA'||modRaw==='FEM . MEDIA'||modRaw==='. MEDIA'||modRaw==='MEDIA') modRaw='MEDIA';
       modRaw=renMod(modRaw);
       if(!modRaw||modRaw.length<2) modRaw='Short Saia';
     }
@@ -4023,7 +4027,7 @@ function renderReferencias() {
   });
   var modelArrMasc=Object.keys(modelMapMasc).map(function(k){return{mod:k,qtde:modelMapMasc[k]};});
   modelArrMasc.sort(function(a,b){return b.qtde-a.qtde;});
-  var topMasc=modelArrMasc.slice(0,10);
+  var topMasc=modelArrMasc.slice(0,15);
   var elMasc=document.getElementById('c-ref-barras-masc');
   if(elMasc){
     if(!window.chartRefBarrasMasc)window.chartRefBarrasMasc=null;
@@ -4045,7 +4049,7 @@ function renderReferencias() {
 function filtrarRefSeg(seg){
   refFiltroSeg=seg;
   refFiltroTipo='TODOS'; // reset tipo ao mudar segmento
-  ['TODOS','COUNTRY','PLUS'].forEach(function(s){
+  ['TODOS','FEM','MASC','COUNTRY','PLUS'].forEach(function(s){
     var b=document.getElementById('seg-btn-'+s);
     if(b) b.classList.toggle('active',s===seg);
   });
@@ -4081,6 +4085,14 @@ function renderRefTabela(dados, totalQtde){
       var u=d.desc.toUpperCase();
       return u.indexOf('PLUS SIZE')>=0||u.indexOf('PLUSSIZE')>=0;
     });
+  } else if(refFiltroSeg==='MASC'){
+    filtrados=dados.filter(function(d){
+      return d.cod.startsWith('CM')||d.cod.startsWith('BM')||d.cod.startsWith('B3');
+    });
+  } else if(refFiltroSeg==='FEM'){
+    filtrados=dados.filter(function(d){
+      return !(d.cod.startsWith('CM')||d.cod.startsWith('BM')||d.cod.startsWith('B3'));
+    });
   }
   // filtro de tipo
   if(refFiltroTipo!=='TODOS') filtrados=filtrados.filter(function(d){return d.tipo.key===refFiltroTipo;});
@@ -4093,6 +4105,7 @@ function renderRefTabela(dados, totalQtde){
     var wPct=maxQ>0?(d.qtde/maxQ*100):0;
     var cor=TIPO_CORES[d.tipo.key]||'#888';
     var packBadge=d.pack?'<span style="display:inline-block;background:#d4a017;color:#111;font-size:.58rem;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:5px;letter-spacing:.5px;vertical-align:middle;">PACK</span>':'';
+    var foraLinhaBadge=FORA_LINHA[d.cod]?'<span title="Referência fora de linha — falta de tecido/fornecedor. Quantidades ainda aparecem pois pedidos já feitos serão entregues." style="display:inline-block;background:#3a3a3a;color:#e0a030;font-size:.58rem;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:5px;letter-spacing:.5px;vertical-align:middle;border:1px solid #e0a030;">⛔ FORA DE LINHA</span>':'';
     // indicador de variação de ranking
     var rankVar='';
     if(typeof RANK_ANT!=='undefined'&&RANK_ANT[d.cod]!==undefined){
@@ -4107,7 +4120,7 @@ function renderRefTabela(dados, totalQtde){
         rankVar='<span style="font-size:.68rem;color:var(--muted);margin-left:3px;" title="Manteve posição">—</span>';
       }
     }
-    html+='<tr><td>'+bdg+rankVar+'</td><td><span class="ref-cod">'+d.cod+'</span></td><td style="font-size:.8rem;max-width:220px">'+d.desc+packBadge+'</td><td><span class="ref-badge '+d.tipo.badge+'">'+d.tipo.label+'</span></td><td><span class="ref-mod">'+d.mod+'</span></td><td style="text-align:right;font-weight:700;font-size:.95rem">'+fmtInt(d.qtde)+'</td><td style="text-align:right;color:var(--gold);font-size:.82rem">'+pct.toFixed(1)+'%</td><td class="ref-bar-cell"><div class="pw"><div class="pb" style="width:'+wPct.toFixed(1)+'%;background:'+cor+'"></div></div></td></tr>';
+    html+='<tr><td>'+bdg+rankVar+'</td><td><span class="ref-cod">'+d.cod+'</span></td><td style="font-size:.8rem;max-width:220px">'+d.desc+packBadge+foraLinhaBadge+'</td><td><span class="ref-badge '+d.tipo.badge+'">'+d.tipo.label+'</span></td><td><span class="ref-mod">'+d.mod+'</span></td><td style="text-align:right;font-weight:700;font-size:.95rem">'+fmtInt(d.qtde)+'</td><td style="text-align:right;color:var(--gold);font-size:.82rem">'+pct.toFixed(1)+'%</td><td class="ref-bar-cell"><div class="pw"><div class="pb" style="width:'+wPct.toFixed(1)+'%;background:'+cor+'"></div></div></td></tr>';
   }
   document.getElementById('ref-tbody').innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
 }
