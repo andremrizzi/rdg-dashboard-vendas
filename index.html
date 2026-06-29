@@ -4346,6 +4346,7 @@ function buildLista(dados){
   var lista=[],chaves=Object.keys(REPS);
   for(var i=0;i<chaves.length;i++){
     var cod=chaves[i],info=REPS[cod],v=m[cod]||{};
+    if(!info||!info.n||!info.r) continue;
     var qtde=v.qtde||0,vlr=v.vlr||0;
     lista.push({cod:cod,nome:info.n,uf:info.uf,regiao:info.r,reg:info.reg,cota:info.c,
       qtde:qtde,vlr:vlr,cliNov:v.cliNov||0,pedidos:v.pedidos||0,cliCompra:v.cliCompra||0,
