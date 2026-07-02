@@ -326,7 +326,8 @@ tbody tr.ns{opacity:.35;}
       <span class="ftrs-lbl">Mês:</span>
       <button class="fb" id="fm-4" onclick="mudarMes(4)">Mês 04 (Abril)</button>
       <button class="fb" id="fm-5" onclick="mudarMes(5)">Mês 05 (Maio)</button>
-      <button class="fb active" id="fm-6" onclick="mudarMes(6)">Mês 06 (Junho)</button>
+      <button class="fb" id="fm-6" onclick="mudarMes(6)">Mês 06 (Junho)</button>
+      <button class="fb active" id="fm-7" onclick="mudarMes(7)">Mês 07 (Julho)</button>
     </div>
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
@@ -537,7 +538,7 @@ var dDia=[
   {cod:'07608',vlr:12641.3,qtde:97,pedidos:2,cliNov:0,cliCompra:2,ticket:130.32}
 ];
 var filtroAtual='acumulado';
-var mesAtual=6, semanaAtual=12;
+var mesAtual=7, semanaAtual=12;
 var dMesDados={}, dSemDados={};
 var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null,chartMes=null,chartSem=null,chartDia=null;
 var chartRefBarras=null;
@@ -4398,7 +4399,7 @@ function initRefSelect(){
 function fmtBR(n){return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtInt(n){return n.toLocaleString('pt-BR',{maximumFractionDigits:0});}
 function setText(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
-function corBarra(p){return p>=100?'#3ecf72':p>=75?'#c9a84c':p>=50?'#e8c97a':p>0?'#e8c97a':'#444';}
+function corBarra(p){return p>=100?'#3ecf72':p>=75?'#7ed957':p>=50?'#e8c97a':p>0?'#e8c97a':'#444';}
 
 function buildLista(dados){
   var m={};for(var i=0;i<dados.length;i++)m[dados[i].cod]=dados[i];
@@ -4789,19 +4790,30 @@ var OP_FAT = {
 
 // Storage em memória (persiste enquanto página aberta)
 // Carrega do localStorage se disponível
+// Faturamento real já ocorrido em meses anteriores ao início da programação jul-nov
+var OP_FAT_REAL = {6:745};
+
 function opLoad(){
   try {
     var f = localStorage.getItem('rdg_op_fat');
     if(f) OP_FAT = JSON.parse(f);
     var c = localStorage.getItem('rdg_op_corte');
     if(c) OP_CORTE_DIAS = Object.assign(OP_CORTE_DIAS, JSON.parse(c));
+    var fr = localStorage.getItem('rdg_op_fat_real');
+    if(fr) OP_FAT_REAL = Object.assign(OP_FAT_REAL, JSON.parse(fr));
   } catch(e){}
 }
 function opSave(){
   try {
     localStorage.setItem('rdg_op_fat', JSON.stringify(OP_FAT));
     localStorage.setItem('rdg_op_corte', JSON.stringify(OP_CORTE_DIAS));
+    localStorage.setItem('rdg_op_fat_real', JSON.stringify(OP_FAT_REAL));
   } catch(e){}
+}
+function opSetFatReal(mes, val){
+  OP_FAT_REAL[mes] = parseInt(val)||0;
+  opSave();
+  renderOpComparativo();
 }
 
 function opSemCor(val, meta, limAma){
@@ -5122,51 +5134,72 @@ function opSetCorte(key, val){
 }
 
 function renderOpComparativo(){
-  // Comparativo por mês: corte acumulado no mês vs faturamento previsto no mês
+  // Comparativo mês a mês: corte acumulado no mês vs faturamento (real ou previsto)
+  var nomesMes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   var mesesMap = {};
+
+  // Meses jul-nov: faturamento previsto vem de OP_SEMANAS/OP_FAT
   OP_SEMANAS.forEach(function(p){
-    if(!mesesMap[p.mesNum]) mesesMap[p.mesNum]={nome:p.mesNome, periodos:[], fatTotal:0};
-    mesesMap[p.mesNum].periodos.push(p);
+    if(!mesesMap[p.mesNum]) mesesMap[p.mesNum]={nome:p.mesNome, fatTotal:0, real:false};
     mesesMap[p.mesNum].fatTotal += opGetFatSem(p.id);
   });
 
-  // Calcula corte por mês usando os dias registrados
+  // Meses mar-jun: faturamento real (OP_FAT_REAL), editável
+  [3,4,5,6].forEach(function(mes){
+    if(!mesesMap[mes]) mesesMap[mes] = {nome:nomesMes[mes-1], fatTotal:0, real:true};
+    mesesMap[mes].fatTotal = OP_FAT_REAL[mes]||0;
+    mesesMap[mes].real = true;
+  });
+
+  // Calcula corte por mês usando os dias registrados (cobre mar em diante)
   Object.keys(OP_CORTE_DIAS).forEach(function(key){
     var partes = key.split('/');
     var mes = parseInt(partes[1]);
-    if(mesesMap[mes]){
-      if(!mesesMap[mes].corteTotal) mesesMap[mes].corteTotal=0;
-      mesesMap[mes].corteTotal += OP_CORTE_DIAS[key];
-    }
+    if(!mesesMap[mes]) mesesMap[mes] = {nome:nomesMes[mes-1], fatTotal:0, real:mes<7};
+    if(!mesesMap[mes].corteTotal) mesesMap[mes].corteTotal=0;
+    mesesMap[mes].corteTotal += OP_CORTE_DIAS[key];
   });
 
   var html = '';
   var temDados = false;
+  var saldoAcumulado = 0;
+  var mesesOrdenados = Object.keys(mesesMap).map(Number).sort(function(a,b){return a-b;});
 
-  Object.keys(mesesMap).sort(function(a,b){return a-b;}).forEach(function(mesNum){
+  mesesOrdenados.forEach(function(mesNum){
     var m = mesesMap[mesNum];
     var cortado = m.corteTotal||0;
-    var previsto = m.fatTotal||0;
-    if(cortado===0 && previsto===0) return;
+    var faturado = m.fatTotal||0;
+    if(cortado===0 && faturado===0) return;
     temDados = true;
 
-    var maxBar = Math.max(cortado, previsto, 1);
+    var saldoMes = cortado - faturado;
+    saldoAcumulado += saldoMes;
+
+    var maxBar = Math.max(cortado, faturado, 1);
     var wC = (cortado/maxBar*100).toFixed(1);
-    var wP = (previsto/maxBar*100).toFixed(1);
-    var saldo = cortado - previsto;
-    var corSaldo = saldo>=0?'#3ecf72':'#e05c5c';
+    var wP = (faturado/maxBar*100).toFixed(1);
+    var corSaldoMes = saldoMes>=0?'#3ecf72':'#e05c5c';
+    var corSaldoAcum = saldoAcumulado>=0?'#3ecf72':'#e05c5c';
     var corCorte = opCorteCor(cortado,24000);
-    var corCorteStyle = corCorte==='verde'?'#3ecf72':corCorte==='amarelo'?'#e8c97a':'#e05c5c';
-    var corFat = opSemCor(previsto,22000,26000);
+    var corCorteStyle = corCorte==='verde'?'#3ecf72':corCorte==='amarelo'?'#e8c97a':corCorte==='vermelho'?'#e05c5c':'var(--muted)';
+    var corFat = opSemCor(faturado,22000,26000);
     var corFatStyle = corFat==='verde'?'#3ecf72':corFat==='amarelo'?'#e8c97a':corFat==='vermelho'?'#e05c5c':'var(--muted)';
+    var labelFat = m.real ? '💰 Faturado' : '📦 Previsto Fat.';
 
     html += '<div class="op-comp-card" style="min-width:260px">';
     html += '<div class="sem-lbl" style="color:var(--gold);font-weight:700;font-size:.85rem;margin-bottom:10px;">'+m.nome+'</div>';
     html += '<div class="op-comp-row"><span>✂️ Cortado</span><strong style="color:'+corCorteStyle+'">'+fmtInt(cortado)+'</strong></div>';
     html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wC+'%;background:'+corCorteStyle+'88;"></div></div>';
-    html += '<div class="op-comp-row" style="margin-top:6px"><span>📦 Previsto Fat.</span><strong style="color:'+corFatStyle+'">'+fmtInt(previsto)+'</strong></div>';
+    html += '<div class="op-comp-row" style="margin-top:6px"><span>'+labelFat+'</span>';
+    if(m.real){
+      html += '<input type="number" min="0" value="'+(faturado||'')+'" placeholder="0" style="width:70px;text-align:right;color:'+corFatStyle+';background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:2px 4px;font-weight:700" onchange="opSetFatReal('+mesNum+',this.value)" onfocus="this.select()">';
+    } else {
+      html += '<strong style="color:'+corFatStyle+'">'+fmtInt(faturado)+'</strong>';
+    }
+    html += '</div>';
     html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wP+'%;background:'+corFatStyle+'88;"></div></div>';
-    html += '<div class="op-comp-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span>Saldo corte</span><strong style="color:'+corSaldo+'">'+(saldo>=0?'+':'')+fmtInt(saldo)+'</strong></div>';
+    html += '<div class="op-comp-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span>Saldo do mês</span><strong style="color:'+corSaldoMes+'">'+(saldoMes>=0?'+':'')+fmtInt(saldoMes)+'</strong></div>';
+    html += '<div class="op-comp-row" style="margin-top:4px;"><span style="color:var(--muted);font-size:.72rem">Saldo acumulado</span><strong style="color:'+corSaldoAcum+';font-size:.85rem">'+(saldoAcumulado>=0?'+':'')+fmtInt(saldoAcumulado)+'</strong></div>';
     html += '</div>';
   });
 
@@ -5194,7 +5227,7 @@ function mudarFiltro(f){
 }
 function mudarMes(m){
   mesAtual=m;
-  [4,5,6].forEach(function(n){var el=document.getElementById('fm-'+n);if(el)el.classList.toggle('active',n===m);});
+  [4,5,6,7].forEach(function(n){var el=document.getElementById('fm-'+n);if(el)el.classList.toggle('active',n===m);});
   var nomes={4:'Mês 04 (Abril)',5:'Mês 05 (Maio)'};
   var el=document.getElementById('titulo-mes');if(el)el.textContent='Peças por Mês - '+nomes[m];
   var listaMes=buildLista(dMesDados[m]||[]);
@@ -5396,14 +5429,15 @@ dSemDados={
     {cod:'00018',vlr:3544.735,qtde:27,pedidos:1,cliNov:0,cliCompra:1,ticket:131.29}
   ],
   12:[
-    {cod:'00037',vlr:153625.8,qtde:1222,pedidos:7,cliNov:0,cliCompra:7,ticket:125.72},
-    {cod:'06672',vlr:132515.8,qtde:1042,pedidos:5,cliNov:1,cliCompra:5,ticket:127.17},
-    {cod:'00045',vlr:97602.1,qtde:769,pedidos:4,cliNov:1,cliCompra:4,ticket:126.92},
-    {cod:'07606',vlr:63698.1,qtde:509,pedidos:3,cliNov:0,cliCompra:3,ticket:125.14},
+    {cod:'00037',vlr:186430.5,qtde:1495,pedidos:9,cliNov:2,cliCompra:9,ticket:124.70},
+    {cod:'00045',vlr:159674.4,qtde:1246,pedidos:6,cliNov:1,cliCompra:6,ticket:128.15},
+    {cod:'06672',vlr:146229.6,qtde:1144,pedidos:6,cliNov:1,cliCompra:6,ticket:127.82},
+    {cod:'07606',vlr:71828.6,qtde:574,pedidos:4,cliNov:1,cliCompra:4,ticket:125.14},
+    {cod:'00032',vlr:47974.0,qtde:400,pedidos:3,cliNov:0,cliCompra:3,ticket:119.94},
+    {cod:'07608',vlr:26902.1,qtde:199,pedidos:4,cliNov:0,cliCompra:4,ticket:135.19},
     {cod:'00040',vlr:25381.1,qtde:189,pedidos:1,cliNov:0,cliCompra:1,ticket:134.29},
-    {cod:'00032',vlr:24698.6,qtde:204,pedidos:1,cliNov:0,cliCompra:1,ticket:121.07},
     {cod:'00052',vlr:20843.3,qtde:167,pedidos:1,cliNov:0,cliCompra:1,ticket:124.81},
-    {cod:'07608',vlr:12641.3,qtde:97,pedidos:2,cliNov:0,cliCompra:2,ticket:130.32}
+    {cod:'06693',vlr:10718.3,qtde:87,pedidos:1,cliNov:0,cliCompra:1,ticket:123.20}
   ]
 };
 
@@ -5445,7 +5479,7 @@ dMesDados={
     {cod:'00035',vlr:12136.5,qtde:85,pedidos:1,cliNov:0,cliCompra:1,ticket:142.78}
   ],
   6:[
-    {cod:'00037',vlr:629097.2,qtde:4968,pedidos:27,cliNov:1,cliCompra:27,ticket:126.63},
+    {cod:'00037',vlr:626476.1,qtde:4949,pedidos:27,cliNov:1,cliCompra:27,ticket:126.59},
     {cod:'00045',vlr:534678.185,qtde:4240,pedidos:23,cliNov:2,cliCompra:23,ticket:126.10},
     {cod:'00032',vlr:466658.41,qtde:3805,pedidos:29,cliNov:3,cliCompra:29,ticket:122.64},
     {cod:'06672',vlr:356035.7,qtde:2743,pedidos:13,cliNov:2,cliCompra:13,ticket:129.80},
@@ -5462,23 +5496,32 @@ dMesDados={
     {cod:'07741',vlr:27899.7,qtde:223,pedidos:3,cliNov:3,cliCompra:3,ticket:125.11},
     {cod:'00052',vlr:20843.3,qtde:167,pedidos:1,cliNov:0,cliCompra:1,ticket:124.81},
     {cod:'06008',vlr:16799.7,qtde:133,pedidos:2,cliNov:0,cliCompra:2,ticket:126.31}
+  ],
+  7:[
+    {cod:'00045',vlr:62072.3,qtde:477,pedidos:2,cliNov:0,cliCompra:2,ticket:130.13},
+    {cod:'00037',vlr:32804.7,qtde:273,pedidos:2,cliNov:2,cliCompra:2,ticket:120.16},
+    {cod:'00032',vlr:23275.4,qtde:196,pedidos:2,cliNov:0,cliCompra:2,ticket:118.75},
+    {cod:'07608',vlr:14260.8,qtde:102,pedidos:2,cliNov:0,cliCompra:2,ticket:139.81},
+    {cod:'06672',vlr:13713.8,qtde:102,pedidos:1,cliNov:0,cliCompra:1,ticket:134.45},
+    {cod:'06693',vlr:10718.3,qtde:87,pedidos:1,cliNov:0,cliCompra:1,ticket:123.20},
+    {cod:'07606',vlr:8130.5,qtde:65,pedidos:1,cliNov:1,cliCompra:1,ticket:125.08}
   ]
 };
 
-dMes=dMesDados[6];
+dMes=dMesDados[7];
 dSem=dSemDados[12];
 
 dAcum=[
-  {cod:'00032',vlr:1616076.117,qtde:13092,pedidos:86,cliNov:8,cliCompra:86,ticket:123.44},
-  {cod:'00037',vlr:1215625.2,qtde:9538,pedidos:53,cliNov:3,cliCompra:53,ticket:127.45},
+  {cod:'00032',vlr:1639351.517,qtde:13288,pedidos:88,cliNov:8,cliCompra:88,ticket:123.37},
+  {cod:'00037',vlr:1245808.8,qtde:9792,pedidos:55,cliNov:5,cliCompra:55,ticket:127.23},
   {cod:'00018',vlr:1124621.352,qtde:9017,pedidos:48,cliNov:7,cliCompra:48,ticket:124.72},
-  {cod:'00045',vlr:822390.885,qtde:6433,pedidos:39,cliNov:6,cliCompra:39,ticket:127.84},
-  {cod:'07606',vlr:618659.0,qtde:4790,pedidos:28,cliNov:8,cliCompra:28,ticket:129.16},
+  {cod:'00045',vlr:884463.185,qtde:6910,pedidos:41,cliNov:6,cliCompra:41,ticket:128.00},
+  {cod:'07606',vlr:626789.5,qtde:4855,pedidos:29,cliNov:9,cliCompra:29,ticket:129.10},
   {cod:'07607',vlr:606367.713,qtde:4814,pedidos:28,cliNov:11,cliCompra:28,ticket:125.96},
   {cod:'00052',vlr:586648.2,qtde:4608,pedidos:20,cliNov:5,cliCompra:20,ticket:127.31},
-  {cod:'06693',vlr:534811.81,qtde:4298,pedidos:23,cliNov:2,cliCompra:23,ticket:124.43},
-  {cod:'06672',vlr:458577.4,qtde:3526,pedidos:19,cliNov:3,cliCompra:19,ticket:130.06},
-  {cod:'07608',vlr:318623.005,qtde:2466,pedidos:18,cliNov:6,cliCompra:18,ticket:129.21},
+  {cod:'06693',vlr:545530.11,qtde:4385,pedidos:24,cliNov:2,cliCompra:24,ticket:124.41},
+  {cod:'06672',vlr:472291.2,qtde:3628,pedidos:20,cliNov:3,cliCompra:20,ticket:130.18},
+  {cod:'07608',vlr:332883.805,qtde:2568,pedidos:20,cliNov:6,cliCompra:20,ticket:129.63},
   {cod:'07891',vlr:275432.3,qtde:2270,pedidos:16,cliNov:12,cliCompra:16,ticket:121.34},
   {cod:'00040',vlr:189088.6,qtde:1544,pedidos:12,cliNov:1,cliCompra:12,ticket:122.47},
   {cod:'06008',vlr:170296.4,qtde:1306,pedidos:15,cliNov:0,cliCompra:15,ticket:130.40},
