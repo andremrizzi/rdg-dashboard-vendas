@@ -268,6 +268,10 @@ tbody tr.ns{opacity:.35;}
 
 <!-- ===== GERENCIAL ===== -->
 <div class="view active" id="view-gerencial">
+  <div style="display:flex;justify-content:flex-end;gap:14px;font-size:.72rem;color:var(--muted);margin-bottom:8px;flex-wrap:wrap;">
+    <span>🔄 Atualizado em: <strong id="dt-atualizado" style="color:var(--gold)">--</strong></span>
+    <span>📊 Dados até: <strong id="dt-dadosate" style="color:var(--gold)">--</strong></span>
+  </div>
   <div class="periodo">
     <div class="p-info">
       <div class="p-lbl">Progresso da Colecao - Verao 2027</div>
@@ -349,7 +353,8 @@ tbody tr.ns{opacity:.35;}
       <button class="fb" id="fs-9" onclick="mudarSemana(9)">Semana 9</button>
       <button class="fb" id="fs-10" onclick="mudarSemana(10)">Semana 10</button>
       <button class="fb" id="fs-11" onclick="mudarSemana(11)">Semana 11</button>
-      <button class="fb active" id="fs-12" onclick="mudarSemana(12)">Semana 12</button>
+      <button class="fb" id="fs-12" onclick="mudarSemana(12)">Semana 12</button>
+      <button class="fb active" id="fs-13" onclick="mudarSemana(13)">Semana 13</button>
     </div>
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Representante</th><th>Regiao</th><th>Qtde</th><th>Ticket Medio</th><th>Cli. Novos</th><th>Qt.Cli.Compra</th><th>Status</th></tr></thead>
@@ -530,19 +535,19 @@ var HIST_V26={'00032':17894,'00045':14360,'00018':12969,'00037':12144,'00020':11
 var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060','#9b7fd4','#5ec4a8','#e8a860','#7090d0','#d07090','#90d070','#d0a040','#70c0d0','#c070c0','#a0c060','#c09050','#6080c0','#b06060','#60b080','#a06082','#80a060'];
 
 var dDia=[
-  {cod:'00045',vlr:103112.7,qtde:813,pedidos:4,cliNov:0,cliCompra:4,ticket:126.83},
-  {cod:'06672',vlr:74344.6,qtde:594,pedidos:2,cliNov:0,cliCompra:2,ticket:125.16},
-  {cod:'00032',vlr:68229.1,qtde:529,pedidos:5,cliNov:0,cliCompra:5,ticket:128.98},
-  {cod:'00037',vlr:51472.8,qtde:402,pedidos:2,cliNov:0,cliCompra:2,ticket:128.04},
-  {cod:'00018',vlr:40016.945,qtde:289,pedidos:5,cliNov:4,cliCompra:5,ticket:138.47},
-  {cod:'00020',vlr:37556.5,qtde:315,pedidos:4,cliNov:0,cliCompra:4,ticket:119.23},
-  {cod:'07320',vlr:25032.8,qtde:202,pedidos:1,cliNov:0,cliCompra:1,ticket:123.92},
-  {cod:'07608',vlr:13882.2,qtde:108,pedidos:1,cliNov:0,cliCompra:1,ticket:128.54},
-  {cod:'00052',vlr:11490.7,qtde:83,pedidos:1,cliNov:0,cliCompra:1,ticket:138.44},
-  {cod:'06008',vlr:7735.6,qtde:64,pedidos:1,cliNov:0,cliCompra:1,ticket:120.87}
+  {cod:'00045',vlr:39395.4,qtde:326,pedidos:3,cliNov:0,cliCompra:3,ticket:120.84},
+  {cod:'00037',vlr:5032.3,qtde:37,pedidos:1,cliNov:0,cliCompra:1,ticket:136.01}
 ];
 var filtroAtual='acumulado';
-var mesAtual=7, semanaAtual=12;
+var mesAtual=7, semanaAtual=13;
+var DATA_ATUALIZACAO='07/07/2026';
+var DATA_DADOS_ATE='06/07/2026';
+function renderDatasAtualizacao(){
+  var a=document.getElementById('dt-atualizado');
+  var b=document.getElementById('dt-dadosate');
+  if(a) a.textContent=DATA_ATUALIZACAO;
+  if(b) b.textContent=DATA_DADOS_ATE;
+}
 var dMesDados={}, dSemDados={};
 var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp=null,chartMes=null,chartSem=null,chartDia=null;
 var chartRefBarras=null;
@@ -4698,7 +4703,7 @@ function renderTop5(listaAcum){
 }
 
 function renderGrupo(){
-  var sn=12,sp='29/06 a 05/07',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
+  var sn=13,sp='06/07 a 12/07',msg='A colecao Verao 2027 esta em ritmo! Cada visita, cada pedido conta. Vamos juntos para o melhor resultado!',falt=Math.max(0,24-sn);
   setText('g-semn',sn);setText('g-per',sp);setText('g-falt',falt);
   var listaAcum=buildLista(dAcum),listaSem=buildLista(dSem);
   var dest=calcDestaques(listaSem);
@@ -5336,7 +5341,7 @@ function mudarMes(m){
 }
 function mudarSemana(s){
   semanaAtual=s;
-  [1,2,3,4,5,6,7,8,9,10,11,12].forEach(function(n){var el=document.getElementById('fs-'+n);if(el)el.classList.toggle('active',n===s);});
+  [1,2,3,4,5,6,7,8,9,10,11,12,13].forEach(function(n){var el=document.getElementById('fs-'+n);if(el)el.classList.toggle('active',n===s);});
   var el=document.getElementById('titulo-sem');if(el)el.textContent='Peças por Semana - Semana '+s;
   var listaSem=buildLista(dSemDados[s]||[]);
   var laAcum=buildLista(dAcum);
@@ -5345,7 +5350,7 @@ function mudarSemana(s){
   // Gráfico evolução de peças por semana (sem 1 a 5)
   var ctx=document.getElementById('c-sem').getContext('2d');
   if(chartSem)chartSem.destroy();
-  var sems=[1,2,3,4,5,6,7,8,9,10,11,12];
+  var sems=[1,2,3,4,5,6,7,8,9,10,11,12,13];
   var totaisSem=sems.map(function(n){
     return (dSemDados[n]||[]).reduce(function(acc,r){return acc+r.qtde;},0);
   });
@@ -5357,16 +5362,8 @@ function mudarSemana(s){
 // DADOS VENDAS
 // ============================================================
 dDia=[
-  {cod:'00045',vlr:103112.7,qtde:813,pedidos:4,cliNov:0,cliCompra:4,ticket:126.83},
-  {cod:'06672',vlr:74344.6,qtde:594,pedidos:2,cliNov:0,cliCompra:2,ticket:125.16},
-  {cod:'00032',vlr:68229.1,qtde:529,pedidos:5,cliNov:0,cliCompra:5,ticket:128.98},
-  {cod:'00037',vlr:51472.8,qtde:402,pedidos:2,cliNov:0,cliCompra:2,ticket:128.04},
-  {cod:'00018',vlr:40016.945,qtde:289,pedidos:5,cliNov:4,cliCompra:5,ticket:138.47},
-  {cod:'00020',vlr:37556.5,qtde:315,pedidos:4,cliNov:0,cliCompra:4,ticket:119.23},
-  {cod:'07320',vlr:25032.8,qtde:202,pedidos:1,cliNov:0,cliCompra:1,ticket:123.92},
-  {cod:'07608',vlr:13882.2,qtde:108,pedidos:1,cliNov:0,cliCompra:1,ticket:128.54},
-  {cod:'00052',vlr:11490.7,qtde:83,pedidos:1,cliNov:0,cliCompra:1,ticket:138.44},
-  {cod:'06008',vlr:7735.6,qtde:64,pedidos:1,cliNov:0,cliCompra:1,ticket:120.87}
+  {cod:'00045',vlr:39395.4,qtde:326,pedidos:3,cliNov:0,cliCompra:3,ticket:120.84},
+  {cod:'00037',vlr:5032.3,qtde:37,pedidos:1,cliNov:0,cliCompra:1,ticket:136.01}
 ];
 
 dSemDados={
@@ -5521,7 +5518,7 @@ dSemDados={
     {cod:'06672',vlr:4818.7,qtde:33,pedidos:1,cliNov:0,cliCompra:1,ticket:146.02},
     {cod:'00018',vlr:3544.735,qtde:27,pedidos:1,cliNov:0,cliCompra:1,ticket:131.29}
   ],
-12:[
+  12:[
     {cod:'00045',vlr:320661.7,qtde:2543,pedidos:12,cliNov:1,cliCompra:12,ticket:126.10},
     {cod:'06672',vlr:206860.4,qtde:1636,pedidos:7,cliNov:1,cliCompra:7,ticket:126.44},
     {cod:'00037',vlr:202900.9,qtde:1631,pedidos:10,cliNov:2,cliCompra:10,ticket:124.40},
@@ -5537,6 +5534,10 @@ dSemDados={
     {cod:'07607',vlr:16602.9,qtde:131,pedidos:1,cliNov:0,cliCompra:1,ticket:126.74},
     {cod:'06008',vlr:12605.0,qtde:100,pedidos:2,cliNov:0,cliCompra:2,ticket:126.05},
     {cod:'06693',vlr:10718.3,qtde:87,pedidos:1,cliNov:0,cliCompra:1,ticket:123.20}
+  ],
+  13:[
+    {cod:'00045',vlr:39395.4,qtde:326,pedidos:3,cliNov:0,cliCompra:3,ticket:120.84},
+    {cod:'00037',vlr:5032.3,qtde:37,pedidos:1,cliNov:0,cliCompra:1,ticket:136.01}
   ]
 };
 
@@ -5596,9 +5597,9 @@ dMesDados={
     {cod:'00052',vlr:20843.3,qtde:167,pedidos:1,cliNov:0,cliCompra:1,ticket:124.81},
     {cod:'06008',vlr:16799.7,qtde:133,pedidos:2,cliNov:0,cliCompra:2,ticket:126.31}
   ],
-7:[
-    {cod:'00045',vlr:223059.6,qtde:1774,pedidos:8,cliNov:0,cliCompra:8,ticket:125.74},
-    {cod:'00037',vlr:100747.9,qtde:811,pedidos:5,cliNov:2,cliCompra:5,ticket:124.23},
+  7:[
+    {cod:'00045',vlr:262455.0,qtde:2100,pedidos:11,cliNov:0,cliCompra:11,ticket:124.98},
+    {cod:'00037',vlr:105780.2,qtde:848,pedidos:6,cliNov:2,cliCompra:6,ticket:124.74},
     {cod:'00032',vlr:91504.5,qtde:725,pedidos:7,cliNov:0,cliCompra:7,ticket:126.21},
     {cod:'06672',vlr:74344.6,qtde:594,pedidos:2,cliNov:0,cliCompra:2,ticket:125.16},
     {cod:'00052',vlr:41311.9,qtde:311,pedidos:2,cliNov:0,cliCompra:2,ticket:132.84},
@@ -5615,13 +5616,13 @@ dMesDados={
 };
 
 dMes=dMesDados[7];
-dSem=dSemDados[12];
+dSem=dSemDados[13];
 
 dAcum=[
   {cod:'00032',vlr:1714968.517,qtde:13868,pedidos:93,cliNov:8,cliCompra:93,ticket:123.66},
-  {cod:'00037',vlr:1262279.2,qtde:9928,pedidos:56,cliNov:5,cliCompra:56,ticket:127.14},
+  {cod:'00037',vlr:1267311.5,qtde:9965,pedidos:57,cliNov:5,cliCompra:57,ticket:127.18},
   {cod:'00018',vlr:1164638.297,qtde:9306,pedidos:53,cliNov:11,cliCompra:53,ticket:125.15},
-  {cod:'00045',vlr:1041448.135,qtde:8177,pedidos:47,cliNov:6,cliCompra:47,ticket:127.36},
+  {cod:'00045',vlr:1080843.535,qtde:8493,pedidos:50,cliNov:6,cliCompra:50,ticket:127.11},
   {cod:'00052',vlr:627960.1,qtde:4919,pedidos:22,cliNov:5,cliCompra:22,ticket:127.66},
   {cod:'07606',vlr:626789.5,qtde:4855,pedidos:29,cliNov:9,cliCompra:29,ticket:129.10},
   {cod:'07607',vlr:622970.613,qtde:4945,pedidos:29,cliNov:11,cliCompra:29,ticket:125.98},
@@ -5654,6 +5655,7 @@ initPeriodo();
 initRefSelect();
 renderGerencial();
 renderGrupo();
+renderDatasAtualizacao();
 // ============================================================
 // COMPARATIVO V26 vs V27
 // ============================================================
