@@ -5991,21 +5991,19 @@ var COMP_PERIODO = [
   {cod:'06008',nome:'GILIARDE (Maranhão)',par:'06008 - G&G',cli26:25,pc26:3249},
   {cod:'00020',nome:'LAURO',par:'00020 - LAUDEMIRO',cli26:11,pc26:2831},
   {cod:'07607',nome:'LEANDRO',par:'00036 - PROSPECTAR',cli26:13,pc26:1517},
-  {cod:'07608',nome:'ROMILDO (território 1)',par:'07388 - H.P. MARTINS',cli26:16,pc26:1515},
+  {cod:'07608',nome:'ROMILDO',par:'07388 - H.P. MARTINS / 06983 - COSTA & BUENO',cli26:17,pc26:1625},
   {cod:'07606',nome:'WELLS',par:'05611 - Z DE S SILVEIRA',cli26:14,pc26:1123},
   {cod:'00040',nome:'LUIZ APOL.',par:'00040 - LUIZ APOL.',cli26:9,pc26:712},
   {cod:'00035',nome:'GEOVANE',par:'00035 - GEOVANE',cli26:3,pc26:303},
   {cod:'07520',nome:'LUCIANO',par:'07332 - DA VITORIA',cli26:0,pc26:0},
-  {cod:'07332',nome:'ISAIAS (território 1)',par:'07332 - DI-PIEBREN',cli26:0,pc26:0},
+  {cod:'07332',nome:'ISAIAS',par:'07332 - DI-PIEBREN / 00044 - ANDERSON ALVES',cli26:3,pc26:346},
   {cod:'07890',nome:'MADSON',par:'00038 - JOSÉ CARLOS PEREIRA',cli26:8,pc26:1164},
   {cod:'07889',nome:'JUSCELINO',par:'06679 - ZORAILSON',cli26:3,pc26:476},
   {cod:'07891',nome:'ALLAN',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07892',nome:'BRUNO FERNANDES',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07741',nome:'WEMERSON',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07320',nome:'MARCOS CANDIDO',par:'07320 - ANTONIO MARCOS',cli26:3,pc26:348},
-  {cod:'06008',nome:'GILIARDE (Piauí)',par:'00049 - NORDESTE DO BRASIL',cli26:9,pc26:1005,secundario:true},
-  {cod:'07332',nome:'ISAIAS (Pernambuco)',par:'00044 - ANDERSON ALVES',cli26:3,pc26:346,secundario:true},
-  {cod:'07608',nome:'ROMILDO (território 2)',par:'06983 - COSTA & BUENO',cli26:1,pc26:110,secundario:true},
+  {cod:'GILIARDE_PIAUI',nome:'GILIARDE (Piauí)',par:'00049 - NORDESTE DO BRASIL',cli26:9,pc26:1005},
   {cod:'SEM_PAR_BABILONIA',nome:'— (sem rep atual)',par:'07319 - BABILÔNIA',cli26:3,pc26:137},
 ];
 
@@ -6075,7 +6073,7 @@ function renderComparativoAba(){
     totCli26+=r.cli26; totPc26+=r.pc26; totAbert+=(r.secundario?0:abert);
     if(!r.secundario){ totCli27+=cli27; totPc27+=pc27; }
     h1+='<tr style="background:'+bg+';border-bottom:1px solid var(--border)'+(r.secundario?';opacity:.75':'')+'">';
-    h1+='<td style="padding:7px 10px;font-weight:600">'+r.nome+(r.secundario?' <span style="font-size:.62rem;color:var(--gold);font-weight:400">(2º território — já contado no total)</span>':'')+'</td>';
+    h1+='<td style="padding:7px 10px;font-weight:600">'+r.nome+'</td>';
     h1+='<td style="padding:7px 10px;color:var(--muted);font-size:.75rem">'+r.par+'</td>';
     h1+='<td style="text-align:right;padding:7px 10px">'+r.cli26+'</td>';
     h1+='<td style="text-align:right;padding:7px 10px;font-weight:600">'+cli27+'</td>';
