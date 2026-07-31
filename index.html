@@ -569,9 +569,9 @@ var dDia=[
 ];
 var filtroAtual='acumulado';
 var mesAtual=7, semanaAtual=16;
-var DATA_ATUALIZACAO='04/08/2026';
-var DATA_DADOS_ATE='03/08/2026';
-var REF_DATA_ATUALIZACAO='02/08/2026';
+var DATA_ATUALIZACAO='31/07/2026';
+var DATA_DADOS_ATE='30/07/2026';
+var REF_DATA_ATUALIZACAO='29/07/2026';
 var REF_DATA_VENDA_ATE='29/07/2026';
 function renderDatasAtualizacao(){
   var a=document.getElementById('dt-atualizado');
@@ -5440,16 +5440,20 @@ var OP_CORTE_DIAS = {
   '21/07/2026': 1370,
   '22/07/2026': 1447,
   '23/07/2026': 1303,
-  '24/07/2026': 1027
+  '24/07/2026': 1027,
+  '27/07/2026': 998,
+  '28/07/2026': 841,
+  '29/07/2026': 769,
+  '30/07/2026': 1283
 };
 
 // Faturamento previsto por período (id -> valor) - pré-carregado
 var OP_FAT = {
-  'fp_7_0':4744,'fp_7_1':6058,'fp_7_2':5708,'fp_7_3':5457,
-  'fp_8_0':7810,'fp_8_1':7104,'fp_8_2':5016,'fp_8_3':8951,
-  'fp_9_0':6920,'fp_9_1':10038,'fp_9_2':4537,'fp_9_3':2329,
-  'fp_10_0':8231,'fp_10_1':3767,'fp_10_2':2611,'fp_10_3':1024,
-  'fp_11_0':2248,'fp_11_1':1422,'fp_11_2':1501,'fp_11_3':115
+  'fp_7_0':4742,'fp_7_1':5757,'fp_7_2':5230,'fp_7_3':5380,
+  'fp_8_0':7650,'fp_8_1':7066,'fp_8_2':4980,'fp_8_3':9017,
+  'fp_9_0':6501,'fp_9_1':12964,'fp_9_2':4636,'fp_9_3':2538,
+  'fp_10_0':8393,'fp_10_1':4167,'fp_10_2':3041,'fp_10_3':1251,
+  'fp_11_0':2442,'fp_11_1':1771,'fp_11_2':1616,'fp_11_3':262
 };
 
 // Storage em memória (persiste enquanto página aberta)
@@ -5460,43 +5464,51 @@ var OP_FAT_REAL = {6:745,7:14542};
 var OP_FAT_SEMANAL = [
   {n:1,periodo:'29/06 a 05/07',valor:1981},
   {n:2,periodo:'06/07 a 12/07',valor:2761},
-  {n:3,periodo:'13/07 a 19/07',valor:6503},
-  {n:4,periodo:'20/07 a 26/07',valor:5046},
-  {n:5,periodo:'27/07 a 02/08',valor:5457},
-  {n:6,periodo:'03/08 a 09/08',valor:7772},
-  {n:7,periodo:'10/08 a 16/08',valor:7104},
-  {n:8,periodo:'17/08 a 23/08',valor:5016},
-  {n:9,periodo:'24/08 a 30/08',valor:7608},
-  {n:10,periodo:'31/08 a 06/09',valor:7822},
-  {n:11,periodo:'07/09 a 13/09',valor:7581},
-  {n:12,periodo:'14/09 a 20/09',valor:3927},
-  {n:13,periodo:'21/09 a 27/09',valor:3663},
-  {n:14,periodo:'28/09 a 04/10',valor:4849},
-  {n:15,periodo:'05/10 a 11/10',valor:5556},
-  {n:16,periodo:'12/10 a 18/10',valor:3983},
-  {n:17,periodo:'19/10 a 25/10',valor:2395},
-  {n:18,periodo:'26/10 a 01/11',valor:1024},
-  {n:19,periodo:'02/11 a 08/11',valor:2248},
-  {n:20,periodo:'09/11 a 15/11',valor:1422},
-  {n:21,periodo:'16/11 a 22/11',valor:1033},
-  {n:22,periodo:'23/11 a 30/11',valor:583}
+  {n:3,periodo:'13/07 a 19/07',valor:6203},
+  {n:4,periodo:'20/07 a 26/07',valor:4784},
+  {n:5,periodo:'27/07 a 02/08',valor:5380},
+  {n:6,periodo:'03/08 a 09/08',valor:7650},
+  {n:7,periodo:'10/08 a 16/08',valor:7066},
+  {n:8,periodo:'17/08 a 23/08',valor:4980},
+  {n:9,periodo:'24/08 a 30/08',valor:7685},
+  {n:10,periodo:'31/08 a 06/09',valor:7747},
+  {n:11,periodo:'07/09 a 13/09',valor:7967},
+  {n:12,periodo:'14/09 a 20/09',valor:6155},
+  {n:13,periodo:'21/09 a 27/09',valor:3719},
+  {n:14,periodo:'28/09 a 04/10',valor:5058},
+  {n:15,periodo:'05/10 a 11/10',valor:5718},
+  {n:16,periodo:'12/10 a 18/10',valor:4383},
+  {n:17,periodo:'19/10 a 25/10',valor:2825},
+  {n:18,periodo:'26/10 a 01/11',valor:1251},
+  {n:19,periodo:'02/11 a 08/11',valor:2442},
+  {n:20,periodo:'09/11 a 15/11',valor:1771},
+  {n:21,periodo:'16/11 a 22/11',valor:1148},
+  {n:22,periodo:'23/11 a 30/11',valor:730}
 ];
 function renderOpFatSemanal(){
   var el = document.getElementById('op-fat-semanal-blocks');
   if(!el) return;
+  var IDEAL_SEMANAL = 6000;
   var total = OP_FAT_SEMANAL.reduce(function(s,w){return s+w.valor;},0);
-  var maxVal = Math.max.apply(null, OP_FAT_SEMANAL.map(function(w){return w.valor;}));
+  var maxVal = Math.max.apply(null, OP_FAT_SEMANAL.map(function(w){return w.valor;}).concat([IDEAL_SEMANAL]));
+  var markerPct = (IDEAL_SEMANAL/maxVal*100).toFixed(1);
   var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">';
   OP_FAT_SEMANAL.forEach(function(w){
     var pct = maxVal>0 ? (w.valor/maxVal*100) : 0;
+    var cor = opSemCor(w.valor, IDEAL_SEMANAL, IDEAL_SEMANAL*1.25);
+    var corStyle = cor==='verde'?'#3ecf72':cor==='amarelo'?'#e8c97a':cor==='vermelho'?'#e05c5c':'var(--muted)';
     html += '<div class="op-comp-card">';
     html += '<div class="sem-lbl">Semana '+w.n+' — '+w.periodo+'</div>';
-    html += '<div style="font-size:1.1rem;font-weight:700;color:var(--gold)">'+w.valor.toLocaleString('pt-BR')+'</div>';
-    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+pct.toFixed(1)+'%;background:var(--gold);"></div></div>';
+    html += '<div style="font-size:1.1rem;font-weight:700;color:'+corStyle+'">'+w.valor.toLocaleString('pt-BR')+'</div>';
+    html += '<div class="op-comp-bar-wrap" style="position:relative;">';
+    html += '<div class="op-comp-bar" style="width:'+pct.toFixed(1)+'%;background:'+corStyle+';"></div>';
+    html += '<div style="position:absolute;top:-2px;left:'+markerPct+'%;width:2px;height:9px;background:var(--white);opacity:.6;"></div>';
+    html += '</div>';
     html += '</div>';
   });
   html += '</div>';
-  html += '<div style="margin-top:14px;font-size:.85rem;color:var(--muted);">Total programado (22 semanas): <strong style="color:var(--white)">'+total.toLocaleString('pt-BR')+'</strong></div>';
+  html += '<div style="margin-top:10px;font-size:.7rem;color:var(--muted);">🏳️ Linha branca = capacidade normal de '+IDEAL_SEMANAL.toLocaleString('pt-BR')+'/semana &nbsp;|&nbsp; 🟢 dentro da capacidade &nbsp; 🟡 até 25% acima &nbsp; 🔴 mais de 25% acima da capacidade</div>';
+  html += '<div style="margin-top:6px;font-size:.85rem;color:var(--muted);">Total programado (22 semanas): <strong style="color:var(--white)">'+total.toLocaleString('pt-BR')+'</strong></div>';
   el.innerHTML = html;
 }
 
