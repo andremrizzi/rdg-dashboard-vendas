@@ -6547,30 +6547,30 @@ renderDatasAtualizacao();
 // Dados Verão 2026 ATÉ 22/06 (mesmo corte de data)
 // {cod27: código do rep 2027, par26: nome do par histórico, cli26, pc26}
 var COMP_PERIODO = [
-  {cod:'00032',nome:'EMANUEL',par:'00032 - EMANUEL',cli26:107,pc26:14970},
-  {cod:'00018',nome:'RAFAEL',par:'00018 - RAFAEL',cli26:59,pc26:10044},
-  {cod:'00037',nome:'MARCIO',par:'00037 - MARCIO',cli26:60,pc26:9656},
-  {cod:'00045',nome:'SILVIO',par:'00045 - SVF',cli26:68,pc26:9949},
-  {cod:'06693',nome:'JOSÉ PEDRO',par:'06693 - GIACOMINI',cli26:42,pc26:4768},
-  {cod:'06672',nome:'DANILO',par:'06672 - DANILO CRUZ',cli26:44,pc26:6314},
-  {cod:'00052',nome:'MANO',par:'00052 - MANO',cli26:34,pc26:3886},
-  {cod:'06008',nome:'GILIARDE (Maranhão)',par:'06008 - G&G',cli26:37,pc26:4291},
-  {cod:'00020',nome:'LAURO',par:'00020 - LAUDEMIRO',cli26:28,pc26:4917},
-  {cod:'07607',nome:'LEANDRO',par:'00036 - PROSPECTAR',cli26:18,pc26:1817},
-  {cod:'07608',nome:'ROMILDO',par:'07388 - H.P. MARTINS / 06983 - COSTA & BUENO',cli26:26,pc26:2522},
-  {cod:'07606',nome:'WELLS',par:'05611 - Z DE S SILVEIRA',cli26:20,pc26:2346},
-  {cod:'00040',nome:'LUIZ APOL.',par:'00040 - LUIZ APOL.',cli26:13,pc26:1002},
-  {cod:'00035',nome:'GEOVANE',par:'00035 - GEOVANE',cli26:3,pc26:303},
+  {cod:'00032',nome:'EMANUEL',par:'00032 - EMANUEL',cli26:112,pc26:15697},
+  {cod:'00018',nome:'RAFAEL',par:'00018 - RAFAEL',cli26:60,pc26:10155},
+  {cod:'00037',nome:'MARCIO',par:'00037 - MARCIO',cli26:65,pc26:10324},
+  {cod:'00045',nome:'SILVIO',par:'00045 - SVF',cli26:75,pc26:11104},
+  {cod:'06693',nome:'JOSÉ PEDRO',par:'06693 - GIACOMINI',cli26:43,pc26:4866},
+  {cod:'06672',nome:'DANILO',par:'06672 - DANILO CRUZ',cli26:48,pc26:6995},
+  {cod:'00052',nome:'MANO',par:'00052 - MANO',cli26:38,pc26:4315},
+  {cod:'06008',nome:'GILIARDE (Maranhão)',par:'06008 - G&G',cli26:40,pc26:4539},
+  {cod:'00020',nome:'LAURO',par:'00020 - LAUDEMIRO',cli26:37,pc26:6544},
+  {cod:'07607',nome:'LEANDRO',par:'00036 - PROSPECTAR',cli26:21,pc26:2097},
+  {cod:'07608',nome:'ROMILDO',par:'07388 - H.P. MARTINS / 06983 - COSTA & BUENO',cli26:28,pc26:2614},
+  {cod:'07606',nome:'WELLS',par:'05611 - Z DE S SILVEIRA',cli26:20,pc26:2351},
+  {cod:'00040',nome:'LUIZ APOL.',par:'00040 - LUIZ APOL.',cli26:14,pc26:1101},
+  {cod:'00035',nome:'GEOVANE',par:'00035 - GEOVANE',cli26:14,pc26:1646},
   {cod:'07520',nome:'LUCIANO',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07332',nome:'ISAIAS',par:'07332 - DI-PIEBREN / 00044 - ANDERSON ALVES',cli26:6,pc26:511},
-  {cod:'07890',nome:'MADSON',par:'00038 - JOSÉ CARLOS PEREIRA',cli26:10,pc26:1542},
-  {cod:'07889',nome:'JUSCELINO',par:'06679 - ZORAILSON',cli26:15,pc26:1916},
+  {cod:'07890',nome:'MADSON',par:'00038 - JOSÉ CARLOS PEREIRA',cli26:12,pc26:1790},
+  {cod:'07889',nome:'JUSCELINO',par:'06679 - ZORAILSON',cli26:19,pc26:2151},
   {cod:'07891',nome:'ALLAN',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07892',nome:'BRUNO FERNANDES',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07741',nome:'WEMERSON',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07320',nome:'MARCOS CANDIDO',par:'07320 - ANTONIO MARCOS',cli26:7,pc26:712},
-  {cod:'GILIARDE_PIAUI',nome:'GILIARDE (Piauí)',par:'00049 - NORDESTE DO BRASIL',cli26:11,pc26:1412},
-  {cod:'SEM_PAR_BABILONIA',nome:'— (sem rep atual)',par:'07319 - BABILÔNIA',cli26:4,pc26:256},
+  {cod:'GILIARDE_PIAUI',nome:'GILIARDE (Piauí)',par:'00049 - NORDESTE DO BRASIL',cli26:12,pc26:1499},
+  {cod:'08092',nome:'VELOSO',par:'07319 - BABILÔNIA',cli26:5,pc26:306},
 ];
 
 // Dados Verão 2026 TOTAL FINAL
@@ -6593,9 +6593,9 @@ var COMP_V26TOTAL = [
   {cod:'07332',pc26t:1949,cli26t:19,fonte:'v26'},
   {cod:'07890',pc26t:2393,cli26t:19,fonte:'v26'},
   {cod:'07889',pc26t:2630,cli26t:26,fonte:'v26'},  // par: Zorailson
-  {cod:'07891',pc26t:0,cli26t:0,fonte:'est'},       // estimativa: dobrar
-  {cod:'07892',pc26t:0,cli26t:0,fonte:'est'},       // estimativa: dobrar
-  {cod:'07741',pc26t:0,cli26t:0,fonte:'est'},       // estimativa: dobrar
+  {cod:'07891',pc26t:0,cli26t:0,fonte:'est'},       // estimativa: 1,5x
+  {cod:'07892',pc26t:0,cli26t:0,fonte:'est'},       // estimativa: 1,5x
+  {cod:'07741',pc26t:0,cli26t:0,fonte:'est'},       // estimativa: 1,5x
 ];
 
 function renderComparativoAba(){
@@ -6708,9 +6708,9 @@ function renderComparativoAba(){
     var isInv=fonte==='inv';   // base Inverno
     var isNovo=isEst;
 
-    // Para estimativa: teto = dobro do atual
-    var pc26tEfetivo=isEst?(pcA*2):r.pc26t;
-    var cli26tEfetivo=isEst?(cliA*2):r.cli26t;
+    // Para estimativa: teto = 1,5x do atual (fim de coleção, menos "espaço" restante pra crescer que no início)
+    var pc26tEfetivo=isEst?(pcA*1.5):r.pc26t;
+    var cli26tEfetivo=isEst?(cliA*1.5):r.cli26t;
 
     var bg=i%2===0?'var(--bg2)':'var(--bg3)';
     var cliFaltam=cli26tEfetivo-cliA;
@@ -6730,7 +6730,7 @@ function renderComparativoAba(){
 
     // Badge de fonte
     var fonteBadge='';
-    if(isEst) fonteBadge='<span style="margin-left:5px;background:#b8860b;color:#111;font-size:.58rem;padding:1px 4px;border-radius:3px;font-weight:900">EST×2</span>';
+    if(isEst) fonteBadge='<span style="margin-left:5px;background:#b8860b;color:#111;font-size:.58rem;padding:1px 4px;border-radius:3px;font-weight:900">EST×1,5</span>';
     else if(isInv) fonteBadge='<span style="margin-left:5px;background:#6a4fc0;color:#fff;font-size:.58rem;padding:1px 4px;border-radius:3px;font-weight:900">INV</span>';
 
     // cor das colunas de teto por fonte
@@ -6803,7 +6803,7 @@ function renderComparativoAba(){
   h2+='💡 <b>Projeção Base:</b> clientes restantes × ticket médio atual por cliente. ';
   h2+='<b>Conservadora (80%):</b> fator de desconto — clientes ainda não atendidos tendem a pedidos menores. ';
   h2+='<span style="color:#9b72e8;font-weight:600">■ INV</span> = teto baseado na coleção Inverno. ';
-  h2+='<span style="color:#b8860b;font-weight:600">■ EST×2</span> = representante novo — teto estimado como dobro do realizado atual. ';
+  h2+='<span style="color:#b8860b;font-weight:600">■ EST×1,5</span> = representante novo — teto estimado como 1,5x o realizado atual (ajustado por estarmos perto do fim da coleção). ';
   h2+='Reps que já superaram o teto não são projetados.</td></tr>';
 
   h2+='</tbody></table></div>';
@@ -6813,8 +6813,8 @@ function renderComparativoAba(){
 </script>
 <!-- ===== COMPARATIVO ===== -->
 <div class="view" id="view-comparativo">
-  <div class="sec">Comparativo Verão 2027 × Verão 2026 — Mesmo Período (até 31/07)</div>
-  <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Compara o desempenho de cada representante na data-corte de 31/07/2026 (Verão 2027) versus 31/07/2025 (Verão 2026). Onde houve substituição de representante, o comparativo usa o par histórico indicado.</p>
+  <div class="sec">Comparativo Verão 2027 × Verão 2026 — Verão 2027 (acumulado até 04/08) × Verão 2026 (até 10/08)</div>
+  <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Compara o acumulado atual do Verão 2027 (dados até 04/08/2026) com o desempenho do Verão 2026 na mesma altura do calendário do ano passado (até 10/08/2025). Onde houve substituição de representante, o comparativo usa o par histórico indicado.</p>
   <div id="comp-periodo-table"></div>
 
   <div class="sec" style="margin-top:28px;">Projeção vs Verão 2026 Total</div>
