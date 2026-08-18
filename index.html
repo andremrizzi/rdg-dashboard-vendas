@@ -7011,7 +7011,7 @@ function renderComparativoAba(){
   h1+='<th style="text-align:left;padding:8px 10px;color:#888">Par Histórico 2026</th>';
   h1+='<th style="text-align:right;padding:8px 10px">Cli 26</th>';
   h1+='<th style="text-align:right;padding:8px 10px">Cli 27</th>';
-  h1+='<th style="text-align:right;padding:8px 10px">Δ Cli</th>';
+  h1+='<th style="text-align:right;padding:8px 10px" title="Já descontando clientes novos (aberturas)">Δ Cli (base)</th>';
   h1+='<th style="text-align:right;padding:8px 10px;color:#6fae5a">🌱 Aberturas</th>';
   h1+='<th style="text-align:right;padding:8px 10px">Peças 26</th>';
   h1+='<th style="text-align:right;padding:8px 10px">Peças 27</th>';
@@ -7025,7 +7025,7 @@ function renderComparativoAba(){
     var cli27=a?a.cliCompra:0;
     var pc27=a?a.qtde:0;
     var abert=a?a.cliNov:0;
-    var dCli=cli27-r.cli26;
+    var dCli=(cli27-abert)-r.cli26;
     var dPc=pc27-r.pc26;
     var pct=r.pc26>0?((pc27/r.pc26-1)*100):null;
     var isNovo=r.cli26===0&&r.pc26===0;
@@ -7050,7 +7050,7 @@ function renderComparativoAba(){
   });
 
   // Totais
-  var dCliT=totCli27-totCli26, dPcT=totPc27-totPc26;
+  var dCliT=(totCli27-totAbert)-totCli26, dPcT=totPc27-totPc26;
   var pctT=totPc26>0?((totPc27/totPc26-1)*100):null;
   h1+='<tr style="background:var(--bg3);font-weight:700;border-top:2px solid var(--border)">';
   h1+='<td style="padding:8px 10px" colspan="2">TOTAL</td>';
