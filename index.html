@@ -513,11 +513,24 @@ tbody tr.ns{opacity:.35;}
     <button class="ref-tipo-btn" id="seg-btn-COUNTRY" onclick="filtrarRefSeg('COUNTRY')" style="border-color:#c9a84c55;color:#c9a84c;">🤠 Country</button>
     <button class="ref-tipo-btn" id="seg-btn-PLUS" onclick="filtrarRefSeg('PLUS')" style="border-color:#3ecf7255;color:#3ecf72;">➕ Plus Size</button>
   </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;">
+    <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:4px;">Tecnologia:</span>
+    <button class="ref-tipo-btn active" id="tec-btn-TODAS" onclick="filtrarRefTec('TODAS')">Todas</button>
+    <button class="ref-tipo-btn" id="tec-btn-Infinity Flex" onclick="filtrarRefTec('Infinity Flex')" style="border-color:#8fd0ff55;color:#8fd0ff;">Infinity Flex</button>
+    <button class="ref-tipo-btn" id="tec-btn-Preto Não Desbota" onclick="filtrarRefTec('Preto Não Desbota')" style="border-color:#8fd0ff55;color:#8fd0ff;">Preto Não Desbota</button>
+    <button class="ref-tipo-btn" id="tec-btn-Triple Dry" onclick="filtrarRefTec('Triple Dry')" style="border-color:#8fd0ff55;color:#8fd0ff;">Triple Dry</button>
+    <button class="ref-tipo-btn" id="tec-btn-Efeito Lipo" onclick="filtrarRefTec('Efeito Lipo')" style="border-color:#8fd0ff55;color:#8fd0ff;">Efeito Lipo</button>
+    <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:0 4px 0 14px;">Composição:</span>
+    <button class="ref-tipo-btn active" id="comp-btn-TODAS" onclick="filtrarRefComp('TODAS')">Todas</button>
+    <button class="ref-tipo-btn" id="comp-btn-Com Elastano" onclick="filtrarRefComp('Com Elastano')" style="border-color:#ffb98f55;color:#ffb98f;">Com Elastano</button>
+    <button class="ref-tipo-btn" id="comp-btn-100% Algodão" onclick="filtrarRefComp('100% Algodão')" style="border-color:#ffb98f55;color:#ffb98f;">100% Algodão</button>
+  </div>
   <div class="ref-tipo-btns" id="ref-tipo-btns"></div>
   <div class="ref-table-wrap">
     <table>
       <thead><tr>
         <th>#</th><th>Código</th><th>Descrição</th><th>Tipo</th><th>Modelagem</th>
+        <th>Tecido</th><th>Composição</th><th>Grade</th>
         <th style="text-align:right">Qtde</th><th style="text-align:right">Preço</th>
         <th style="text-align:right">% Total</th><th style="min-width:90px">Relativo</th>
       </tr></thead>
@@ -587,10 +600,12 @@ var chartCota=null,chartPizza=null,chartGPizza=null,chartEvolucao=null,chartComp
 var chartRefBarras=null;
 var refFiltroTipo='TODOS';
 var refFiltroSeg='TODOS'; // TODOS | COUNTRY | PLUS
+var refFiltroTec='TODAS';
+var refFiltroComp='TODAS';
 var compSegAtivo='fem';
 
 // Mapa de renomeação de modelagens
-var FORA_LINHA={'B30942':true,'CF22149':true,'CF22174':true,'S22049':true,'T22073':true,'S22047':true,'CF22168':true,'CF22133':true,'S22052':true,'T22074':true,'S22051':true,'S22006':true,'SA22032':true,'BL22077':true,'S22050':true,'CF22135':true,'CF22151':true,'CF22161':true,'CF22172':true,'CM30900':true,'CF22123':true,'CF22141':true,'CF22164':true,'CF22169':true,'CF21987':true};
+var FORA_LINHA={'B30942':true,'CF22149':true,'CF22174':true,'S22049':true,'T22073':true,'S22047':true,'CF22168':true,'CF22133':true,'S22052':true,'T22074':true,'S22051':true,'S22006':true,'SA22032':true,'BL22077':true,'S22050':true,'CF22135':true,'CF22151':true,'CF22161':true,'CF22172':true,'CM30900':true,'CF22123':true,'CF22141':true,'CF22164':true,'CF22169':true,'CF21987':true,'CF21999':true,'CF22134':true,'S22054':true};
 
 var MOD_RENAME={
   'WIDELEG':'Wide Leg','WIDE LEG':'Wide Leg',
@@ -5385,6 +5400,50 @@ function getRefDados(codRep) {
   return arr;
 }
 
+var COD_TEC = {
+  "CF22082":["Infinity Flex"],
+  "CF22083":["Infinity Flex"],
+  "CF22085":["Infinity Flex"],
+  "CF22088":["Infinity Flex"],
+  "CF22091":["Infinity Flex","Triple Dry"],
+  "CF22094":["Infinity Flex","Triple Dry"],
+  "CF22097":["Infinity Flex"],
+  "CF22098":["Infinity Flex","Efeito Lipo"],
+  "CF22100":["Infinity Flex"],
+  "CF22101":["Infinity Flex","Triple Dry"],
+  "CF22109":["Infinity Flex"],
+  "S22046":["Infinity Flex"],
+  "CF21986":["Infinity Flex"],
+  "CM30877":["Infinity Flex","Triple Dry"],
+  "CF22093":["Preto Não Desbota"],
+  "CF22103":["Preto Não Desbota"],
+  "CF22110":["Preto Não Desbota"],
+  "S22034":["Preto Não Desbota"],
+  "S22048":["Preto Não Desbota"],
+  "S22065":["Preto Não Desbota"],
+  "SA22021":["Preto Não Desbota"],
+  "CF21990":["Preto Não Desbota"],
+  "S22008":["Preto Não Desbota"],
+  "CM30885":["Preto Não Desbota"],
+  "B30928":["Preto Não Desbota"],
+  "CM30878":["Triple Dry"],
+  "CM30881":["Triple Dry"],
+  "CF22086":["Efeito Lipo"],
+  "CF22087":["Efeito Lipo"],
+  "CF22095":["Efeito Lipo"],
+  "CF22148":["Efeito Lipo"],
+  "CF22155":["Efeito Lipo"]
+};
+
+var TECNOLOGIAS_LISTA = ["Infinity Flex","Preto Não Desbota","Triple Dry","Efeito Lipo"];
+
+var REF_TECIDO = {"CF21986":"AYLA","CF21987":"NEO COSMIC","CF21989":"MATRIX INTENSE","CF21990":"BEATRICE","CF21992":"MATRIX INTENSE","CF21994":"MATRIX INTENSE","CF21995":"FORTE","CF21996":"SINTRA PT","CF21998":"MATRIX INTENSE","CF21999":"NATURAL DENIM STRETCH","CF22001":"BELGA","CF22002":"PRESENCE BABY ROYAL","S22004":"WICHITA","S22005":"PRESENSE BABY ROYAL","S22006":"SINTRA PT","S22008":"BEATRICE","S22009":"MATRIX INTENSE","S22010":"MIXLINHO MEGAFLEX","SA22011":"MILA","SA22012":"CODY BLACKOUT","SA22013":"THOR SUPER INTENSE","SA22014":"THOR BROWN","SA22015":"BOREN PT","SA22016":"ALCARAZ","SA22017":"NATURAL DENIM STRETCH","SA22018":"LINHO BORDADO TROPICAL","SA22019":"BELGA","SA22020":"COTS CAQUI","SA22021":"BEATRICE","SA22022":"COTS OCRE","SA22024":"THOR SUPER INTENSE","SA22025":"CODY BLACKOUT","SA22027":"INDIGO 13 OZ","SA22028":"MIXLINHO MEGAFLEX","SA22029":"THOR BROWN","SA22031":"WICHITA","SA22032":"RECICLATTO LAKA","SS22033":"THOR SUPER INTENSE","S22034":"BEATRICE","S22035":"NATURAL DENIM STRETCH","S22036":"MATRIX INTENSE","S22037":"PRESENCE BABY ROYAL","S22038":"INDIGO 13 OZ","S22039":"CODY BLACKOUT","S22040":"THOR BROWN","S22041":"THOR BROWN","S22042":"INDIGO 13 OZ","S22043":"BOREN PT","S22044":"FORTE","S22045":"JERI LISTRADO","S22046":"VALÉRIA DENIM","S22047":"NEO COSMIC","S22048":"BEATRICE","S22049":"TRAVESSIA","S22050":"OXFORD LISTRA AZUL","S22051":"SINTRA PT","S22052":"RECICLATTO LAKA","S22053":"MIXLINHO MEGAFLEX","S22054":"WILLOW PT","S22055":"COTS PRETO","S22056":"COTS AREIA","S22057":"COTS CAQUI","S22058":"DÁVILA MAXSKIN PT","S22059":"INDIGO 13 OZ","S22060":"SAGRES BLUE BLACK","S22061":"ZEF","S22062":"BAHAMAS","S22063":"WILLOW PT","S22064":"MILA","S22065":"BEATRICE","S22066":"FORTE","S22067":"MIXLINHO MEGAFLEX","S22068":"BAHAMAS","B22069":"INDIGO 13 OZ","B22070":"BROER AREIA","B22071":"BROER CAQUI","T22073":"TRAVESSIA","T22074":"RECICLATTO LAKA","T22075":"LINHO BORDADO TROPIC.","BL22076":"DÁVILA MAXSKIN PT","BL22077":"OXFORD LISTRA AZUL","V22079":"WILLOW","CF22081":"MATRIX INTENSE","CF22082":"NEW MOTHER DUO CORE","CF22083":"QUEEN","CF22084":"NATURAL DENIM STRETCH","CF22085":"BOMBEI","CF22086":"PRESENCE BABY ROYAL","CF22087":"WEST PLUS","CF22088":"CHLOE PT","CF22090":"CATARINA BLACK BLACK","CF22091":"TRIPLE DRY","CF22092":"FORTE","CF22093":"BEATRICE","CF22094":"TRIPLE DRY","CF22095":"VENTURA","CF22096":"BELGA","CF22097":"NEW MOTHER DUO CORE","CF22098":"VALÉRIA DENIM","CF22099":"MATRIX INTENSE","CF22100":"AYLA","CF22101":"TRIPLE DRY","CF22103":"BEATRICE","CF22104":"CATARINA BLACK BLACK","CF22105":"FORTE","CF22106":"BELGA","CF22107":"MATRIX INTENSE","CF22108":"MATRIX INTENSE","CF22109":"AYLA","CF22110":"BEATRICE","CF22114":"MIXLINHO MEGAFLEX","CF22115":"COTS PRETO","CF22116":"COTS CAQUI","CF22117":"COTS AREIA","CF22119":"LORD","CF22120":"BOREN PT","CF22122":"SAGRES BLUE BLACK","CF22123":"FIRST DENIM","CF22124":"WICHITA","CF22125":"THOR SUPER INTENSE","CF22127":"INDIGO 13 OZ","CF22128":"BAHAMAS","CF22129":"NEO SKY","CF22130":"PRESENCE BABY ROYAL","CF22131":"INDIGO 13 OZ","CF22132":"CODY BLACKOUT","CF22133":"MALI (Renaux)","CF22134":"SINTRA PT","CF22135":"OXFORD LISTRA AZUL","CF22136":"BOREN PT","CF22138":"BAHAMAS","CF22139":"THOR SUPER INTENSE","CF22140":"JERY LISTRADO","CF22141":"NEO COSMIC","CF22142":"MATRIX INTENSE","CF22143":"INDIGO 13 OZ","CF22144":"CODY BLACKOUT","CF22145":"THOR SUPER INTENSE","CF22146":"INDIGO 13 OZ","CF22147":"THOR SUPER INTENSE","CF22148":"MILA","CF22149":"TRAVESSIA","CF22150":"DAVILA PT","CF22151":"LIMA UNICOLOR (Renaux)","CF22152":"ALEC PT","CF22153":"NATURAL DENIM STRETCH","CF22154":"CODY BLACKOUT","CF22155":"MATRIX INTENSE","CF22156":"FIRST DENIM","CF22157":"THOR SUPER INTENSE","CF22158":"FORTE","CF22159":"INDIGO 13 OZ","CF22160":"MILA","CF22161":"LIMA UNICOLOR (Renaux)","CF22162":"MATRIX INTENSE","CF22163":"CATARINA BLACK BLACK","CF22164":"SARKOZI","CF22165":"VENTURA","CF22166":"MATRIX INTENSE","CF22168":"FORTE","CF22169":"MATRIX INTENSE","CF22170":"MATRIX INTENSE","CF22172":"GRIFF BW","CF22173":"FORTE","CF22174":"LUCY"};
+
+var REF_COMPOSICAO = {"CF22081":"Com Elastano","CF22082":"Com Elastano","CF22083":"Com Elastano","CF22084":"Com Elastano","CF22085":"Com Elastano","CF22086":"Com Elastano","CF22087":"Com Elastano","CF22088":"Com Elastano","CF22114":"Com Elastano","CF22115":"Com Elastano","CF22116":"Com Elastano","CF22117":"Com Elastano","CF22090":"Com Elastano","CF22091":"Com Elastano","CF22092":"Com Elastano","CF22093":"Com Elastano","CF22094":"Com Elastano","CF22095":"Com Elastano","CF22096":"Com Elastano","CF22097":"Com Elastano","CF22098":"Com Elastano","CF22099":"Com Elastano","CF22100":"Com Elastano","CF22101":"Com Elastano","CF22103":"Com Elastano","CF22104":"Com Elastano","CF22105":"Com Elastano","CF22106":"Com Elastano","CF22108":"Com Elastano","CF22109":"Com Elastano","CF22110":"Com Elastano","CF22119":"Com Elastano","CF22123":"Com Elastano","CF22130":"Com Elastano","CF22134":"Com Elastano","CF22141":"Com Elastano","CF22148":"Com Elastano","CF22149":"Com Elastano","CF22152":"Com Elastano","CF22153":"Com Elastano","CF22155":"Com Elastano","CF22156":"Com Elastano","CF22160":"Com Elastano","S22034":"Com Elastano","S22035":"Com Elastano","S22036":"Com Elastano","S22037":"Com Elastano","S22044":"Com Elastano","S22046":"Com Elastano","S22047":"Com Elastano","S22048":"Com Elastano","S22049":"Com Elastano","S22051":"Com Elastano","S22053":"Com Elastano","S22055":"Com Elastano","S22056":"Com Elastano","S22057":"Com Elastano","S22065":"Com Elastano","S22066":"Com Elastano","S22067":"Com Elastano","SA22016":"Com Elastano","SA22017":"Com Elastano","SA22019":"Com Elastano","SA22020":"Com Elastano","SA22022":"Com Elastano","SA22021":"Com Elastano","CF21986":"Com Elastano","CF21987":"Com Elastano","CF21989":"Com Elastano","CF21990":"Com Elastano","CF21992":"Com Elastano","CF21994":"Com Elastano","CF21995":"Com Elastano","CF21996":"Com Elastano","CF21998":"Com Elastano","CF21999":"Com Elastano","CF22001":"Com Elastano","CF22002":"Com Elastano","S22005":"Com Elastano","S22006":"Com Elastano","S22008":"Com Elastano","S22009":"Com Elastano","S22010":"Com Elastano","SA22011":"Com Elastano","CM30876":"Com Elastano","CM30877":"Com Elastano","CM30878":"Com Elastano","CM30879":"Com Elastano","CM30881":"Com Elastano","CM30882":"Com Elastano","CM30883":"Com Elastano","CM30884":"Com Elastano","CM30885":"Com Elastano","CM30886":"Com Elastano","CM30887":"Com Elastano","CM30888":"Com Elastano","CM30890":"Com Elastano","CM30891":"Com Elastano","CM30892":"Com Elastano","CM30893":"Com Elastano","CM30894":"Com Elastano","CM30895":"Com Elastano","CM30896":"Com Elastano","CM30897":"Com Elastano","CM30899":"Com Elastano","CM30900":"Com Elastano","CM30901":"Com Elastano","CM30902":"Com Elastano","CM30907":"Com Elastano","CM30908":"Com Elastano","CM30909":"Com Elastano","CM30910":"Com Elastano","CM30911":"Com Elastano","CM30913":"Com Elastano","CM30914":"Com Elastano","CM30915":"Com Elastano","CM30916":"Com Elastano","B30918":"Com Elastano","B30919":"Com Elastano","B30920":"Com Elastano","B30921":"Com Elastano","B30923":"Com Elastano","B30924":"Com Elastano","B30925":"Com Elastano","B30928":"Com Elastano","B30930":"Com Elastano","B30931":"Com Elastano","B30932":"Com Elastano","B30933":"Com Elastano","B30934":"Com Elastano","B30937":"Com Elastano","B30938":"Com Elastano","B30939":"Com Elastano","B30940":"Com Elastano","B30946":"Com Elastano","CF22120":"100% Algodão","CF22122":"100% Algodão","CF22124":"100% Algodão","CF22125":"100% Algodão","CF22127":"100% Algodão","CF22128":"100% Algodão","CF22131":"100% Algodão","CF22132":"100% Algodão","CF22135":"100% Algodão","CF22136":"100% Algodão","CF22138":"100% Algodão","CF22139":"100% Algodão","CF22140":"100% Algodão","CF22143":"100% Algodão","CF22144":"100% Algodão","CF22145":"100% Algodão","CF22146":"100% Algodão","CF22147":"100% Algodão","CF22154":"100% Algodão","CF22157":"100% Algodão","CF22159":"100% Algodão","S22038":"100% Algodão","S22039":"100% Algodão","S22040":"100% Algodão","S22041":"100% Algodão","S22042":"100% Algodão","S22043":"100% Algodão","S22045":"100% Algodão","S22050":"100% Algodão","S22060":"100% Algodão","S22059":"100% Algodão","S22061":"100% Algodão","S22062":"100% Algodão","B22069":"100% Algodão","B22070":"100% Algodão","B22071":"100% Algodão","SA22012":"100% Algodão","SS22033":"100% Algodão","SA22013":"100% Algodão","SA22014":"100% Algodão","SA22015":"100% Algodão","SA22024":"100% Algodão","SA22025":"100% Algodão","SA22027":"100% Algodão","SA22029":"100% Algodão","SA22031":"100% Algodão","S22004":"100% Algodão","CM30904":"100% Algodão","CM30905":"100% Algodão","B30926":"100% Algodão","B30927":"100% Algodão","B30929":"100% Algodão","B30942":"100% Algodão","B30943":"100% Algodão","B30944":"100% Algodão"};
+
+var REF_COR_MANUAL = {"CF22084":["Branco"],"CF22088":["Areia","Branco","Marrom"],"CF22114":["Linho"],"CF22115":["Preto"],"CF22116":["Caqui"],"CF22117":["Areia"],"CF22104":["Preto Estonado"],"CF22120":["Preto","Bege"],"CF22132":["Preto Estonado"],"CF22133":["Linho"],"CF22134":["Areia","Branco","Ocre"],"BL22077":["Listrado"],"CF22135":["Listrado"],"CF22136":["Preto","Areia"],"CF22144":["Preto Estonado"],"BL22076":["Branco"],"CF22150":["Branco"],"CF22151":["Caqui"],"CF22161":["Areia"],"CF22152":["Preto","Caqui","Off White","Marrom"],"CF22153":["Branco"],"CF22154":["Preto Estonado"],"S22035":["Branco"],"S22039":["Preto Estonado"],"S22043":["Off White","Preto","Areia"],"S22050":["Listrado"],"S22051":["Ocre","Areia","Branco"],"S22052":["Linho"],"S22053":["Linho"],"S22054":["Preto"],"S22063":["Off White"],"S22055":["Preto"],"S22056":["Areia"],"S22057":["Caqui"],"S22058":["Branco"],"S22067":["Linho"],"B22070":["Areia"],"B22071":["Caqui"],"SA22012":["Preto Estonado"],"SA22015":["Areia","Marrom","Preto","Verde"],"SA22017":["Branco"],"T22075":["Linho"],"SA22018":["Linho"],"SA22020":["Caqui"],"SA22022":["Ocre"],"SA22025":["Preto Estonado"],"SA22028":["Branco"],"T22074":["Linho"],"SA22032":["Linho"],"V22079":["Preto","Off White"],"CF21996":["Areia","Ocre","Preto"],"CF21999":["Branco"],"S22006":["Areia","Ocre","Preto"],"S22010":["Linho"],"CM30884":["Preto Estonado"],"CM30888":["Areia","Marrom","Caqui"],"CM30890":["Verde Militar","Preto","Caqui"],"CM30905":["Preto Estonado"],"CM30907":["Preto"],"CM30908":["Marinho"],"CM30909":["Chumbo"],"CM30910":["Caqui"],"CM30911":["Areia"],"CM30913":["Preto"],"CM30914":["Marinho"],"CM30915":["Caqui"],"CM30916":["Areia"],"B30918":["Areia","Caqui","Cinza"],"B30929":["Branco","Verde Militar","Marrom"],"B30930":["Preto"],"B30931":["Marinho"],"B30932":["Chumbo"],"B30933":["Caqui"],"B30934":["Areia"],"B30937":["Preto"],"B30938":["Caqui"],"B30939":["Areia"],"B30940":["Chumbo"],"B30942":["Verde"],"B30943":["Caqui"],"B30944":["Areia"],"B30946":["Caqui","Verde Militar","Areia"]};
+var GRADE_EXTENDIDA={'CF22103':true,'CM30885':true,'CM30893':true,'CM30901':true,'CM30902':true,'CM30907':true,'CM30908':true,'CM30909':true,'CM30910':true,'CM30911':true,'B30919':true,'B30923':true};
+
 var TIPO_CORES={
   'cf':'#e0608a','cm':'#4a8fd4','sh':'#e05c5c','sa2':'#9b59b6',
   'bf':'#e8724a','bm':'#2e86c1','bl':'#1abc9c','tp':'#f0a500',
@@ -5532,6 +5591,30 @@ function renderReferencias() {
   renderRefTabela(dados, totalQtde);
 }
 
+function filtrarRefTec(tec){
+  refFiltroTec=tec;
+  ['TODAS','Infinity Flex','Preto Não Desbota','Triple Dry','Efeito Lipo'].forEach(function(t){
+    var b=document.getElementById('tec-btn-'+t);
+    if(b) b.classList.toggle('active',t===tec);
+  });
+  var codRep=document.getElementById('ref-rep-select').value;
+  var dados=getRefDados(codRep);
+  var totalQtde=dados.reduce(function(s,d){return s+d.qtde;},0);
+  renderRefTabela(dados,totalQtde);
+}
+
+function filtrarRefComp(comp){
+  refFiltroComp=comp;
+  ['TODAS','Com Elastano','100% Algodão'].forEach(function(c){
+    var b=document.getElementById('comp-btn-'+c);
+    if(b) b.classList.toggle('active',c===comp);
+  });
+  var codRep=document.getElementById('ref-rep-select').value;
+  var dados=getRefDados(codRep);
+  var totalQtde=dados.reduce(function(s,d){return s+d.qtde;},0);
+  renderRefTabela(dados,totalQtde);
+}
+
 function filtrarRefSeg(seg){
   refFiltroSeg=seg;
   refFiltroTipo='TODOS'; // reset tipo ao mudar segmento
@@ -5582,6 +5665,10 @@ function renderRefTabela(dados, totalQtde){
   }
   // filtro de tipo
   if(refFiltroTipo!=='TODOS') filtrados=filtrados.filter(function(d){return d.tipo.key===refFiltroTipo;});
+  // filtro de tecnologia
+  if(refFiltroTec!=='TODAS') filtrados=filtrados.filter(function(d){return (COD_TEC[d.cod]||[]).indexOf(refFiltroTec)>=0;});
+  // filtro de composição
+  if(refFiltroComp!=='TODAS') filtrados=filtrados.filter(function(d){return REF_COMPOSICAO[d.cod]===refFiltroComp;});
   var maxQ = filtrados.length>0?filtrados[0].qtde:1;
   var html='';
   for(var i=0;i<filtrados.length;i++){
@@ -5609,9 +5696,25 @@ function renderRefTabela(dados, totalQtde){
     var precoRef=PRECOS_REF[d.cod];
     var precoPack=PRECOS_PACK[d.cod];
     var precoHtml=precoRef?('R$ '+precoRef.toFixed(2).replace('.',',')+(precoPack?'<br><span style="color:var(--gold);font-size:.7rem">Pack (20+): R$ '+precoPack.toFixed(2).replace('.',',')+'</span>':'')):'<span style="color:var(--muted)">—</span>';
-    html+='<tr><td>'+bdg+rankVar+'</td><td><span class="ref-cod">'+d.cod+'</span></td><td style="font-size:.8rem;max-width:220px">'+d.desc+packBadge+foraLinhaBadge+'</td><td><span class="ref-badge '+d.tipo.badge+'">'+d.tipo.label+'</span></td><td><span class="ref-mod">'+d.mod+'</span></td><td style="text-align:right;font-weight:700;font-size:.95rem">'+fmtInt(d.qtde)+'</td><td style="text-align:right;font-size:.8rem">'+precoHtml+'</td><td style="text-align:right;color:var(--gold);font-size:.82rem">'+pct.toFixed(1)+'%</td><td class="ref-bar-cell"><div class="pw"><div class="pb" style="width:'+wPct.toFixed(1)+'%;background:'+cor+'"></div></div></td></tr>';
+    // badges de tecnologia
+    var tecs=COD_TEC[d.cod]||[];
+    var tecBadges='';
+    tecs.forEach(function(t){ tecBadges+='<span style="display:inline-block;background:#1f3a4a;color:#8fd0ff;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:8px;margin:2px 3px 0 0;">'+t+'</span>'; });
+    // badge de cor manual
+    var coresRef=REF_COR_MANUAL[d.cod];
+    var corBadge='';
+    if(coresRef&&coresRef.length){
+      corBadge='<span style="display:inline-block;background:#2a2a2a;color:var(--gold);font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:8px;margin:2px 3px 0 0;border:1px solid var(--border);">'+coresRef.join(' · ')+'</span>';
+    }
+    var extraBadgesLine=(tecBadges||corBadge)?'<div style="margin-top:3px;">'+tecBadges+corBadge+'</div>':'';
+    // colunas: tecido, composição, grade
+    var tecidoCol=REF_TECIDO[d.cod]?'<span style="font-size:.75rem;">'+REF_TECIDO[d.cod]+'</span>':'<span style="color:var(--muted)">—</span>';
+    var compRef=REF_COMPOSICAO[d.cod];
+    var compCol=compRef?'<span style="font-size:.72rem;color:'+(compRef==='Com Elastano'?'#ffb98f':'#8fd8a0')+'">'+compRef+'</span>':'<span style="color:var(--muted)">—</span>';
+    var gradeCol=GRADE_EXTENDIDA[d.cod]?'<span style="display:inline-block;background:#3a2a1f;color:#e0a458;font-size:.62rem;font-weight:800;padding:2px 7px;border-radius:8px;">ESTENDIDA</span>':'<span style="color:var(--muted);font-size:.72rem;">Padrão</span>';
+    html+='<tr><td>'+bdg+rankVar+'</td><td><span class="ref-cod">'+d.cod+'</span></td><td style="font-size:.8rem;max-width:220px">'+d.desc+packBadge+foraLinhaBadge+extraBadgesLine+'</td><td><span class="ref-badge '+d.tipo.badge+'">'+d.tipo.label+'</span></td><td><span class="ref-mod">'+d.mod+'</span></td><td>'+tecidoCol+'</td><td>'+compCol+'</td><td>'+gradeCol+'</td><td style="text-align:right;font-weight:700;font-size:.95rem">'+fmtInt(d.qtde)+'</td><td style="text-align:right;font-size:.8rem">'+precoHtml+'</td><td style="text-align:right;color:var(--gold);font-size:.82rem">'+pct.toFixed(1)+'%</td><td class="ref-bar-cell"><div class="pw"><div class="pb" style="width:'+wPct.toFixed(1)+'%;background:'+cor+'"></div></div></td></tr>';
   }
-  document.getElementById('ref-tbody').innerHTML=html||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
+  document.getElementById('ref-tbody').innerHTML=html||'<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px;">Sem dados.</td></tr>';
 }
 
 function initRefSelect(){
