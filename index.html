@@ -5334,10 +5334,18 @@ function getTipo(cod) {
 
 function getModelagem(desc) {
   var d = desc.toUpperCase();
+  d = d.replace(/LIPO/g,''); // Lipo agora é tecnologia (tag), não modelagem — funde as variantes
+  // Bermuda Wide (fem.) — B22069/70/71, independente de alfaiataria
+  if(d.includes('BERMUDA')&&d.includes('WIDE')) return 'Bermuda Wide';
+  // Top e Blusa — antes de qualquer regra de "Cropped" genérica
+  if(d.includes('TOP FEM')) return 'Top';
+  if(d.includes('BLUSA FEM')) return 'Blusa';
+  // Short Saia
+  if(d.includes('SHORT SAIA')) return 'Short Saia';
+  // Vestido
+  if(d.includes('VESTIDO')) return 'Vestido';
   // Reta — mais específicos primeiro
-  if(d.includes('RETACROPPED LIPO')||d.includes('RETA CROPPED LIPO')) return 'Reta Cropped Lipo';
   if(d.includes('RETACROPPED')||d.includes('RETA CROPPED')) return 'Reta Cropped';
-  if(d.includes('RETALIPO')||d.includes('RETA LIPO')) return 'Reta Lipo';
   if(d.includes('RETAALFAIATARIA')||d.includes('RETA ALFAIATARIA')) return 'Reta Alfaiataria';
   if(d.includes('RETACARGO')||d.includes('RETA CARGO')) return 'Reta Cargo';
   if(d.includes('RETACOUNTRY')||d.includes('RETA COUNTRY')) return 'Reta Country';
@@ -5345,12 +5353,10 @@ function getModelagem(desc) {
   if(d.includes('RETABAGGY')||d.includes('RETA BAGGY')) return 'Reta Baggy';
   if(d.includes('RETAPLUS SIZE')||d.includes('RETA PLUS SIZE')) return 'Reta Plus Size';
   // Wide
-  if(d.includes('WIDECROPPED LIPO')) return 'Wide Cropped Lipo';
   if(d.includes('WIDECROPPED PLUS SIZE')) return 'Wide Cropped Plus Size';
   if(d.includes('WIDECROPPED')) return 'Wide Cropped';
   if(d.includes('WIDELEG CROPPED')) return 'Wide Leg Cropped';
   if(d.includes('WIDELEG ALFAIATARIA')) return 'Wide Leg Alfaiataria';
-  if(d.includes('WIDELEG LIPO')) return 'Wide Leg Lipo';
   if(d.includes('WIDELEG CINTURA')) return 'Wide Leg Cint. Interm.';
   if(d.includes('WIDELEG CARGO')) return 'Wide Leg Cargo';
   if(d.includes('WIDELEG PLUS SIZE')) return 'Wide Leg Plus Size';
@@ -5358,12 +5364,10 @@ function getModelagem(desc) {
   if(d.includes('SUPERWIDE')) return 'Super Wide';
   // Cigarrete
   if(d.includes('CALCAFEM.CIGARRETE')||d.includes('CALCAFEM. CIGARRETE')) return 'Cigarrete';
-  if(d.includes('CIGARRETE LIPO')) return 'Cigarrete Lipo';
   if(d.includes('CIGARRETE SPORT FINO')) return 'Cigarrete Sport Fino';
   if(d.includes('CIGARRETE PLUS SIZE')) return 'Cigarrete Plus Size';
   if(d.includes('CIGARRETE')) return 'Cigarrete';
   // Skinny
-  if(d.includes('SKINNYLIPO')||d.includes('SKINNY LIPO')) return 'Skinny Lipo';
   if(d.includes('SKINNYPLUS SIZE')||d.includes('SKINNY PLUS SIZE')) return 'Skinny Plus Size';
   if(d.includes('SKINNY')) return 'Skinny';
   // Meia Coxa
@@ -5392,7 +5396,7 @@ function getModelagem(desc) {
   if(d.includes('SPORT FINO')) return 'Sport Fino';
   if(d.includes('CICLISTA PLUS SIZE')) return 'Ciclista Plus Size';
   if(d.includes('CICLISTA')) return 'Ciclista';
-  if(d.includes('GODE')) return 'Godê';
+  if(d.includes('GODÊ')||d.includes('GODE')) return 'Godê';
   if(d.includes('CURTO')) return 'Curto';
   if(d.includes('MIDI PLUS SIZE')) return 'Midi Plus Size';
   if(d.includes('MIDICARGO')||d.includes('MIDI CARGO')) return 'Midi Cargo';
@@ -5403,9 +5407,9 @@ function getModelagem(desc) {
   if(d.includes('LAPIS')) return 'Lápis';
   if(d.includes('EVASE')) return 'Évase';
   if(d.includes('ALFAIATARIA')) return 'Alfaiataria';
+  if(d.includes('LONGA')) return 'Longa';
   if(d.includes('LONGO')) return 'Longo';
   if(d.includes('MEDIA')) return 'Média';
-  if(d.includes('LIPO')) return 'Lipo';
   if(d.includes('CROPPED')) return 'Cropped';
   if(d.includes('RETA')) return 'Reta';
   if(d.includes('PLUS SIZE')) return 'Plus Size';
