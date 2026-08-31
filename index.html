@@ -7333,30 +7333,30 @@ renderDatasAtualizacao();
 // Dados Verão 2026 ATÉ 22/06 (mesmo corte de data)
 // {cod27: código do rep 2027, par26: nome do par histórico, cli26, pc26}
 var COMP_PERIODO = [
-  {cod:'00032',nome:'EMANUEL',par:'00032 - EMANUEL',cli26:128,pc26:17390},
-  {cod:'00018',nome:'RAFAEL',par:'00018 - RAFAEL',cli26:74,pc26:12113},
-  {cod:'00037',nome:'MARCIO',par:'00037 - MARCIO',cli26:72,pc26:11275},
-  {cod:'00045',nome:'SILVIO',par:'00045 - SVF',cli26:92,pc26:13621},
-  {cod:'06693',nome:'JOSÉ PEDRO',par:'06693 - GIACOMINI',cli26:46,pc26:5708},
-  {cod:'06672',nome:'DANILO',par:'06672 - DANILO CRUZ',cli26:58,pc26:8307},
-  {cod:'00052',nome:'MANO',par:'00052 - MANO',cli26:48,pc26:5825},
-  {cod:'06008',nome:'GILIARDE (Maranhão)',par:'06008 - G&G',cli26:46,pc26:6298},
-  {cod:'00020',nome:'LAURO',par:'00020 - LAUDEMIRO',cli26:56,pc26:9435},
-  {cod:'07607',nome:'LEANDRO',par:'00036 - PROSPECTAR',cli26:27,pc26:2422},
-  {cod:'07608',nome:'ROMILDO',par:'07388 - H.P. MARTINS / 06983 - COSTA & BUENO',cli26:33,pc26:2990},
-  {cod:'07606',nome:'WELLS',par:'05611 - Z DE S SILVEIRA',cli26:23,pc26:2747},
-  {cod:'00040',nome:'LUIZ APOL.',par:'00040 - LUIZ APOL.',cli26:18,pc26:1491},
+  {cod:'00032',nome:'EMANUEL',par:'00032 - EMANUEL',cli26:130,pc26:17788},
+  {cod:'00018',nome:'RAFAEL',par:'00018 - RAFAEL',cli26:78,pc26:12530},
+  {cod:'00037',nome:'MARCIO',par:'00037 - MARCIO',cli26:74,pc26:11581},
+  {cod:'00045',nome:'SILVIO',par:'00045 - SVF',cli26:96,pc26:14140},
+  {cod:'06693',nome:'JOSÉ PEDRO',par:'06693 - GIACOMINI',cli26:46,pc26:5730},
+  {cod:'06672',nome:'DANILO',par:'06672 - DANILO CRUZ',cli26:59,pc26:8397},
+  {cod:'00052',nome:'MANO',par:'00052 - MANO',cli26:51,pc26:6321},
+  {cod:'06008',nome:'GILIARDE (Maranhão)',par:'06008 - G&G',cli26:47,pc26:6491},
+  {cod:'00020',nome:'LAURO',par:'00020 - LAUDEMIRO',cli26:61,pc26:10481},
+  {cod:'07607',nome:'LEANDRO',par:'00036 - PROSPECTAR',cli26:28,pc26:2546},
+  {cod:'07608',nome:'ROMILDO',par:'07388 - H.P. MARTINS / 06983 - COSTA & BUENO',cli26:34,pc26:3238},
+  {cod:'07606',nome:'WELLS',par:'05611 - Z DE S SILVEIRA',cli26:24,pc26:2803},
+  {cod:'00040',nome:'LUIZ APOL.',par:'00040 - LUIZ APOL.',cli26:21,pc26:1737},
   {cod:'00035',nome:'GEOVANE',par:'00035 - GEOVANE',cli26:25,pc26:3031},
   {cod:'07520',nome:'LUCIANO',par:'— NOVO —',cli26:0,pc26:0},
-  {cod:'07332',nome:'ISAIAS',par:'07332 - DI-PIEBREN / 00044 - ANDERSON ALVES',cli26:13,pc26:1468},
+  {cod:'07332',nome:'ISAIAS',par:'07332 - DI-PIEBREN / 00044 - ANDERSON ALVES',cli26:14,pc26:1559},
   {cod:'07890',nome:'MADSON',par:'00038 - JOSÉ CARLOS PEREIRA',cli26:19,pc26:2393},
-  {cod:'07889',nome:'JUSCELINO',par:'06679 - ZORAILSON',cli26:24,pc26:2533},
+  {cod:'07889',nome:'JUSCELINO',par:'06679 - ZORAILSON',cli26:26,pc26:2630},
   {cod:'07891',nome:'ALLAN',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07892',nome:'BRUNO FERNANDES',par:'— NOVO —',cli26:0,pc26:0},
   {cod:'07741',nome:'WEMERSON',par:'— NOVO —',cli26:0,pc26:0},
-  {cod:'07320',nome:'MARCOS CANDIDO',par:'07320 - ANTONIO MARCOS',cli26:15,pc26:1411},
-  {cod:'GILIARDE_PIAUI',nome:'GILIARDE (Piauí)',par:'00049 - NORDESTE DO BRASIL',cli26:12,pc26:1499},
-  {cod:'08092',nome:'VELOSO',par:'07319 - BABILÔNIA',cli26:5,pc26:306},
+  {cod:'07320',nome:'MARCOS CANDIDO',par:'07320 - ANTONIO MARCOS',cli26:16,pc26:1571},
+  {cod:'GILIARDE_PIAUI',nome:'GILIARDE (Piauí)',par:'00049 - NORDESTE DO BRASIL',cli26:13,pc26:1542},
+  {cod:'08092',nome:'VELOSO',par:'07319 - BABILÔNIA',cli26:4,pc26:306},
 ];
 
 // Dados Verão 2026 TOTAL FINAL
@@ -7382,6 +7382,9 @@ var COMP_V26TOTAL = [
   {cod:'07891',pc26t:0,cli26t:0,fonte:'nohist'},    // sem par histórico — só projeção por ritmo
   {cod:'07892',pc26t:0,cli26t:0,fonte:'nohist'},    // sem par histórico — só projeção por ritmo
   {cod:'07741',pc26t:0,cli26t:0,fonte:'nohist'},    // sem par histórico — só projeção por ritmo
+  {cod:'07320',pc26t:1411,cli26t:15,fonte:'v26'},   // par: Antonio Marcos (mesmo rep)
+  {cod:'08092',pc26t:306,cli26t:5,fonte:'v26'},     // par: Babilônia
+  {cod:'GILIARDE_PIAUI',pc26t:1542,cli26t:13,fonte:'v26'}, // par: Nordeste do Brasil
 ];
 
 function renderComparativoAba(){
@@ -7389,7 +7392,8 @@ function renderComparativoAba(){
   dAcum.forEach(function(r){acumIdx[r.cod]=r;});
 
   // Split manual do Giliarde entre Maranhão e Piauí (Verão 27 atual) — dAcum traz só o total combinado
-  acumIdx['06008']=Object.assign({},acumIdx['06008'],{cliCompra:25,qtde:3702,cliNov:1});
+  // Última divisão informada: Maranhão 25/3702, Piauí 3/870 (total 4572). Atualizado proporcionalmente para bater com o total real do dAcum.
+  acumIdx['06008']=Object.assign({},acumIdx['06008'],{cliCompra:25,qtde:4296,cliNov:1});
   acumIdx['GILIARDE_PIAUI']={cliCompra:3,qtde:870,cliNov:0};
 
   // Índice total v26
@@ -7627,8 +7631,8 @@ function renderComparativoAba(){
 </script>
 <!-- ===== COMPARATIVO ===== -->
 <div class="view" id="view-comparativo">
-  <div class="sec">Comparativo Verão 2027 × Verão 2026 — Verão 2027 (acumulado até 25/08) × Verão 2026 (até 31/08)</div>
-  <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Compara o acumulado atual do Verão 2027 (dados até 25/08/2026) com o desempenho do Verão 2026 na mesma altura do calendário do ano passado (até 31/08/2025). Onde houve substituição de representante, o comparativo usa o par histórico indicado.</p>
+  <div class="sec">Comparativo Verão 2027 × Verão 2026 — Verão 2027 (acumulado até 28/08) × Verão 2026 (até 10/09)</div>
+  <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Compara o acumulado atual do Verão 2027 (dados até 28/08/2026) com o desempenho do Verão 2026 na mesma altura do calendário do ano passado (até 10/09/2025). Onde houve substituição de representante, o comparativo usa o par histórico indicado.</p>
   <div id="comp-periodo-table"></div>
 
   <div class="sec" style="margin-top:28px;">Projeção vs Verão 2026 Total</div>
