@@ -6435,7 +6435,7 @@ var OP_FAT = {
 // Storage em memória (persiste enquanto página aberta)
 // Carrega do localStorage se disponível
 // Faturamento real já ocorrido em meses anteriores ao início da programação jul-nov
-var OP_FAT_REAL = {6:745,7:20295,8:20818};
+var OP_FAT_REAL = {6:735,7:20769,8:27666,9:3242};
 
 var OP_FAT_SEMANAL = [
   {n:1,periodo:'29/06 a 05/07',valor:1981},
@@ -6637,7 +6637,7 @@ function renderOperacional(){
 function renderOpKPIs(){
   // KPIs: total cortado, total previsto faturar (jul-nov), total já faturado, % da coleção faturado
   var totalCortado = Object.values(OP_CORTE_DIAS).reduce(function(s,v){return s+v;},0);
-  var totalFat = Object.values(OP_FAT).reduce(function(s,v){return s+v;},0);
+  var totalFat = OP_FAT_SEMANAL.reduce(function(s,r){return s+r.valor;},0);
   var totalFaturadoReal = Object.values(OP_FAT_REAL).reduce(function(s,v){return s+v;},0);
   var pctFaturado = totalFat>0 ? (totalFaturadoReal/totalFat*100) : 0;
   var corPctFat = pctFaturado>=70?'verde':pctFaturado>=40?'amarelo':'vermelho';
@@ -6810,19 +6810,20 @@ function opSetCorte(key, val){
 }
 
 function renderOpComparativo(){
-  // Comparativo mês a mês: corte acumulado no mês vs faturamento (real ou previsto)
+  // Comparativo mês a mês: corte acumulado no mês vs faturamento (real ou previsto) vs programado
   var nomesMes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   var mesesMap = {};
 
-  // Meses jul-nov: faturamento previsto vem de OP_SEMANAS/OP_FAT
+  // Programado (todo mês que tem semanas na programação) — vem de OP_SEMANAS/OP_FAT, mesmo pra meses já realizados
   OP_SEMANAS.forEach(function(p){
-    if(!mesesMap[p.mesNum]) mesesMap[p.mesNum]={nome:p.mesNome, fatTotal:0, real:false};
+    if(!mesesMap[p.mesNum]) mesesMap[p.mesNum]={nome:p.mesNome, fatTotal:0, programado:0, real:false};
     mesesMap[p.mesNum].fatTotal += opGetFatSem(p.id);
+    mesesMap[p.mesNum].programado += opGetFatSem(p.id);
   });
 
-  // Meses mar-ago: faturamento real (OP_FAT_REAL), editável
-  [3,4,5,6,7,8].forEach(function(mes){
-    if(!mesesMap[mes]) mesesMap[mes] = {nome:nomesMes[mes-1], fatTotal:0, real:true};
+  // Meses mar-set: faturamento real (OP_FAT_REAL), editável — não mexe no "programado" já calculado acima
+  [3,4,5,6,7,8,9].forEach(function(mes){
+    if(!mesesMap[mes]) mesesMap[mes] = {nome:nomesMes[mes-1], fatTotal:0, programado:0, real:true};
     mesesMap[mes].fatTotal = OP_FAT_REAL[mes]||0;
     mesesMap[mes].real = true;
   });
@@ -6831,7 +6832,7 @@ function renderOpComparativo(){
   Object.keys(OP_CORTE_DIAS).forEach(function(key){
     var partes = key.split('/');
     var mes = parseInt(partes[1]);
-    if(!mesesMap[mes]) mesesMap[mes] = {nome:nomesMes[mes-1], fatTotal:0, real:mes<=8};
+    if(!mesesMap[mes]) mesesMap[mes] = {nome:nomesMes[mes-1], fatTotal:0, programado:0, real:mes<=9};
     if(!mesesMap[mes].corteTotal) mesesMap[mes].corteTotal=0;
     mesesMap[mes].corteTotal += OP_CORTE_DIAS[key];
   });
@@ -6845,7 +6846,8 @@ function renderOpComparativo(){
     var m = mesesMap[mesNum];
     var cortado = m.corteTotal||0;
     var faturado = m.fatTotal||0;
-    if(cortado===0 && faturado===0) return;
+    var programado = m.programado||0;
+    if(cortado===0 && faturado===0 && programado===0) return;
     temDados = true;
 
     var saldoMes = cortado - faturado;
@@ -6858,14 +6860,19 @@ function renderOpComparativo(){
     var corSaldoAcum = saldoAcumulado>=0?'#3ecf72':'#e05c5c';
     var corCorte = opCorteCor(cortado,24000);
     var corCorteStyle = corCorte==='verde'?'#3ecf72':corCorte==='amarelo'?'#e8c97a':corCorte==='vermelho'?'#e05c5c':'var(--muted)';
-    var corFat = opSemCor(faturado,22000,26000);
-    var corFatStyle = corFat==='verde'?'#3ecf72':corFat==='amarelo'?'#e8c97a':corFat==='vermelho'?'#e05c5c':'var(--muted)';
+    // Cor do faturado: baseada no % do programado (mais é melhor), não em teto de capacidade
+    var pctProgCor = programado>0 ? (faturado/programado*100) : null;
+    var corFatStyle = pctProgCor===null ? 'var(--gold)' : (pctProgCor>=90?'#3ecf72':pctProgCor>=60?'#e8c97a':'#e05c5c');
     var labelFat = m.real ? '💰 Faturado' : '📦 Previsto Fat.';
 
     html += '<div class="op-comp-card" style="min-width:260px">';
     html += '<div class="sem-lbl" style="color:var(--gold);font-weight:700;font-size:.85rem;margin-bottom:10px;">'+m.nome+'</div>';
-    html += '<div class="op-comp-row"><span>✂️ Cortado</span><strong style="color:'+corCorteStyle+'">'+fmtInt(cortado)+'</strong></div>';
-    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wC+'%;background:'+corCorteStyle+'88;"></div></div>';
+    if(programado>0){
+      var pctProg = programado>0 ? (faturado/programado*100) : 0;
+      var corProg = pctProg>=100?'#3ecf72':pctProg>=70?'#e8c97a':'#e05c5c';
+      html += '<div class="op-comp-row"><span>🗓️ Programado</span><strong style="color:var(--gold)">'+fmtInt(programado)+'</strong></div>';
+      html += '<div class="op-comp-row" style="margin-top:2px;"><span style="color:var(--muted);font-size:.72rem">% do programado faturado</span><strong style="color:'+corProg+';font-size:.8rem">'+pctProg.toFixed(1)+'%</strong></div>';
+    }
     html += '<div class="op-comp-row" style="margin-top:6px"><span>'+labelFat+'</span>';
     if(m.real){
       html += '<input type="number" min="0" value="'+(faturado||'')+'" placeholder="0" style="width:70px;text-align:right;color:'+corFatStyle+';background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:2px 4px;font-weight:700" onchange="opSetFatReal('+mesNum+',this.value)" onfocus="this.select()">';
@@ -6874,7 +6881,9 @@ function renderOpComparativo(){
     }
     html += '</div>';
     html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wP+'%;background:'+corFatStyle+'88;"></div></div>';
-    html += '<div class="op-comp-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span>Saldo do mês</span><strong style="color:'+corSaldoMes+'">'+(saldoMes>=0?'+':'')+fmtInt(saldoMes)+'</strong></div>';
+    html += '<div class="op-comp-row" style="margin-top:6px"><span>✂️ Cortado</span><strong style="color:'+corCorteStyle+'">'+fmtInt(cortado)+'</strong></div>';
+    html += '<div class="op-comp-bar-wrap"><div class="op-comp-bar" style="width:'+wC+'%;background:'+corCorteStyle+'88;"></div></div>';
+    html += '<div class="op-comp-row" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;"><span>Saldo do mês <span style="color:var(--muted);font-size:.68rem">(corte x faturado)</span></span><strong style="color:'+corSaldoMes+'">'+(saldoMes>=0?'+':'')+fmtInt(saldoMes)+'</strong></div>';
     html += '<div class="op-comp-row" style="margin-top:4px;"><span style="color:var(--muted);font-size:.72rem">Saldo acumulado</span><strong style="color:'+corSaldoAcum+';font-size:.85rem">'+(saldoAcumulado>=0?'+':'')+fmtInt(saldoAcumulado)+'</strong></div>';
     html += '</div>';
   });
