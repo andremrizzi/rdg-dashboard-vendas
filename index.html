@@ -591,14 +591,16 @@ var HIST_V26={'00032':17894,'00045':14360,'00018':12969,'00037':12144,'00020':11
 var CORES=['#c9a84c','#e8c97a','#a0a0b0','#8b7355','#3ecf72','#60c9e8','#e07060','#9b7fd4','#5ec4a8','#e8a860','#7090d0','#d07090','#90d070','#d0a040','#70c0d0','#c070c0','#a0c060','#c09050','#6080c0','#b06060','#60b080','#a06082','#80a060'];
 
 var dDia=[
-  {cod:'00040',vlr:8033.1,qtde:59,pedidos:1,cliNov:0,cliCompra:1,ticket:136.15},
-  {cod:'00052',vlr:4835.69,qtde:38,pedidos:1,cliNov:1,cliCompra:1,ticket:127.25},
-  {cod:'00032',vlr:1028.3,qtde:7,pedidos:1,cliNov:0,cliCompra:1,ticket:146.90}
+  {cod:'07891',vlr:20907.2,qtde:158,pedidos:3,cliNov:1,cliCompra:3,ticket:132.32},
+  {cod:'07608',vlr:14289.28,qtde:107,pedidos:2,cliNov:1,cliCompra:2,ticket:133.54},
+  {cod:'06693',vlr:8349.7,qtde:93,pedidos:3,cliNov:0,cliCompra:3,ticket:89.78},
+  {cod:'06008',vlr:7892.7,qtde:63,pedidos:1,cliNov:0,cliCompra:1,ticket:125.28},
+  {cod:'00052',vlr:4156.2,qtde:28,pedidos:1,cliNov:0,cliCompra:1,ticket:148.44}
 ];
 var filtroAtual='acumulado';
 var mesAtual=9, semanaAtual=26;
-var DATA_ATUALIZACAO='24/09/2026';
-var DATA_DADOS_ATE='23/09/2026';
+var DATA_ATUALIZACAO='25/09/2026';
+var DATA_DADOS_ATE='24/09/2026';
 var REF_DATA_ATUALIZACAO='21/09/2026';
 var REF_DATA_VENDA_ATE='21/09/2026';
 function renderDatasAtualizacao(){
@@ -7001,9 +7003,11 @@ function mudarSemana(s){
 // DADOS VENDAS
 // ============================================================
 dDia=[
-  {cod:'00040',vlr:8033.1,qtde:59,pedidos:1,cliNov:0,cliCompra:1,ticket:136.15},
-  {cod:'00052',vlr:4835.69,qtde:38,pedidos:1,cliNov:1,cliCompra:1,ticket:127.25},
-  {cod:'00032',vlr:1028.3,qtde:7,pedidos:1,cliNov:0,cliCompra:1,ticket:146.90}
+  {cod:'07891',vlr:20907.2,qtde:158,pedidos:3,cliNov:1,cliCompra:3,ticket:132.32},
+  {cod:'07608',vlr:14289.28,qtde:107,pedidos:2,cliNov:1,cliCompra:2,ticket:133.54},
+  {cod:'06693',vlr:8349.7,qtde:93,pedidos:3,cliNov:0,cliCompra:3,ticket:89.78},
+  {cod:'06008',vlr:7892.7,qtde:63,pedidos:1,cliNov:0,cliCompra:1,ticket:125.28},
+  {cod:'00052',vlr:4156.2,qtde:28,pedidos:1,cliNov:0,cliCompra:1,ticket:148.44}
 ];
 
 dSemDados={
@@ -7405,12 +7409,15 @@ dSemDados={
   ],
   26:[
     {cod:'08092',vlr:26992.8,qtde:222,pedidos:2,cliNov:2,cliCompra:2,ticket:121.59},
+    {cod:'07891',vlr:20907.2,qtde:158,pedidos:3,cliNov:1,cliCompra:3,ticket:132.32},
+    {cod:'00052',vlr:17920.09,qtde:134,pedidos:3,cliNov:1,cliCompra:3,ticket:133.73},
     {cod:'07607',vlr:17079.6,qtde:144,pedidos:2,cliNov:1,cliCompra:2,ticket:118.61},
-    {cod:'00052',vlr:13763.89,qtde:106,pedidos:2,cliNov:1,cliCompra:2,ticket:129.85},
+    {cod:'07608',vlr:14289.28,qtde:107,pedidos:2,cliNov:1,cliCompra:2,ticket:133.54},
     {cod:'07606',vlr:13738.3,qtde:117,pedidos:1,cliNov:0,cliCompra:1,ticket:117.42},
     {cod:'00040',vlr:11183.7,qtde:83,pedidos:2,cliNov:0,cliCompra:2,ticket:134.74},
+    {cod:'06693',vlr:10926.7,qtde:113,pedidos:4,cliNov:0,cliCompra:4,ticket:96.70},
+    {cod:'06008',vlr:7892.7,qtde:63,pedidos:1,cliNov:0,cliCompra:1,ticket:125.28},
     {cod:'07889',vlr:5883.4,qtde:46,pedidos:1,cliNov:0,cliCompra:1,ticket:127.90},
-    {cod:'06693',vlr:2577.0,qtde:20,pedidos:1,cliNov:0,cliCompra:1,ticket:128.85},
     {cod:'00032',vlr:1028.3,qtde:7,pedidos:1,cliNov:0,cliCompra:1,ticket:146.90}
   ]
 };
@@ -7519,18 +7526,18 @@ dMesDados={
     {cod:'07892',vlr:39103.3,qtde:297,pedidos:2,cliNov:2,cliCompra:2,ticket:131.66}
   ],
   9:[
-    {cod:'00052',vlr:282984.39,qtde:2171,pedidos:16,cliNov:2,cliCompra:16,ticket:130.35},
+    {cod:'00052',vlr:287140.59,qtde:2199,pedidos:17,cliNov:2,cliCompra:17,ticket:130.58},
     {cod:'00020',vlr:245340.93,qtde:2069,pedidos:7,cliNov:0,cliCompra:7,ticket:118.58},
     {cod:'07607',vlr:213237.1,qtde:1689,pedidos:15,cliNov:3,cliCompra:15,ticket:126.25},
-    {cod:'06008',vlr:168687.0,qtde:1420,pedidos:12,cliNov:0,cliCompra:12,ticket:118.79},
+    {cod:'06008',vlr:176579.7,qtde:1483,pedidos:13,cliNov:0,cliCompra:13,ticket:119.07},
     {cod:'00018',vlr:158269.51,qtde:1257,pedidos:12,cliNov:1,cliCompra:12,ticket:125.91},
-    {cod:'07891',vlr:115856.49,qtde:930,pedidos:6,cliNov:1,cliCompra:6,ticket:124.58},
+    {cod:'07891',vlr:136763.69,qtde:1088,pedidos:9,cliNov:2,cliCompra:9,ticket:125.70},
+    {cod:'07608',vlr:116334.18,qtde:898,pedidos:8,cliNov:2,cliCompra:8,ticket:129.55},
     {cod:'00032',vlr:112539.11,qtde:911,pedidos:16,cliNov:0,cliCompra:16,ticket:123.53},
     {cod:'07332',vlr:105258.792,qtde:840,pedidos:9,cliNov:1,cliCompra:9,ticket:125.31},
-    {cod:'07608',vlr:102044.9,qtde:791,pedidos:6,cliNov:1,cliCompra:6,ticket:129.01},
     {cod:'00040',vlr:65588.45,qtde:539,pedidos:9,cliNov:0,cliCompra:9,ticket:121.69},
+    {cod:'06693',vlr:59910.7,qtde:513,pedidos:9,cliNov:0,cliCompra:9,ticket:116.78},
     {cod:'07889',vlr:56458.1,qtde:489,pedidos:3,cliNov:1,cliCompra:3,ticket:115.46},
-    {cod:'06693',vlr:51561.0,qtde:420,pedidos:6,cliNov:0,cliCompra:6,ticket:122.76},
     {cod:'00037',vlr:49620.2,qtde:388,pedidos:3,cliNov:0,cliCompra:3,ticket:127.89},
     {cod:'06672',vlr:44951.3,qtde:337,pedidos:4,cliNov:0,cliCompra:4,ticket:133.39},
     {cod:'00045',vlr:40868.5,qtde:315,pedidos:5,cliNov:3,cliCompra:5,ticket:129.74},
@@ -7552,15 +7559,15 @@ dAcum=[
   {cod:'00045',vlr:1924035.215,qtde:15153,pedidos:94,cliNov:15,cliCompra:94,ticket:126.97},
   {cod:'00018',vlr:1624170.918,qtde:13003,pedidos:81,cliNov:18,cliCompra:81,ticket:124.91},
   {cod:'00037',vlr:1607943.5,qtde:12685,pedidos:77,cliNov:11,cliCompra:77,ticket:126.76},
-  {cod:'00052',vlr:1460690.19,qtde:11393,pedidos:59,cliNov:16,cliCompra:59,ticket:128.21},
+  {cod:'00052',vlr:1464846.39,qtde:11421,pedidos:59,cliNov:16,cliCompra:59,ticket:128.26},
   {cod:'06672',vlr:1268892.37,qtde:9912,pedidos:55,cliNov:9,cliCompra:55,ticket:128.02},
   {cod:'07607',vlr:1099665.713,qtde:8774,pedidos:59,cliNov:19,cliCompra:59,ticket:125.33},
   {cod:'00020',vlr:829324.86,qtde:6821,pedidos:34,cliNov:2,cliCompra:34,ticket:121.58},
   {cod:'07606',vlr:824206.3,qtde:6404,pedidos:48,cliNov:15,cliCompra:48,ticket:128.70},
-  {cod:'06008',vlr:796715.465,qtde:6526,pedidos:44,cliNov:1,cliCompra:44,ticket:122.08},
-  {cod:'06693',vlr:786153.885,qtde:6364,pedidos:40,cliNov:7,cliCompra:40,ticket:123.53},
-  {cod:'07891',vlr:722410.775,qtde:5882,pedidos:40,cliNov:17,cliCompra:40,ticket:122.82},
-  {cod:'07608',vlr:513930.045,qtde:3999,pedidos:33,cliNov:7,cliCompra:33,ticket:128.51},
+  {cod:'06008',vlr:804608.165,qtde:6589,pedidos:45,cliNov:1,cliCompra:45,ticket:122.11},
+  {cod:'06693',vlr:796281.585,qtde:6477,pedidos:41,cliNov:7,cliCompra:41,ticket:122.94},
+  {cod:'07891',vlr:743317.975,qtde:6040,pedidos:41,cliNov:18,cliCompra:41,ticket:123.07},
+  {cod:'07608',vlr:528219.325,qtde:4106,pedidos:34,cliNov:8,cliCompra:34,ticket:128.65},
   {cod:'07332',vlr:464613.297,qtde:3670,pedidos:25,cliNov:5,cliCompra:25,ticket:126.60},
   {cod:'00035',vlr:377382.42,qtde:2973,pedidos:24,cliNov:1,cliCompra:24,ticket:126.94},
   {cod:'00040',vlr:353103.45,qtde:2919,pedidos:24,cliNov:3,cliCompra:24,ticket:120.97},
