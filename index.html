@@ -1888,7 +1888,7 @@ function getModelagem(desc) {
   if(d.includes('RETA')) return 'Reta';
   if(d.includes('PLUS SIZE')) return 'Plus Size';
   var fb=desc.replace(/FEM\.|MASC\.|CALCA|CAMISA|COLETE|CASACO|SHORTS|SAIA|BERMUDA|BLUSA|TOP|VESTIDO/gi,'').trim().split(' ').slice(0,3).join(' ').toLowerCase().replace(/(^| )([a-zà-ú])/g,function(m,a,b){return a+b.toUpperCase();});
-  return fb||'Padrão';
+  return fb||(d.includes('BERMUDA')?'Tradicional':'Padrão');
 }
 
 var REGIOES_ATIVAS=new Set(['Sul','Sudeste','Nordeste','Norte','Centro-Oeste']);
