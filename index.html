@@ -3577,7 +3577,67 @@ var COMP_INV26 = [{"cod": "07320", "par": "07320 - 46.090.173 Antonio Marcos Can
 // Inverno 2026 sem rep equivalente em 2027 (informativo)
 var COMP_INV26_SOBRA = [];
 
+
+var COMP_PER_SNAPS = {"1611": {"00032": [5246, 34, 2, "00032 - Emanuel Balzan Silveira"], "00037": [3945, 22, 6, "00037 - Marcio Luis Schons"], "00018": [3292, 27, 2, "00018 - Rafael Novak"], "00045": [2039, 13, 1, "00045 - Svf Representacoes Ltda"], "06693": [2190, 15, 2, "06693 - Jose Pedro Giacomini"], "06672": [1088, 6, 2, "06672 - Jose Danilo S Cruz"], "07606": [918, 7, 5, "07606 - W J De Oliveira Representacoes"], "07520": [433, 4, 0, "07520 - Da Vitoria Representacoes Ltda"], "07608": [375, 2, 0, "07608 - R Perruti Representacoes Ltda"], "00040": [255, 2, 0, "00040 - Luiz V.Apolinario"], "06008": [33, 1, 0, "00049 - Nordeste Do Brasil Representacoes"]}, "3112": {"00032": [7892, 55, 6, "00032 - Emanuel Balzan Silveira"], "00037": [5732, 33, 8, "00037 - Marcio Luis Schons"], "00045": [3725, 25, 4, "00045 - Svf Representacoes Ltda"], "00018": [3471, 29, 3, "00018 - Rafael Novak"], "06693": [2842, 21, 3, "06693 - Jose Pedro Giacomini"], "07606": [1801, 13, 9, "07606 - W J De Oliveira Representacoes"], "06672": [1305, 8, 2, "06672 - Jose Danilo S Cruz"], "07607": [985, 6, 4, "07607 - Multivisao Marketing, Gestao E Consultoria"], "07608": [849, 6, 0, "07608 - R Perruti Representacoes Ltda"], "07520": [666, 7, 3, "07520 - Da Vitoria Representacoes Ltda"], "00052": [498, 3, 0, "00052 - M. C. Ferreira Filho"], "00040": [373, 3, 0, "00040 - Luiz V.Apolinario"], "07890": [182, 1, 0, "00038 - Jose Carlos Pereira De Oliveira Re"], "07741": [110, 1, 1, "07633 - Dl Gestao De Moda Ltda"], "06008": [33, 1, 0, "00049 - Nordeste Do Brasil Representacoes"], "00020": [40, 1, 0, "00020 - Laudemiro De Andrade Moura Junior"]}};
+function renderComparativoPeriodo(){ renderCompPer('comp-periodo-1611','1611'); renderCompPer('comp-periodo-3112','3112'); }
+function renderCompPer(elId,key){
+  var COMP_PER_SNAP=COMP_PER_SNAPS[key];
+  var el=document.getElementById(elId); if(!el) return;
+  var fmtI=function(n){return Math.round(n).toLocaleString('pt-BR');};
+  var fmtN=function(n){return n>0?'+'+fmtI(n):fmtI(n);};
+  var clrN=function(n){return n>0?'#3ecf72':n<0?'#e05c5c':'var(--muted)';};
+  var th='text-align:right;padding:8px 10px';
+  var acumIdx={}; dAcum.forEach(function(r){acumIdx[r.cod]=r;});
+  var rows=[]; var seen={};
+  COMP_INV26.forEach(function(r){ seen[r.cod]=1; rows.push(r.cod); });
+  Object.keys(COMP_PER_SNAP).forEach(function(c){ if(!seen[c]) rows.push(c); });
+  var base={}; COMP_INV26.forEach(function(r){base[r.cod]=r;});
+  var data=rows.map(function(c){
+    var s=COMP_PER_SNAP[c]||[0,0,0,null]; var a=acumIdx[c]||{}; var b=base[c];
+    var semHist=b?(b.cli26===0&&b.pc26===0):false;
+    var par=s[3]?s[3]:(b&&!semHist?b.par:'— sem histórico —');
+    return {cod:c,nome:(REPS[c]||{n:c}).n,par:par,semHist:semHist,pc26:s[0],cli26:s[1],nov26:s[2],pc27:a.qtde||0,cli27:a.cliCompra||0,ab:a.cliNov||0};
+  });
+  data.sort(function(a,b){return b.pc27-a.pc27||b.pc26-a.pc26;});
+  var h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem;">';
+  h+='<thead><tr style="background:var(--bg3);color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;">';
+  h+='<th style="text-align:left;padding:8px 10px">Representante 2027</th>';
+  h+='<th style="text-align:left;padding:8px 10px;color:#888">Par Inverno 2026</th>';
+  h+='<th style="'+th+'">Cli 26</th><th style="'+th+'">Cli 27</th><th style="'+th+'">Δ Cli</th>';
+  h+='<th style="'+th+';color:#6fae5a">🌱 Aberturas 27</th>';
+  h+='<th style="'+th+'">Peças 26</th><th style="'+th+'">Peças 27</th><th style="'+th+'">Δ Peças</th><th style="'+th+'">% do 26</th>';
+  h+='</tr></thead><tbody>';
+  var t={c26:0,c27:0,p26:0,p27:0,ab:0};
+  data.forEach(function(d,i){
+    var dc=d.cli27-d.cli26, dp=d.pc27-d.pc26, pct=d.pc26>0?d.pc27/d.pc26*100:null;
+    var pctCor=pct===null?'var(--muted)':pct>=100?'#3ecf72':pct>=60?'var(--gold)':'#e05c5c';
+    t.c26+=d.cli26;t.c27+=d.cli27;t.p26+=d.pc26;t.p27+=d.pc27;t.ab+=d.ab;
+    var bg=i%2===0?'var(--bg2)':'var(--bg3)';
+    h+='<tr style="background:'+bg+';border-bottom:1px solid var(--border)">';
+    h+='<td style="padding:7px 10px;font-weight:600">'+d.nome+'</td>';
+    h+='<td style="padding:7px 10px;color:var(--muted);font-size:.74rem">'+d.par+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px">'+(d.pc26>0?d.cli26:'—')+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px;font-weight:600">'+d.cli27+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px;font-weight:700;color:'+clrN(dc)+'">'+(d.pc26>0?fmtN(dc):'—')+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px;font-weight:600;color:'+(d.ab>0?'#6fae5a':'var(--muted)')+'">'+(d.ab>0?'+'+d.ab:'—')+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px">'+(d.pc26>0?fmtI(d.pc26):'—')+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px;font-weight:600">'+fmtI(d.pc27)+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px;font-weight:700;color:'+clrN(dp)+'">'+fmtN(dp)+'</td>';
+    h+='<td style="text-align:right;padding:7px 10px;font-weight:700;color:'+pctCor+'">'+(pct===null?(d.semHist?'<span style="color:var(--gold);font-size:.7rem">NOVO</span>':'—'):pct.toFixed(0)+'%')+'</td>';
+    h+='</tr>';
+  });
+  var pT=t.p26>0?t.p27/t.p26*100:null;
+  h+='<tr style="background:var(--bg3);font-weight:700;border-top:2px solid var(--border)">';
+  h+='<td style="padding:8px 10px" colspan="2">TOTAL</td><td style="'+th+'">'+t.c26+'</td><td style="'+th+'">'+t.c27+'</td>';
+  h+='<td style="'+th+';color:'+clrN(t.c27-t.c26)+'">'+fmtN(t.c27-t.c26)+'</td><td style="'+th+';color:#6fae5a">+'+t.ab+'</td>';
+  h+='<td style="'+th+'">'+fmtI(t.p26)+'</td><td style="'+th+'">'+fmtI(t.p27)+'</td><td style="'+th+';color:'+clrN(t.p27-t.p26)+'">'+fmtN(t.p27-t.p26)+'</td>';
+  h+='<td style="'+th+'">'+(pT===null?'—':pT.toFixed(0)+'%')+'</td></tr>';
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+
 function renderComparativoAba(){
+  renderComparativoPeriodo();
   var acumIdx={};
   dAcum.forEach(function(r){acumIdx[r.cod]=r;});
   var fmtI=function(n){return Math.round(n).toLocaleString('pt-BR');};
@@ -3641,7 +3701,7 @@ function renderComparativoAba(){
 </script>
 <!-- ===== COMPARATIVO ===== -->
 <div class="view" id="view-comparativo">
-  <div class="sec">Comparativo Inverno 2027 × Inverno 2026</div>
+  <div class="sec">Comparativo por período — curto prazo (até 16/11)</div><p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Inverno 2027 acumulado até a data dos dados × Inverno 2026 acumulado <b>até 16/11/2025</b>, por representante.</p><div id="comp-periodo-1611" style="margin-bottom:34px"></div><div class="sec">Comparativo por período — até final de dezembro</div><p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Inverno 2027 acumulado até a data dos dados × Inverno 2026 acumulado <b>até 31/12/2025</b>, por representante.</p><div id="comp-periodo-3112" style="margin-bottom:34px"></div><div class="sec">Comparativo Inverno 2027 × Inverno 2026 (coleção inteira)</div>
   <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Compara o acumulado do Inverno 2027 (venda de 13/10/2026 a 26/03/2027) com o <b>total final</b> do Inverno 2026, por representante.</p>
   <div id="comp-table"></div>
 </div>
